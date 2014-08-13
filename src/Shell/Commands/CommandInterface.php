@@ -1,19 +1,89 @@
 <?php namespace Comodojo\Extender\Shell\Commands;
 
+/**
+ * The CommandInterface, base interface that any command should implement
+ *
+ * @package     Comodojo extender
+ * @author      Marco Giovinazzi <info@comodojo.org>
+ * @license     GPL-3.0+
+ *
+ * LICENSE:
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 interface CommandInterface {
 
-	public function setOptions($options);
+    /**
+     * Set options
+     *
+     * @param   array   $options    Provided options (if any)
+     *
+     * @return  Object  $this
+     */
+    public function setOptions($options);
 
-	public function setArgs($args);
+    /**
+     * Set arguments
+     *
+     * @param   array   $args       Provided arguments (if any)
+     *
+     * @return  Object  $this
+     */
+    public function setArguments($args);
 
-	public function setColor($color);
+    /**
+     * Inject Console_Color2 instance
+     *
+     * @param   Object  $color     The Console_Color2 instance
+     *
+     * @return  Object  $this
+     */
+    public function setColor($color);
 
-	public function setTasks($tasks);
+    /**
+     * Set registered tasks
+     *
+     * @param   array   $tasks     Registered tasks
+     *
+     * @return  Object  $this
+     */
+    public function setTasks($tasks);
 
-	public function getOption($option);
+    /**
+     * Get an option
+     *
+     * @param   string  $option    The option to search for
+     *
+     * @return  string
+     */
+    public function getOption($option);
 
-	public function getArg($arg);
+    /**
+     * Get an argument
+     *
+     * @param   string  $arg       The argument to search for
+     *
+     * @return  string
+     */
+    public function getArgument($arg);
 
-	public function exec();
+    /**
+     * Execute command
+     *
+     * @return  string
+     */
+    public function execute();
 
 }

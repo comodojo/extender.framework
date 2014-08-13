@@ -52,6 +52,7 @@ class Extender {
 	 */
 	private $timestamp = null;
 
+	private $events = null;
 
 	private $color = null;
 
@@ -70,6 +71,8 @@ class Extender {
 		date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
 
 		$this->timestamp = microtime(true);
+
+		$this->events = new Events();
 
 		$this->color = new Console_Color2();
 
@@ -93,13 +96,15 @@ class Extender {
 
 		list($this->verbose_mode, $this->summary_mode) = self::getCommandlineOptions();
 
+		$this->logger = new Debug($this->verbose_mode, $this->color);
+
+		$this->events = new Events($this->logger);
+
 		$this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
 
 		$this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 300;
 
 		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
-
-		$this->logger = new Debug($this->verbose_mode, $this->color);
 
 		$this->logger->notice("Extender ready");
 

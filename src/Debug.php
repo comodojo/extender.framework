@@ -30,12 +30,33 @@ use Monolog\Handler\NullHandler;
 
 class Debug {
 
+    /**
+     * Monolog instance
+     *
+     * @var     Object
+     */
     private $logger = null;
 
+    /**
+     * Verbose mode pointer
+     *
+     * @var     bool
+     */
     private $verbose = false;
 
+    /**
+     * Console_Color2 instance
+     *
+     * @var     Object
+     */
     private $color = null;
 
+    /**
+     * Debug class contructor method
+     *
+     * @param   bool    $verbose    Turn on/off verbose mode
+     * @param   Object  $color      Console_Color2 injected object
+     */
     final public function __construct($verbose, $color) {
 
         $enabled = defined('EXTENDER_LOG_ENABLED') ? filter_var(EXTENDER_LOG_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
@@ -67,6 +88,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise an INFO message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function info($message, array $context = array()) {
 
         $log = $this->logger->addInfo($message, $context);
@@ -83,6 +112,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise a NOTICE message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function notice($message, array $context = array()) {
 
         $log = $this->logger->addNotice($message, $context);
@@ -99,6 +136,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise a WARNING message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function warning($message, array $context = array()) {
 
         $log = $this->logger->addWarning($message, $context);
@@ -115,6 +160,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise an ERROR message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function error($message, array $context = array()) {
 
         $log = $this->logger->addError($message, $context);
@@ -131,6 +184,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise a CRITICAL message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function critical($message, array $context = array()) {
 
         $log = $this->logger->addCritical($message, $context);
@@ -147,6 +208,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise an ALERT message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function alert($message, array $context = array()) {
 
         $log = $this->logger->addAlert($message, $context);
@@ -163,6 +232,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise an EMERGENCY message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function emergency($message, array $context = array()) {
 
         $log = $this->logger->addEmergency($message, $context);
@@ -179,6 +256,14 @@ class Debug {
 
     }
 
+    /**
+     * Raise a DEBUG message
+     *
+     * @param   string    $message    Message text
+     * @param   array     $context    (optional) array of included informations
+     *
+     * @return  bool
+     */
     final public function debug($message, array $context = array()) {
 
         $log = $this->logger->addDebug($message, $context);
@@ -196,6 +281,13 @@ class Debug {
     }
 
 
+    /**
+     * Map provided log level to monolog level code
+     *
+     * @param   string    $level    Debug/log level
+     *
+     * @return  integer
+     */
     private function getLevel($level) {
 
         switch (strtoupper($level)) {
