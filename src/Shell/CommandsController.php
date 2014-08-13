@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Shell;
 
 use \Comodojo\Exception\ShellException;
+use \Console_CommandLine;
 
 /**
  * The commands controller
@@ -37,7 +38,7 @@ class CommandsController {
      *
      * @return  Object  $this
      */
-    static final public function addCommands(\Console_CommandLine $parser, array $commands) {
+    static final public function addCommands(Console_CommandLine $parser, array $commands) {
 
         foreach ($commands as $command => $parameters) {
             
@@ -83,7 +84,7 @@ class CommandsController {
      *
      * @return  string
      */
-    static final public function executeCommand($command, $options, $args, $color, $tasks) {
+    static final public function executeCommand($command, $options, $args, $color, \Comodojo\Extender\Task\TasksTable $tasks) {
 
         $command_class = "\\Comodojo\\Extender\\Shell\\Commands\\".$command;
 

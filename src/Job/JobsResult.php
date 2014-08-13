@@ -73,8 +73,8 @@ class JobsResult {
                 'start'  =>  $process[3],
                 'end'    =>  $process[4],
                 'result' =>  $process[5],
-                'id'     =>  $process[6],
-                'uid'    =>  $process[7]
+                'id'     =>  $process[6]//,
+                //'uid'    =>  $process[7]
             ));
 
         }

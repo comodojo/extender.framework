@@ -62,7 +62,7 @@ class Schedule {
 
         if ( empty($name) OR empty($task) OR empty($expression) OR Scheduler::validateExpression($expression) ) return false;
 
-        list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", trim($expression)); = explode(delimiter, string)
+        list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", trim($expression));
 
         array_push($this->schedules, array(
             "name" => $name,
@@ -141,7 +141,7 @@ class Schedule {
      *
      * @return  integer
      */
-    final public function howMany($job) {
+    final public function howMany() {
 
         return sizeof($this->schedules);
 

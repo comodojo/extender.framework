@@ -55,7 +55,7 @@ interface CommandInterface {
     /**
      * Set registered tasks
      *
-     * @param   array   $tasks     Registered tasks
+     * @param   \Comodojo\Extender\Task\TasksTable   $tasks     TaskTable
      *
      * @return  Object  $this
      */

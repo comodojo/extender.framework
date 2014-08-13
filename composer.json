@@ -1,0 +1,40 @@
+{
+    "name": "comodojo/extender.framework",
+    "description": "Comodojo extender framework",
+    "license": "GPL-3.0+",
+    "keywords": [
+        "comodojo",
+        "extender",
+        "framework"
+    ],
+    "homepage": "http://extender.comodojo.org",
+     "support": {
+        "issues": "https://github.com/comodojo/extender.framework/issues"
+    },
+    "authors": [
+        {
+            "name": "Marco Giovinazzi",
+            "email": "info@comodojo.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Comodojo\\Exception\\": "src/Exception",
+            "Comodojo\\Extender\\Job\\": "src/Job",
+            "Comodojo\\Extender\\Scheduler\\": "src/Scheduler",
+            "Comodojo\\Extender\\Shell\\Commands\\": "src/Shell/Commands",
+            "Comodojo\\Extender\\Shell\\": "src/Shell",
+            "Comodojo\\Extender\\Task\\": "src/Task",
+            "Comodojo\\Extender\\": "src"
+         }
+    },
+    "require": {
+        "pear/console_commandline": "dev-trunk",
+        "pear/pear_exception": "dev-trunk",
+        "pear/console_table": "dev-trunk",
+        "pear/console_color2": "dev-trunk",
+        "comodojo/database": "dev-master",
+        "mtdowling/cron-expression": "1.0.*",
+        "monolog/monolog": "1.10.*"
+    }
+}

@@ -46,7 +46,9 @@ class Extender {
 	 *
 	 * @var bool
 	 */
-	private $summary_mode = false;	
+	private $summary_mode = false;
+
+	private $daemon_mode = false;	
 
 	/**
 	 * Timestamp of current execution cycle
@@ -75,17 +77,19 @@ class Extender {
 
 		date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
 
-		$this->timestamp = microtime(true);
-
-		$this->events = new Events();
-
 		$this->color = new Console_Color2();
+
+		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode) = self::getCommandlineOptions();
+
+		$this->logger = new Debug($this->verbose_mode, $this->color);
+
+		$this->events = new Events($this->logger);
 
 		$check_constants = self::checkConstants();
 
 		if ( $check_constants !== true ) {
 
-			self::showError($check_constants, $this->color);
+			$this->logger->critical($check_constants);
 
 			exit(1);
 
@@ -93,21 +97,17 @@ class Extender {
 
 		if ( self::extenderIsRunningFromCli() === false ) {
 
-			self::showError("Extender runs only in php-cli, exiting", $this->color);
+			$this->logger->critical("Extender runs only in php-cli, exiting");
 
 			exit(1);
 
 		}
 
-		list($this->verbose_mode, $this->summary_mode) = self::getCommandlineOptions();
-
-		$this->logger = new Debug($this->verbose_mode, $this->color);
+		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode) = self::getCommandlineOptions();
 
 		$this->tasks = new TasksTable();
 
 		$this->schedule = new Schedule();
-
-		$this->events = new Events($this->logger);
 
 		$this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
 
@@ -116,6 +116,15 @@ class Extender {
 		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
 		$this->logger->notice("Extender ready");
+
+		// change parent process priority according to EXTENDER_NICENESS
+		if ( $this->multithread_mode AND defined("EXTENDER_PARENT_NICENESS") ) {
+
+			$niceness = proc_nice(EXTENDER_PARENT_NICENESS);
+
+			if ( $niceness == false ) $this->logger->warning("Unable to set parent process niceness to ".EXTENDER_PARENT_NICENESS);
+
+		}
 
 		$this->events->fire("extender.ready", "VOID", $this->logger);
 
@@ -203,6 +212,12 @@ class Extender {
 
 	}
 
+	final public function getDaemonMode() {
+
+		return $this->daemon_mode;
+
+	}
+
 	/**
      * Register a task to TasksTable
      *
@@ -248,6 +263,8 @@ class Extender {
 
 	public function extend() {
 
+		$this->timestamp = microtime(true);
+
 		$this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
 
 		try {
@@ -264,13 +281,13 @@ class Extender {
 
 				$this->logger->notice("Extender completed\n");
 
-				exit(0);
+				if ( $this->getDaemonMode() === false ) exit(0);
 
 			}
 
-			$runner = new JobsRunner($this->logger, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
+			$runner = new JobsRunner($this->logger, $this->multithread_mode, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
-			foreach ($this->schedule->getSchedules as $schedule) {
+			foreach ($this->schedule->getSchedules() as $schedule) {
 
 				if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
 
@@ -278,7 +295,7 @@ class Extender {
 
 					$job->setName( $schedule['name'] )
 						->setId( $schedule['id'] )
-						->setParameters( $schedule['parameters'] )
+						->setParameters( $schedule['params'] )
 						->setTask( $schedule['task'] )
 						->setTarget( $this->tasks->getTarget($schedule['task']) )
 						->setClass( $this->tasks->getClass($schedule['task']) );
@@ -305,9 +322,9 @@ class Extender {
 
 		} catch (Exception $e) {
 
-			self::showError($e->getMessage(), $this->color);
+			$this->logger->error($e->getMessage());
 
-			exit(1);
+			if ( $this->getDaemonMode() === false ) exit(1);
 			
 		}
 
@@ -317,7 +334,7 @@ class Extender {
 
 		if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
 
-		exit(0);
+		if ( $this->getDaemonMode() === false ) exit(0);
 
 	}
 
@@ -329,11 +346,12 @@ class Extender {
 
 	private static function getCommandlineOptions() {
 
-		$options = getopt("sv");
+		$options = getopt("svd");
 
 		return array(
 			array_key_exists('v', $options) ? true : false,
-			array_key_exists('s', $options) ? true : false
+			array_key_exists('s', $options) ? true : false,
+			array_key_exists('d', $options) ? true : false
 		);
 
 	}
@@ -382,32 +400,25 @@ class Extender {
 
 		}
 
-		$footer_string .= "\n\nTotal script runtime: ".(microtime(true)-$timestamp)." seconds\r\n";
+		$footer_string = "\n\nTotal script runtime: ".(microtime(true)-$timestamp)." seconds\r\n\n";
 		
 		print $header_string.$tbl->getTable().$footer_string;
 		
 	}
 
-	private static function showError($error, $color) {
-
-		print $color->convert("%rExtender died due to fatal error%n\n");
-
-		print $color->convert("%r".$error."%n\n");
-
-	}
-
 	private static function checkConstants() {
 
-		if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model";
-		if ( !defined("EXTENDER_DATABASE_HOST") ) return "Unknown database host";
-		if ( !defined("EXTENDER_DATABASE_PORT") ) return "Invalid database port";
-		if ( !defined("EXTENDER_DATABASE_NAME") ) return "Invalid database name";
-		if ( !defined("EXTENDER_DATABASE_USER") ) return "Invalid database user";
-		if ( !defined("EXTENDER_DATABASE_PASS") ) return "Invalid database password";
-		if ( !defined("EXTENDER_DATABASE_PREFIX") ) return "Invalid database table prefix";
-		if ( !defined("EXTENDER_DATABASE_TABLE_JOBS") ) return "Invalid database jobs' table prefix";
-		if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table";
-
+		if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
+        if ( !defined("EXTENDER_DATABASE_HOST") ) return "Unknown database host. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_HOST.";
+        if ( !defined("EXTENDER_DATABASE_PORT") ) return "Invalid database port. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PORT.";
+        if ( !defined("EXTENDER_DATABASE_NAME") ) return "Invalid database name. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_NAME.";
+        if ( !defined("EXTENDER_DATABASE_USER") ) return "Invalid database user. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_USER.";
+        if ( !defined("EXTENDER_DATABASE_PASS") ) return "Invalid database password. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PASS.";
+        if ( !defined("EXTENDER_DATABASE_PREFIX") ) return "Invalid database table prefix. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PREFIX.";
+        if ( !defined("EXTENDER_DATABASE_TABLE_JOBS") ) return "Invalid database jobs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_JOBS.";
+        if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_WORKLOGS.";
+        if ( !defined("EXTENDER_TASK_FOLDER") ) return "Invalid tasks' folder. \n\n Please check your extender configuration and define constant: EXTENDER_TASK_FOLDER.";
+		
 		return true;
 
 	}

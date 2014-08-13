@@ -22,9 +22,11 @@ class JobsRunner {
 
 	private $ipc_array = array();
 
-	final public function __construct($logger, $max_result_bytes_in_multithread, $max_childs_runtime) {
+	final public function __construct($logger, $multithread, $max_result_bytes_in_multithread, $max_childs_runtime) {
 
 		$this->logger = $logger;
+
+		$this->multithread = $multithread;
 
 		$this->max_result_bytes_in_multithread = $max_result_bytes_in_multithread;
 
@@ -102,7 +104,7 @@ class JobsRunner {
 
 		}
 
-		if ( $this->multithread ) $this->logger->info("Extender forked ".sizeof($forked)." process(es) in the running queue", $this->forked);
+		if ( $this->multithread ) $this->logger->info("Extender forked ".sizeof($this->forked_processes)." process(es) in the running queue", $this->forked_processes);
 
 		$exec_time = microtime(true);
 
@@ -167,12 +169,12 @@ class JobsRunner {
 
 					$current_time = microtime(true);
 
-					if ($current_time > $exec_time + $this->max_childs_run_time) {
+					if ($current_time > $exec_time + $this->max_childs_runtime) {
 
-						$this->logger->warning("Killing pid ".$pid." due to maximum exec time reached (>".$this->max_childs_run_time.")", array(
+						$this->logger->warning("Killing pid ".$pid." due to maximum exec time reached (>".$this->max_childs_runtime.")", array(
 							"START_TIME"	=> $exec_time,
 							"CURRENT_TIME"	=> $current_time,
-							"MAX_RUNTIME"	=> $this->max_childs_run_time
+							"MAX_RUNTIME"	=> $this->max_childs_runtime
 						));
 
 						$kill = $this->kill($pid);
@@ -191,8 +193,8 @@ class JobsRunner {
 							$job[0],//$job_name,
 							false,
 							$job[2],//$start_timestamp,
-							$t,
-							"Job ".$job[0]." killed due to maximum exec time reached (>".$this->max_childs_run_time.")",
+							$current_time,
+							"Job ".$job[0]." killed due to maximum exec time reached (>".$this->max_childs_runtime.")",
 							$job[3]
 						));
 
@@ -259,7 +261,7 @@ class JobsRunner {
 		$job = $this->jobs[$jobUid];
 
 		// get job start timestamp
-		$start_timestamp = microtime();
+		$start_timestamp = microtime(true);
 
 		$name = $job['name'];
 
@@ -308,7 +310,7 @@ class JobsRunner {
 
 		list($reader,$writer) = $this->ipc_array[$jobUid];
 
-		$pid = @pcntl_fork();
+		$pid = pcntl_fork();
 
 		if( $pid == -1 ) {
 
@@ -338,7 +340,7 @@ class JobsRunner {
 
 				$result = $thetask->start();
 
-				$result = serialize(array(
+				$return = serialize(array(
 					"success"	=>	$result["success"],
 					"result"	=>	$result["result"],
 					"timestamp"	=>	$result["timestamp"]
@@ -347,13 +349,13 @@ class JobsRunner {
 			}
 			catch (Exception $e) {
 
-				$result = serialize(Array(
+				$return = serialize(Array(
 					"success"	=>	false,
 					"result"	=>	$e->getMessage(),
 					"timestamp"	=>	microtime(true)
 				));
 				
-				if ( socket_write($writer, $result, strlen($result)) === false ) {
+				if ( socket_write($writer, $return, strlen($return)) === false ) {
 
 					$this->logger->error("socket_write() failed ", array(
 						"ERROR"	=> socket_strerror(socket_last_error($writer))
@@ -367,7 +369,7 @@ class JobsRunner {
 
 			}
 
-			if ( socket_write($writer, $result, strlen($result)) === false ) {
+			if ( socket_write($writer, $return, strlen($return)) === false ) {
 
 				$this->logger->error("socket_write() failed ", array(
 					"ERROR"	=> socket_strerror(socket_last_error($writer))
@@ -380,6 +382,14 @@ class JobsRunner {
 			exit(0);
 
 		}
+
+		return array(
+			"pid"		=>	$pid == -1 ? null : $pid,
+			"name"		=>	$name,
+			"uid"		=>	$jobUid,
+			"id"		=>	$id,
+			"timestamp"	=>	$start_timestamp
+		);
 
 	}
 

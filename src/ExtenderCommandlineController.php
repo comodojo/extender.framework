@@ -4,6 +4,7 @@ use \Console_CommandLine;
 use \Console_CommandLine_Exception;
 use \Comodojo\Exception\ShellException;
 use \Comodojo\Extender\Shell\CommandsController;
+use \Comodojo\Extender\Task\TasksTable;
 use \Console_Color2;
 use \Exception;
 
@@ -51,7 +52,7 @@ class ExtenderCommandlineController {
      *
      * @var     Object
      */
-    private $tasks = array();
+    private $tasks = null;
 
     /**
      * Array of registered/declared commands
@@ -75,6 +76,8 @@ class ExtenderCommandlineController {
 
         $this->color = new Console_Color2();
 
+        $this->tasks = new TasksTable();
+
     }
 
     /**
@@ -90,28 +93,15 @@ class ExtenderCommandlineController {
      */
     final public function addTask($name, $target, $description, $class=null, $relative=true) {
 
-        if ( empty($name) OR empty($target) ) {
+        if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
 
             echo $this->color->convert("\n%ySkipping task ".$name." due to invalid definition%n\n");
-
-            // $this->logger->warning("Skipping task due to invalid definition", array(
-            //  "NAME"       => $name,
-            //  "TARGET"     => $target,
-            //  "DESCRIPTION"=> $description,
-            //  "RELATIVE"   => $relative
-            // ));
 
             return false;
 
         }
 
-        $this->tasks[$name] = array(
-            "description" => $description,
-            "target"      => $relative ? EXTENDER_TASK_FOLDER.$target : $target,
-            "class"       => empty($class) ? preg_replace('/\\.[^.\\s]{3,4}$/', '', $target) : $class
-        );
-
-        return true;
+        else return true;
 
     }
 

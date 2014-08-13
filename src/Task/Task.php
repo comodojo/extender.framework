@@ -44,7 +44,7 @@ class Task {
 	 * 
 	 * @var	string
 	 */
-	private $name = 'CRONTASK';
+	private $name = 'EXTENDERTASK';
 	
 	/**
 	 * Job class (the one that extend cron_job).
@@ -129,7 +129,7 @@ class Task {
 
 			pcntl_signal(SIGTERM, function() {
 
-				$end = time();
+				$end = microtime(true);
 
 				if ( !is_null($this->worklog_id) ) $this->closeWorklog($this->worklog_id, false, 'Job killed by parent (timeout exceeded)', $end);
 
