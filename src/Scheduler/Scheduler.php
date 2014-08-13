@@ -131,7 +131,7 @@ class Scheduler {
 			
 			$next_calculated_run = self::validateExpression($expression);
 
-			list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", $expression);
+			list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", trim($expression));
 
 			$parameters = serialize($params);
 
@@ -334,7 +334,7 @@ class Scheduler {
 
 	}
 
-	static private function validateExpression($expression) {
+	final static public function validateExpression($expression) {
 
 		try {
 

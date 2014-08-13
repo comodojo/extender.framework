@@ -7,13 +7,13 @@
  *
  * There are only four available events on current extender version;
  *
- * - "extender.ready": fires when extender is ready and brings $logger as parameter; it is the only event that can interact with framework
+ * - "extender.ready": fires when extender is ready and brings $logger as parameter (to extend monolog via plugin)
  *
- * - "extender.tasktable": fires when tasktable is composed; its parameter is the tasktable (array)
+ * - "extender.tasks": fires when tasktable is composed; its parameter is the taskstable
  *
- * - "extender.schedule": fires when job schedule is composed; its parameter is the corrent jobstable (array)
+ * - "extender.schedule": fires when job schedule is composed; its parameter is the current schedule
  *
- * - "extender.result": fires when all scheduled tasks are completed; its parameter is current results (array)
+ * - "extender.result": fires when all scheduled tasks are completed; its parameter is current results (and it cannot be modified)
  *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <info@comodojo.org>
@@ -42,7 +42,7 @@ class Events {
      *
      * @var     array
      */
-    private $hooks = Array();
+    private $hooks = array();
 
     /**
      * Logger, injected by extender
@@ -172,9 +172,13 @@ class Events {
             'EVENT' =>  $event
         ));
 
+        $value = $data;
+
         if ( isset($this->hooks[$event]) ) {
 
             foreach($this->hooks[$event] as $callback) {
+
+                $return_value = null;
 
                 if ( is_array($callback) ) {
 
@@ -182,7 +186,7 @@ class Events {
 
                         try {
 
-                            call_user_func(Array($callback[0], $callback[1]), $value);
+                            $return_value = call_user_func(Array($callback[0], $callback[1]), $value);
 
                         } catch (Exception $e) {
 
@@ -219,7 +223,7 @@ class Events {
 
                         try {
 
-                            call_user_func($callback, $value);
+                            $return_value = call_user_func($callback, $value);
 
                         } catch (Exception $e) {
 
@@ -248,9 +252,36 @@ class Events {
 
                 }
 
+                switch ($type) {
+
+                    case 'TASKSTABLE':
+
+                    $value = $return_value instanceof \Comodojo\Extender\Task\TasksTable ? $return_value : $value;
+
+                    break;
+
+                    case 'SCHEDULE':
+
+                    $value = $return_value instanceof \Comodojo\Extender\Scheduler\Schedule ? $return_value : $value;
+
+                    break;
+
+                    case 'VOID':
+                    default:
+
+                    $value = $value;
+
+                    break;
+
+                }
+
             }
 
+            return $value;
+
         }
+
+        return $data;
 
     }
 

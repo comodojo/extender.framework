@@ -3,9 +3,12 @@
 use \Console_Color2;
 use \Console_Table;
 use \Comodojo\Extender\Scheduler\Scheduler;
+use \Comodojo\Extender\Scheduler\Schedule;
 use \Comodojo\Extender\Job\JobsRunner;
+use \Comodojo\Extender\Job\JobsResult;
 use \Comodojo\Extender\Job\Job;
 use \Comodojo\Extender\Debug;
+use \Comodojo\Extender\Task\TasksTable;
 use \Exception;
 
 class Extender {
@@ -58,7 +61,9 @@ class Extender {
 
 	private $logger = null;
 
-	private $tasks = array();
+	private $tasks = null;
+
+	private $results = null;
 	
 	private $running_processes = array();
 	
@@ -98,6 +103,10 @@ class Extender {
 
 		$this->logger = new Debug($this->verbose_mode, $this->color);
 
+		$this->tasks = new TasksTable();
+
+		$this->schedule = new Schedule();
+
 		$this->events = new Events($this->logger);
 
 		$this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
@@ -107,6 +116,8 @@ class Extender {
 		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
 		$this->logger->notice("Extender ready");
+
+		$this->events->fire("extender.ready", "VOID", $this->logger);
 
 	}
 
@@ -192,9 +203,20 @@ class Extender {
 
 	}
 
-	final public function addTask($name, $target, $description, $class=null, $relative=true) {
+	/**
+     * Register a task to TasksTable
+     *
+     * @param   string    $name         Task name (unique)
+     * @param   string    $target       Target task file
+     * @param   string    $description  A brief description for the task
+     * @param   string    $class        (optional) Task class, if different from file name
+     * @param   bool      $relative     (optional) If relative, a task will be loaded in EXTENDER_TASK_FOLDER
+     *
+     * @return  bool
+     */
+    final public function addTask($name, $target, $description, $class=null, $relative=true) {
 
-		if ( empty($name) OR empty($target) ) {
+		if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
 
 			$this->logger->warning("Skipping task due to invalid definition", array(
 				"NAME"		 =>	$name,
@@ -208,13 +230,7 @@ class Extender {
 
 		}
 
-		$this->tasks[$name] = array(
-			"description" => $description,
-			"target"	  => $relative ? EXTENDER_TASK_FOLDER.$target : $target,
-			"class"		  => empty($class) ? preg_replace('/\\.[^.\\s]{3,4}$/', '', $target) : $class
-		);
-
-		return true;
+		else return true;
 
 	}
 
@@ -232,11 +248,17 @@ class Extender {
 
 	public function extend() {
 
+		$this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
+
 		try {
 		
 			$schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
 
-			if ( empty($schedules) ) {
+			$this->schedule->setSchedules( $schedules );
+
+			$this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
+
+			if ( $this->schedule->howMany() == 0 ) {
 
 				$this->logger->info("No jobs to process right now, exiting");
 
@@ -248,18 +270,18 @@ class Extender {
 
 			$runner = new JobsRunner($this->logger, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
-			foreach ($schedules as $schedule) {
+			foreach ($this->schedule->getSchedules as $schedule) {
 
-				if ( array_key_exists($schedule['task'], $this->tasks) ) {
+				if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
 
 					$job = new Job();
 
-					$job->setName($schedule['name'])
-						->setId($schedule['id'])
-						->setParameters($schedule['parameters'])
-						->setTask($schedule['task'])
-						->setTarget($this->tasks[$schedule['task']]["target"])
-						->setClass($this->tasks[$schedule['task']]["class"]);
+					$job->setName( $schedule['name'] )
+						->setId( $schedule['id'] )
+						->setParameters( $schedule['parameters'] )
+						->setTask( $schedule['task'] )
+						->setTarget( $this->tasks->getTarget($schedule['task']) )
+						->setClass( $this->tasks->getClass($schedule['task']) );
 
 					$runner->addJob($job);
 
@@ -277,6 +299,8 @@ class Extender {
 
 			$result = $runner->run();
 
+			$this->results = new JobsResult($result);
+
 			Scheduler::updateSchedules($this->logger, $result);
 
 		} catch (Exception $e) {
@@ -286,6 +310,8 @@ class Extender {
 			exit(1);
 			
 		}
+
+		$this->events->fire("extender.result", "VOID", $this->results);
 
 		$this->logger->notice("Extender completed\n");
 
