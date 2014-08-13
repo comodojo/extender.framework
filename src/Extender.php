@@ -218,6 +218,18 @@ class Extender {
 
 	}
 
+	/**
+     * Include a plugin
+     *
+     * @param   string  $plugin     The plugin name
+     * @param   string  $folder     (optional) plugin folder (if omitted, dispatcher will use default one)
+     */
+    final public function loadPlugin($plugin, $folder=EXTENDER_PLUGIN_FOLDER) {
+
+        include $folder.$plugin.".php";
+
+    }
+
 	public function extend() {
 
 		try {
