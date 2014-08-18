@@ -4,14 +4,16 @@ use \Console_Color2;
 use \Console_Table;
 use \Comodojo\Extender\Scheduler\Scheduler;
 use \Comodojo\Extender\Scheduler\Schedule;
-use \Comodojo\Extender\Job\JobsRunner;
-use \Comodojo\Extender\Job\JobsResult;
+use \Comodojo\Extender\Runner\JobsRunner;
+use \Comodojo\Extender\Runner\JobsResult;
 use \Comodojo\Extender\Job\Job;
 use \Comodojo\Extender\Debug;
-use \Comodojo\Extender\Task\TasksTable;
+use \Comodojo\Extender\TasksTable;
 use \Exception;
 
 class Extender {
+
+	// configurable things
 
 	/**
 	 * Max result lenght (in bytes) retrieved from parent in miltithread mode
@@ -48,34 +50,113 @@ class Extender {
 	 */
 	private $summary_mode = false;
 
+	/**
+	 * Daemon mode, if requested via command line arg -d
+	 *
+	 * @var bool
+	 */
 	private $daemon_mode = false;	
 
 	/**
-	 * Timestamp of current execution cycle
+	 * Timestamp, relative, of current extend() cycle
 	 *
 	 * @var float
 	 */
 	private $timestamp = null;
 
+	/**
+	 * Timestamp, absolute, sinnce extender was initiated
+	 *
+	 * @var float
+	 */
+	private $timestamp_absolute = null;
+
+	/**
+	 * PID of the parent extender process
+	 *
+	 * @var int
+	 */
+	private $parent_pid = null;
+
+	// Helper classes
+
+	/**
+	 * Events manager instance
+	 *
+	 * @var Object
+	 */
 	private $events = null;
 
+	/**
+	 * Console_Color2 instance
+	 *
+	 * @var Object
+	 */
 	private $color = null;
 
+	/**
+	 * Logger instance
+	 *
+	 * @var Object
+	 */
 	private $logger = null;
 
+	/**
+	 * JobsRunner instance
+	 *
+	 * @var Object
+	 */
+	private $runner = null;
+
+	/**
+	 * TasksTable instance
+	 *
+	 * @var Object
+	 */
 	private $tasks = null;
 
+	/**
+	 * JobsResult instance
+	 *
+	 * @var Object
+	 */
 	private $results = null;
+
+	// checks and locks are static!
 	
-	private $running_processes = array();
+	// local archives
+
+	/**
+	 * Failed processes, refreshed each cycle (in daemon mode)
+	 *
+	 * @var int
+	 */
+	private $failed_processes = 0;
 	
-	private $completed_processes = array();
+	/**
+	 * Completed processes
+	 *
+	 * @var int
+	 */
+	private $completed_processes = 0;
 	
+	/**
+	 * Inter process communication sockets
+	 *
+	 * @var array
+	 */
 	private $ipc_array = array();
 
+	/**
+	 * Constructor method
+	 *
+	 * Prepare extender environment, do checks and fire extender.ready event
+	 */
 	final public function __construct() {
 
 		date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
+
+		$this->timestamp_absolute = microtime(true);
 
 		$this->color = new Console_Color2();
 
@@ -85,7 +166,7 @@ class Extender {
 
 		$this->events = new Events($this->logger);
 
-		$check_constants = self::checkConstants();
+		$check_constants = Checks::constants();
 
 		if ( $check_constants !== true ) {
 
@@ -95,7 +176,7 @@ class Extender {
 
 		}
 
-		if ( self::extenderIsRunningFromCli() === false ) {
+		if ( Checks::cli() === false ) {
 
 			$this->logger->critical("Extender runs only in php-cli, exiting");
 
@@ -103,7 +184,15 @@ class Extender {
 
 		}
 
-		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode) = self::getCommandlineOptions();
+		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
+
+		if ( $help_mode ) {
+
+			self::showHelp($this->color);
+
+			exit(0);
+
+		}
 
 		$this->tasks = new TasksTable();
 
@@ -115,16 +204,21 @@ class Extender {
 
 		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
-		$this->logger->notice("Extender ready");
+		if ( $this->daemon_mode ) {
 
-		// change parent process priority according to EXTENDER_NICENESS
-		if ( $this->multithread_mode AND defined("EXTENDER_PARENT_NICENESS") ) {
+			$this->parent_pid = posix_getpid();
 
-			$niceness = proc_nice(EXTENDER_PARENT_NICENESS);
+			Lock::register($this->parent_pid);
 
-			if ( $niceness == false ) $this->logger->warning("Unable to set parent process niceness to ".EXTENDER_PARENT_NICENESS);
+			$this->adjustNiceness();
+
+			$this->registerSignals();
 
 		}
+
+		$this->runner = new JobsRunner($this->logger, $this->multithread_mode, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
+
+		$this->logger->notice("Extender ready");
 
 		$this->events->fire("extender.ready", "VOID", $this->logger);
 
@@ -208,10 +302,15 @@ class Extender {
 	 */
 	final public function getMultithreadMode() {
 
-		return ( $this->multithread_mode AND self::isMultithreadPossible() ) ? true : false;
+		return ( $this->multithread_mode AND Checks::multithread() ) ? true : false;
 
 	}
 
+	/**
+	 * Get daemon mode status
+	 *
+	 * @return 	bool 	True if enabled, false if disabled
+	 */
 	final public function getDaemonMode() {
 
 		return $this->daemon_mode;
@@ -261,16 +360,22 @@ class Extender {
 
     }
 
+	/**
+	 * Do extend!
+	 *
+	 */
 	public function extend() {
+
+		pcntl_signal_dispatch();
 
 		$this->timestamp = microtime(true);
 
 		$this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
 
 		try {
-		
-			$schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
 
+			$schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
+		
 			$this->schedule->setSchedules( $schedules );
 
 			$this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
@@ -283,9 +388,9 @@ class Extender {
 
 				if ( $this->getDaemonMode() === false ) exit(0);
 
-			}
+				return;
 
-			$runner = new JobsRunner($this->logger, $this->multithread_mode, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
+			}
 
 			foreach ($this->schedule->getSchedules() as $schedule) {
 
@@ -300,7 +405,7 @@ class Extender {
 						->setTarget( $this->tasks->getTarget($schedule['task']) )
 						->setClass( $this->tasks->getClass($schedule['task']) );
 
-					$runner->addJob($job);
+					$this->runner->addJob($job);
 
 				} else {
 
@@ -314,11 +419,21 @@ class Extender {
 
 			}
 
-			$result = $runner->run();
+			$result = $this->runner->run();
+
+			$this->runner->free();
 
 			$this->results = new JobsResult($result);
 
 			Scheduler::updateSchedules($this->logger, $result);
+
+			foreach ($result as $r) {
+				
+				if ( $r[2] ) $this->completed_processes++;
+
+				else $this->failed_processes++;
+
+			}
 
 		} catch (Exception $e) {
 
@@ -338,27 +453,98 @@ class Extender {
 
 	}
 
-	private static function extenderIsRunningFromCli() {
+	/**
+	 * Change parent process priority according to EXTENDER_NICENESS
+	 *
+	 */
+	final public function adjustNiceness() {
 
-		return php_sapi_name() === 'cli';
+		if ( $this->multithread_mode AND defined("EXTENDER_PARENT_NICENESS") ) {
+
+			$niceness = proc_nice(EXTENDER_PARENT_NICENESS);
+
+			if ( $niceness == false ) $this->logger->warning("Unable to set parent process niceness to ".EXTENDER_PARENT_NICENESS);
+
+		}
+
+	}
+
+	/**
+	 * Register signals
+	 *
+	 */
+	final public function registerSignals() {
+
+		pcntl_signal(SIGTERM, array($this,'sigTermHandler'));
+
+		pcntl_signal(SIGINT, array($this,'sigTermHandler'));
+
+		pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
+
+		register_shutdown_function(array($this,'shutdown'));
+
+	}
+
+	/**
+     * Delete $pid file after exit() called
+     *
+     */
+    final public function shutdown() {
+
+		if ( $this->parent_pid == posix_getpid() ) Lock::release();
+
+	}
+
+	final public function sigTermHandler() {
+
+		if ( $this->parent_pid == posix_getpid() ) {
+
+			$this->runner->killAll($this->parent_pid);
+
+			exit(1);
+
+		}
+
+	}
+
+	final public function sigUsr1Handler() {
+
+		if ( $this->parent_pid == posix_getpid() ) Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes);
+
+	}
+
+	private static function showHelp($color) {
+
+		echo Version::getDescription();
+
+		echo "\nVersion: ".$color->convert("%g".Version::getVersion()."%n");
+
+		echo "\n\nAvailable options:";
+
+		echo "\n------------------";
+
+		echo "\n".$color->convert("%g -v %n").": verbose mode, extender will print debug information (use it with daemon mode for testing purpose only!)";
+
+		echo "\n".$color->convert("%g -s %n").": show summary of executed jobs (if any)";
+
+		echo "\n".$color->convert("%g -d %n").": run extender in daemon mode";
+
+		echo "\n".$color->convert("%g -h %n").": show this help";
+
+		echo "\n\n";
 
 	}
 
 	private static function getCommandlineOptions() {
 
-		$options = getopt("svd");
+		$options = getopt("svdh");
 
 		return array(
 			array_key_exists('v', $options) ? true : false,
 			array_key_exists('s', $options) ? true : false,
-			array_key_exists('d', $options) ? true : false
+			array_key_exists('d', $options) ? true : false,
+			array_key_exists('h', $options) ? true : false
 		);
-
-	}
-
-	private static function isMultithreadPossible() {
-
-		return function_exists("pcntl_fork");
 
 	}
 
@@ -404,23 +590,6 @@ class Extender {
 		
 		print $header_string.$tbl->getTable().$footer_string;
 		
-	}
-
-	private static function checkConstants() {
-
-		if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
-        if ( !defined("EXTENDER_DATABASE_HOST") ) return "Unknown database host. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_HOST.";
-        if ( !defined("EXTENDER_DATABASE_PORT") ) return "Invalid database port. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PORT.";
-        if ( !defined("EXTENDER_DATABASE_NAME") ) return "Invalid database name. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_NAME.";
-        if ( !defined("EXTENDER_DATABASE_USER") ) return "Invalid database user. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_USER.";
-        if ( !defined("EXTENDER_DATABASE_PASS") ) return "Invalid database password. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PASS.";
-        if ( !defined("EXTENDER_DATABASE_PREFIX") ) return "Invalid database table prefix. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PREFIX.";
-        if ( !defined("EXTENDER_DATABASE_TABLE_JOBS") ) return "Invalid database jobs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_JOBS.";
-        if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_WORKLOGS.";
-        if ( !defined("EXTENDER_TASK_FOLDER") ) return "Invalid tasks' folder. \n\n Please check your extender configuration and define constant: EXTENDER_TASK_FOLDER.";
-		
-		return true;
-
 	}
 
 }

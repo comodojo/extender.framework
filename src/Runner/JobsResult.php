@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Extender\Job;
+<?php namespace Comodojo\Extender\Runner;
 
 /**
  * Jobs result object

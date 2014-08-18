@@ -123,7 +123,7 @@ class Task {
 
 		if ( filter_var($multithread, FILTER_VALIDATE_BOOLEAN) ) {
 
-			declare(ticks = 1);
+			//declare(ticks = 1);
 
 			//register SIGTERM signal
 

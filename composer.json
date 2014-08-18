@@ -20,15 +20,17 @@
     "autoload": {
         "psr-4": {
             "Comodojo\\Exception\\": "src/Exception",
+            "Comodojo\\Extender\\Command\\": "src/Command",
             "Comodojo\\Extender\\Job\\": "src/Job",
+            "Comodojo\\Extender\\Runner\\": "src/Runner",
             "Comodojo\\Extender\\Scheduler\\": "src/Scheduler",
-            "Comodojo\\Extender\\Shell\\Commands\\": "src/Shell/Commands",
             "Comodojo\\Extender\\Shell\\": "src/Shell",
             "Comodojo\\Extender\\Task\\": "src/Task",
             "Comodojo\\Extender\\": "src"
          }
     },
     "require": {
+        "php": ">=5.3.0",
         "pear/console_commandline": "dev-trunk",
         "pear/pear_exception": "dev-trunk",
         "pear/console_table": "dev-trunk",

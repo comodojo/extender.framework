@@ -3,6 +3,7 @@
 use \Cron\CronExpression;
 use \Comodojo\Exception\DatabaseException;
 use \Comodojo\Database\EnhancedDatabase;
+use \Comodojo\Extender\Cache;
 use \Exception;
 
 class Scheduler {
@@ -87,6 +88,8 @@ class Scheduler {
 
 		unset($db);
 
+		Cache::purge();
+
 	}
 
 	final static public function updateSchedule($name, $lastrun) {
@@ -119,6 +122,8 @@ class Scheduler {
 
 		unset($db);
 
+		Cache::purge();
+
 	}
 
 	final static public function addSchedule($expression, $name, $task, $description=null, $params=array()) {
@@ -129,9 +134,11 @@ class Scheduler {
 
 		try {
 			
-			$next_calculated_run = self::validateExpression($expression);
+			list( $next_calculated_run, $parsed_expression )= self::validateExpression($expression);
 
-			list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", trim($expression));
+			list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
+
+			var_dump($parsed_expression);
 
 			$parameters = serialize($params);
 
@@ -159,6 +166,8 @@ class Scheduler {
 			throw $e;
 
 		}
+
+		Cache::purge();
 
 		return array($result['id'], $next_calculated_run);
 
@@ -192,6 +201,8 @@ class Scheduler {
 
 		if ( $result['affected_rows'] == 0 ) return false;
 
+		Cache::purge();
+
 		return true;
 
 	}
@@ -223,6 +234,8 @@ class Scheduler {
 			throw $e;
 
 		}
+
+		Cache::purge();
 
 		return true;
 
@@ -256,12 +269,18 @@ class Scheduler {
 
 		}
 
+		Cache::purge();
+
 		return true;
 
 	}
 
 	static private function getJobs() {
 		
+		$jobs = Cache::get();
+
+		if ( $jobs !== false ) return $jobs;
+
 		try{
 
 			$db = new EnhancedDatabase(
@@ -292,7 +311,11 @@ class Scheduler {
 		
 		unset($db);
 
-		return $result['data'];
+		$jobs = $result['data'];
+
+		Cache::set($jobs);
+
+		return $jobs;
 		
 	}
 	
@@ -342,6 +365,8 @@ class Scheduler {
 
 			$s = $cron->getNextRunDate()->format('c');
 
+			$e = $cron->getExpression();
+
 		}
 		catch (Exception $e) {
 
@@ -351,7 +376,7 @@ class Scheduler {
 
 		}
 
-		return $s;
+		return array( $s, $e );
 
 	}
 

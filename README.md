@@ -1,4 +1,4 @@
 extender.framework
 ==================
 
-Database driven, multiprocess, pseudo-cron tasks executor
+Database driven, multiprocess, cron tasks executor

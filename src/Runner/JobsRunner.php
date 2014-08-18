@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Extender\Job;
+<?php namespace Comodojo\Extender\Runner;
 
 use \Exception;
 
@@ -78,8 +78,18 @@ class JobsRunner {
 
 	}
 
-	public function run() {
+	final public function free() {
 
+		$this->jobs = array();
+		$this->completed_processes = array();
+		$this->running_processes = array();
+		$this->forked_processes = array();
+		$this->ipc_array = array();
+
+	}
+
+	public function run() {
+		
 		foreach ($this->jobs as $jobUid => $job) {
 			
 			if ( $this->multithread AND sizeof($this->jobs) > 1 ) {
@@ -330,6 +340,8 @@ class JobsRunner {
 
 			//PARENT will take actions on processes later
 
+			$this->adjustNiceness($pid);
+
 		} else {
 			
 			socket_close($reader);
@@ -412,9 +424,36 @@ class JobsRunner {
 
 	}
 
+	public final function killAll($parent_pid) {
+
+		foreach ($this->running_processes as $pid => $process) {
+
+			if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+
+		}
+
+	}
+
 	static private function getJobUid() {
 
 		return md5(uniqid(rand(), true), 0);
+
+	}
+
+
+	/**
+	 * Change child process priority according to EXTENDER_NICENESS
+	 *
+	 */
+	private function adjustNiceness($pid) {
+
+		if ( $this->multithread AND defined("EXTENDER_CHILD_NICENESS") ) {
+
+			$niceness = pcntl_setpriority($pid, EXTENDER_CHILD_NICENESS);
+
+			if ( $niceness == false ) $this->logger->warning("Unable to set child process ".$pid." niceness to ".EXTENDER_CHILD_NICENESS);
+
+		}
 
 	}
 

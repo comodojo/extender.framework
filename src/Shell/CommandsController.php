@@ -84,9 +84,9 @@ class CommandsController {
      *
      * @return  string
      */
-    static final public function executeCommand($command, $options, $args, $color, \Comodojo\Extender\Task\TasksTable $tasks) {
+    static final public function executeCommand($command, $options, $args, $color, \Comodojo\Extender\TasksTable $tasks) {
 
-        $command_class = "\\Comodojo\\Extender\\Shell\\Commands\\".$command;
+        $command_class = "\\Comodojo\\Extender\\Command\\".$command;
 
         try {
             

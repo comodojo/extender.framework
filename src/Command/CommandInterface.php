@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Extender\Shell\Commands;
+<?php namespace Comodojo\Extender\Command;
 
 /**
  * The CommandInterface, base interface that any command should implement

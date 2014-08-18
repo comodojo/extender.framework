@@ -4,7 +4,7 @@ use \Console_CommandLine;
 use \Console_CommandLine_Exception;
 use \Comodojo\Exception\ShellException;
 use \Comodojo\Extender\Shell\CommandsController;
-use \Comodojo\Extender\Task\TasksTable;
+use \Comodojo\Extender\TasksTable;
 use \Console_Color2;
 use \Exception;
 
@@ -31,7 +31,7 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class ExtenderCommandlineController {
+class Econtrol {
 
     /**
      * Console_CommandLine parser instance
@@ -140,11 +140,11 @@ class ExtenderCommandlineController {
 
         try {
 
-            $check_constants = self::checkConstants();
+            $check_constants = Checks::constants();
 
             if ( $check_constants !== true ) throw new ShellException($check_constants);
 
-            if ( self::extenderIsRunningFromCli() === false ) throw new ShellException("Extender Shell runs only in php-cli, exiting.");
+            if ( Checks::cli() === false ) throw new ShellException("Extender Shell runs only in php-cli, exiting.");
 
             $result = $this->parser->parse();
             
@@ -181,39 +181,6 @@ class ExtenderCommandlineController {
         echo "\n".$return."\n\n";
 
         exit(0);
-
-    }
-
-    /**
-     * Check if econtrol is running from cli or not
-     *
-     * @return  bool
-     */
-    private static function extenderIsRunningFromCli() {
-
-        return php_sapi_name() === 'cli';
-
-    }
-
-    /**
-     * Check if minumum required constants are defined
-     *
-     * @return  bool
-     */
-    private static function checkConstants() {
-
-        if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
-        if ( !defined("EXTENDER_DATABASE_HOST") ) return "Unknown database host. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_HOST.";
-        if ( !defined("EXTENDER_DATABASE_PORT") ) return "Invalid database port. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PORT.";
-        if ( !defined("EXTENDER_DATABASE_NAME") ) return "Invalid database name. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_NAME.";
-        if ( !defined("EXTENDER_DATABASE_USER") ) return "Invalid database user. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_USER.";
-        if ( !defined("EXTENDER_DATABASE_PASS") ) return "Invalid database password. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PASS.";
-        if ( !defined("EXTENDER_DATABASE_PREFIX") ) return "Invalid database table prefix. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PREFIX.";
-        if ( !defined("EXTENDER_DATABASE_TABLE_JOBS") ) return "Invalid database jobs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_JOBS.";
-        if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_WORKLOGS.";
-        if ( !defined("EXTENDER_TASK_FOLDER") ) return "Invalid tasks' folder. \n\n Please check your extender configuration and define constant: EXTENDER_TASK_FOLDER.";
-
-        return true;
 
     }
 

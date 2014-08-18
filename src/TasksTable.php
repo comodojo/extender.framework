@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Extender\Task;
+<?php namespace Comodojo\Extender;
 
 /**
  * Tasks table
