@@ -154,17 +154,19 @@ class Extender {
 	 */
 	final public function __construct() {
 
+		// setup default timezone (in daemon mode, timezone warning may break extender)
+
 		date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
 
 		$this->timestamp_absolute = microtime(true);
 
 		$this->color = new Console_Color2();
 
-		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode) = self::getCommandlineOptions();
-
 		$this->logger = new Debug($this->verbose_mode, $this->color);
 
 		$this->events = new Events($this->logger);
+
+		// do checks
 
 		$check_constants = Checks::constants();
 
@@ -184,6 +186,16 @@ class Extender {
 
 		}
 
+		if ( Checks::database() === false ) {
+
+			$this->logger->critical("Extender database not reachable, exiting");
+
+			exit(1);
+
+		}
+
+		// get command line options (vsdh)
+
 		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
 
 		if ( $help_mode ) {
@@ -198,11 +210,15 @@ class Extender {
 
 		$this->schedule = new Schedule();
 
+		// setup extender parameters
+
 		$this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
 
 		$this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 300;
 
 		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
+
+		// if in daemon mode, remember parent pid, setup lock and register signal handlers
 
 		if ( $this->daemon_mode ) {
 
@@ -216,11 +232,17 @@ class Extender {
 
 		}
 
+		// init the runner
+
 		$this->runner = new JobsRunner($this->logger, $this->multithread_mode, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
 		$this->logger->notice("Extender ready");
 
+		// fire extender ready event
+
 		$this->events->fire("extender.ready", "VOID", $this->logger);
+
+		// we are ready to go!
 
 	}
 

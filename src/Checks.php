@@ -1,5 +1,8 @@
 <?php namespace Comodojo\Extender;
 
+use Comodojo\Exception\DatabaseException;
+use Comodojo\Database\Database;
+
 /**
  * Do checks
  *
@@ -38,7 +41,6 @@ class Checks {
         if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_WORKLOGS.";
         if ( !defined("EXTENDER_TASK_FOLDER") ) return "Invalid tasks folder. \n\n Please check your extender configuration and define constant: EXTENDER_TASK_FOLDER.";
         if ( !defined("EXTENDER_CACHE_FOLDER") ) return "Invalid cache folder. \n\n Please check your extender configuration and define constant: EXTENDER_CACHE_FOLDER.";
-        //if ( !defined("EXTENDER_CACHE_TTL") ) return "Invalid cache folder. \n\n Please check your extender configuration and define constant: EXTENDER_CACHE_FOLDER.";
         
         return true;
 
@@ -53,6 +55,34 @@ class Checks {
     static final public function multithread() {
 
         return function_exists("pcntl_fork");
+
+    }
+
+    static final public function database() {
+
+        try{
+
+            $db = new Database(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
+
+        }
+        catch (DatabaseException $de) {
+
+            unset($db);
+
+            return false;
+
+        }
+
+        unset($db);
+
+        return true;
 
     }
 
