@@ -50,4 +50,21 @@ class Status {
 
     }
 
+    /**
+     * Remove the status file
+     *
+     * @return  bool
+     */
+    static final public function release() {
+
+        $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
+
+        if ( file_exists($statusfile) ) $status = unlink($statusfile);
+        
+        else $status = false;
+        
+        return $status;
+
+    }
+
 }

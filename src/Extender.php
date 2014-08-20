@@ -562,7 +562,13 @@ class Extender {
      */
     final public function shutdown() {
 
-		if ( $this->parent_pid == posix_getpid() ) Lock::release();
+		if ( $this->parent_pid == posix_getpid() ) {
+
+			Lock::release();
+
+			Status::release();
+
+		}
 
 	}
 
