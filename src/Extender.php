@@ -185,6 +185,18 @@ class Extender {
 
 		$this->color = new Console_Color2();
 
+		// get command line options (vsdh)
+
+		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
+
+		if ( $help_mode ) {
+
+			self::showHelp($this->color);
+
+			exit(0);
+
+		}
+
 		$this->logger = new Debug($this->verbose_mode, $this->color);
 
 		$this->events = new Events($this->logger);
@@ -214,18 +226,6 @@ class Extender {
 			$this->logger->critical("Extender database not reachable, exiting");
 
 			exit(1);
-
-		}
-
-		// get command line options (vsdh)
-
-		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
-
-		if ( $help_mode ) {
-
-			self::showHelp($this->color);
-
-			exit(0);
 
 		}
 
