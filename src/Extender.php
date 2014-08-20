@@ -11,6 +11,29 @@ use \Comodojo\Extender\Debug;
 use \Comodojo\Extender\TasksTable;
 use \Exception;
 
+/**
+ * Extender main class
+ *
+ * @package     Comodojo extender
+ * @author      Marco Giovinazzi <info@comodojo.org>
+ * @license     GPL-3.0+
+ *
+ * LICENSE:
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 class Extender {
 
 	// configurable things
@@ -388,19 +411,29 @@ class Extender {
 	 */
 	public function extend() {
 
-		pcntl_signal_dispatch();
+		// dispatch signals (if multithread active)
+
+		if ( $this->multithread_mode ) pcntl_signal_dispatch();
+
+		// fix relative timestamp
 
 		$this->timestamp = microtime(true);
+
+		// fire tasktable event
 
 		$this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
 
 		try {
+
+			// get schedules and dispatch schedule event
 
 			$schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
 		
 			$this->schedule->setSchedules( $schedules );
 
 			$this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
+
+			// if no jobs in queue, exit gracefully
 
 			if ( $this->schedule->howMany() == 0 ) {
 
@@ -413,6 +446,8 @@ class Extender {
 				return;
 
 			}
+
+			// compose jobs
 
 			foreach ($this->schedule->getSchedules() as $schedule) {
 
@@ -441,13 +476,23 @@ class Extender {
 
 			}
 
+			// lauch runner
+
 			$result = $this->runner->run();
+
+			// free runner for next cycle
 
 			$this->runner->free();
 
+			// compose results
+
 			$this->results = new JobsResult($result);
 
+			// update schedules
+
 			Scheduler::updateSchedules($this->logger, $result);
+
+			// increment counters
 
 			foreach ($result as $r) {
 				
@@ -465,9 +510,13 @@ class Extender {
 			
 		}
 
+		// fire result event
+
 		$this->events->fire("extender.result", "VOID", $this->results);
 
 		$this->logger->notice("Extender completed\n");
+
+		// show summary (if -s)
 
 		if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
 

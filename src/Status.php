@@ -32,6 +32,7 @@ class Status {
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
         $data = array(
+        	"STARTED"   =>  $timestamp_absolute,
 			"TIME"		=>	microtime(true) - $timestamp_absolute,
 			"PARENTPID" =>	$parent_pid,
 			"COMPLETED" =>	$completed_processes,

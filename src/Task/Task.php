@@ -36,297 +36,297 @@ use \Comodojo\Database\EnhancedDatabase;
  */
 
 class Task {
-    	
-	// Things a task may modify
+        
+    // Things a task may modify
 
-	/**
-	 * The job name
-	 * 
-	 * @var	string
-	 */
-	private $name = 'EXTENDERTASK';
-	
-	/**
-	 * Job class (the one that extend cron_job).
-	 * 
-	 * @var	string
-	 */
-	private $class = null;
+    /**
+     * The job name
+     * 
+     * @var string
+     */
+    private $name = 'EXTENDERTASK';
+    
+    /**
+     * Job class (the one that extend cron_job).
+     * 
+     * @var string
+     */
+    private $class = null;
 
-	/**
-	 * Start timestamp
-	 * 
-	 * @var	int
-	 */
-	private $start_timestamp = null;
-	
-	/**
-	 * End timestamp
-	 * 
-	 * @var	int
-	 */
-	private $end_timestamp = null;
-	
-	/**
-	 * Current process PID
-	 */
-	private $pid = null;
-	
-	/**
-	 * The job result (if any)
-	 */
-	private $job_result = null;
-	
-	/**
-	 * The job end state
-	 */
-	private $job_success = false;
-	
-	/**
-	 * Worklog ID
-	 */
-	private $worklog_id = null;
-	
-	/**
-	 * Parameters that extender may provide
-	 */
-	private $parameters = array();
-	
-	/**
-	 * Task constructor.
-	 * 
-	 * @param	array	$parameters		Array of parameters (if any)
-	 * @param	int		$pid			Task PID (if any)
-	 * @param	string	$name			Task Name
-	 * @param	int		$timestamp		Start timestamp (if null will be retrieved directly)
-	 * @param	bool	$multithread	Multithread switch
-	 * 
-	 * @return	Object	$this 
-	 */
-	final public function __construct($parameters, $pid=null, $name=null, $timestamp=null, $multithread=null) {
-		
-		// Setup task
+    /**
+     * Start timestamp
+     * 
+     * @var int
+     */
+    private $start_timestamp = null;
+    
+    /**
+     * End timestamp
+     * 
+     * @var int
+     */
+    private $end_timestamp = null;
+    
+    /**
+     * Current process PID
+     */
+    private $pid = null;
+    
+    /**
+     * The job result (if any)
+     */
+    private $job_result = null;
+    
+    /**
+     * The job end state
+     */
+    private $job_success = false;
+    
+    /**
+     * Worklog ID
+     */
+    private $worklog_id = null;
+    
+    /**
+     * Parameters that extender may provide
+     */
+    private $parameters = array();
+    
+    /**
+     * Task constructor.
+     * 
+     * @param   array   $parameters     Array of parameters (if any)
+     * @param   int     $pid            Task PID (if any)
+     * @param   string  $name           Task Name
+     * @param   int     $timestamp      Start timestamp (if null will be retrieved directly)
+     * @param   bool    $multithread    Multithread switch
+     * 
+     * @return  Object  $this 
+     */
+    final public function __construct($parameters, $pid=null, $name=null, $timestamp=null, $multithread=null) {
+        
+        // Setup task
 
-		if ( !empty($parameters) ) $this->parameters = $parameters;
-		
-		if ( !is_null($name) ) $this->name = $name;
-		
-		$this->pid = is_null($pid) ? getmypid() : $pid;
+        if ( !empty($parameters) ) $this->parameters = $parameters;
+        
+        if ( !is_null($name) ) $this->name = $name;
+        
+        $this->pid = is_null($pid) ? getmypid() : $pid;
 
-		$this->start_timestamp = is_null($timestamp) ? microtime(true) : $timestamp;
+        $this->start_timestamp = is_null($timestamp) ? microtime(true) : $timestamp;
 
-		$this->class = get_class($this);
+        $this->class = get_class($this);
 
-		// $this->logger = new Logger($name);
+        // $this->logger = new Logger($name);
 
-		// Setup an exit strategy if multithread enabled (parent may kill child process if timeout exceeded)
+        // Setup an exit strategy if multithread enabled (parent may kill child process if timeout exceeded)
 
-		if ( filter_var($multithread, FILTER_VALIDATE_BOOLEAN) ) {
+        if ( filter_var($multithread, FILTER_VALIDATE_BOOLEAN) ) {
 
-			//declare(ticks = 1);
+            //declare(ticks = 1);
 
-			//register SIGTERM signal
+            //register SIGTERM signal
 
-			pcntl_signal(SIGTERM, function() {
+            pcntl_signal(SIGTERM, function() {
 
-				$end = microtime(true);
+                $end = microtime(true);
 
-				if ( !is_null($this->worklog_id) ) $this->closeWorklog($this->worklog_id, false, 'Job killed by parent (timeout exceeded)', $end);
+                if ( !is_null($this->worklog_id) ) $this->closeWorklog($this->worklog_id, false, 'Job killed by parent (timeout exceeded)', $end);
 
-				exit(1);
+                exit(1);
 
-			});
+            });
 
-		}
+        }
 
-		// $this->log_level = $this->getLogLevel(EXTENDER_LOG_LEVEL);
+        // $this->log_level = $this->getLogLevel(EXTENDER_LOG_LEVEL);
 
-		// if ( filter_var($log, FILTER_VALIDATE_BOOLEAN) OR (EXTENDER_LOG_ENABLED AND EXTENDER_LOG_TASKS) ) {
+        // if ( filter_var($log, FILTER_VALIDATE_BOOLEAN) OR (EXTENDER_LOG_ENABLED AND EXTENDER_LOG_TASKS) ) {
 
-		// 	$target = EXTENDER_LOG_FOLDER.$this->pid.'-'.$this->class.'.log';
+        //  $target = EXTENDER_LOG_FOLDER.$this->pid.'-'.$this->class.'.log';
 
-		// 	$handler = new StreamHandler($target, $level);
+        //  $handler = new StreamHandler($target, $level);
 
-		// } else {
+        // } else {
 
-		// 	$handler = new NullHandler($level);
+        //  $handler = new NullHandler($level);
 
-		// }
+        // }
 
-		// $this->logger->pushHandler($handler);
+        // $this->logger->pushHandler($handler);
 
-	}
+    }
 
-	final public function getParameters() {
+    final public function getParameters() {
 
-		return $this->parameters;
+        return $this->parameters;
 
-	}
+    }
 
-	final public function getParameter($parameter) {
+    final public function getParameter($parameter) {
 
-		if ( array_key_exists($parameter, $this->parameters) ) return $this->parameters[$parameter];
+        if ( array_key_exists($parameter, $this->parameters) ) return $this->parameters[$parameter];
 
-		else return null;
+        else return null;
 
-	}
+    }
 
-	/**
+    /**
      * Return PID from system (null if no multi-thread active)
      * 
      * @return int
      */
-	final public function getPid() {
+    final public function getPid() {
 
-		return $this->pid;
+        return $this->pid;
 
-	}
+    }
 
-	/**
-	 * Start task!
-	 * 
-	 * @return	array
-	 */
-	final public function start() {
+    /**
+     * Start task!
+     * 
+     * @return  array
+     */
+    final public function start() {
 
-		try{
+        try{
 
-			$job_run_info = $this->execTask();
+            $job_run_info = $this->execTask();
 
-		}
-		catch (Exception $e) {
+        }
+        catch (Exception $e) {
 
-			throw new TaskException($e->getMessage(), $e->getCode());
-			
-		}
+            throw new TaskException($e->getMessage(), $e->getCode());
+            
+        }
 
-		return $job_run_info;
+        return $job_run_info;
 
-	} 
-	
-	/**
-	 * Execute task.
-	 *
-	 * This method provides to:
-	 * - setup worklog
-	 * - invoke method "run", that should be defined in task implementation
-	 */
-	private function execTask() {
+    } 
+    
+    /**
+     * Execute task.
+     *
+     * This method provides to:
+     * - setup worklog
+     * - invoke method "run", that should be defined in task implementation
+     */
+    private function execTask() {
 
-		try{
+        try{
 
-			// open worklog
+            // open worklog
 
-			$this->worklog_id = self::createWorklog($this->pid, $this->name, $this->class, $this->start_timestamp);
+            $this->worklog_id = self::createWorklog($this->pid, $this->name, $this->class, $this->start_timestamp);
 
-			$this->result = $this->run();
+            $this->result = $this->run();
 
-			$this->end_timestamp = microtime(true);
+            $this->end_timestamp = microtime(true);
 
-			self::closeWorklog($this->worklog_id, true, $this->result, $this->end_timestamp);
+            self::closeWorklog($this->worklog_id, true, $this->result, $this->end_timestamp);
 
-		}
-		catch (Exception $e) {
+        }
+        catch (Exception $e) {
 
-			$this->result = $e->getMessage();
+            $this->result = $e->getMessage();
 
-			if ( !is_null($this->worklog_id) ) {
+            if ( !is_null($this->worklog_id) ) {
 
-				if ( is_null($this->end_timestamp) ) $this->end_timestamp = microtime(true);
+                if ( is_null($this->end_timestamp) ) $this->end_timestamp = microtime(true);
 
-				self::closeWorklog($this->worklog_id, false, $this->result, $this->end_timestamp);
+                self::closeWorklog($this->worklog_id, false, $this->result, $this->end_timestamp);
 
-			}
+            }
 
-			throw $e;
+            throw $e;
 
-		}
+        }
 
-		return Array(
-			"success"	=>	true,
-			"timestamp"	=>	$this->end_timestamp,
-			"result"	=>	$this->result
-		);
+        return Array(
+            "success"   =>  true,
+            "timestamp" =>  $this->end_timestamp,
+            "result"    =>  $this->result
+        );
 
-	}
+    }
 
-	public function run() {
+    public function run() {
 
-		return;
+        return;
 
-	}
+    }
 
-	/**
-	 * Create the worklog for current job
-	 */
-	static private function createWorklog($pid, $name, $class, $start_timestamp) {
-		
-		try{
+    /**
+     * Create the worklog for current job
+     */
+    static private function createWorklog($pid, $name, $class, $start_timestamp) {
+        
+        try{
 
-			$db = new EnhancedDatabase(
-				EXTENDER_DATABASE_MODEL,
-				EXTENDER_DATABASE_HOST,
-				EXTENDER_DATABASE_PORT,
-				EXTENDER_DATABASE_NAME,
-				EXTENDER_DATABASE_USER,
-				EXTENDER_DATABASE_PASS
-			);
+            $db = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
 
-			$w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
-				->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
-				->keys(array("pid","name","task","status","start"))
-				->values(array($pid, $name, $class, 'STARTED', $start_timestamp))
-				->store();
+            $w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+                ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
+                ->keys(array("pid","name","task","status","start"))
+                ->values(array($pid, $name, $class, 'STARTED', $start_timestamp))
+                ->store();
 
-		}
-		catch (DatabaseException $de) {
-			
-			unset($db);
+        }
+        catch (DatabaseException $de) {
+            
+            unset($db);
 
-			throw $de;
+            throw $de;
 
-		}
-		
-		unset($db);
+        }
+        
+        unset($db);
 
-		return $w_result['id'];
-			
-	}
-	
-	/**
-	 * Close worklog for current job
-	 */
-	static private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
-		
-		try{
-			
-			$db = new EnhancedDatabase(
-				EXTENDER_DATABASE_MODEL,
-				EXTENDER_DATABASE_HOST,
-				EXTENDER_DATABASE_PORT,
-				EXTENDER_DATABASE_NAME,
-				EXTENDER_DATABASE_USER,
-				EXTENDER_DATABASE_PASS
-			);
+        return $w_result['id'];
+            
+    }
+    
+    /**
+     * Close worklog for current job
+     */
+    static private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
+        
+        try{
+            
+            $db = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
 
-			$w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
-				->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
-				->keys(array("status", "success", "result", "end"))
-				->values(array("FINISHED", $success, $result, $end_timestamp))
-				->where( "id", "=", $worklog_id )
-				->update();
+            $w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+                ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
+                ->keys(array("status", "success", "result", "end"))
+                ->values(array("FINISHED", $success, $result, $end_timestamp))
+                ->where( "id", "=", $worklog_id )
+                ->update();
 
-		}
-		catch (DatabaseException $de) {
-			
-			unset($db);
-			
-			throw $de;
+        }
+        catch (DatabaseException $de) {
+            
+            unset($db);
+            
+            throw $de;
 
-		}
-		
-		unset($db);
-		
-	}
+        }
+        
+        unset($db);
+        
+    }
     
 }

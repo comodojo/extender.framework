@@ -2,98 +2,98 @@
 
 class Job {
 
-	private $name = null;
+    private $name = null;
 
-	private $id = null;
+    private $id = null;
 
-	private $parameters = array();
+    private $parameters = array();
 
-	private $task = null;
+    private $task = null;
 
-	private $class = null;
+    private $class = null;
 
-	final public function setName($name) {
+    final public function setName($name) {
 
-		$this->name = $name;
+        $this->name = $name;
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getName() {
-		
-		return $this->name;
+    final public function getName() {
+        
+        return $this->name;
 
-	}
+    }
 
-	final public function setId($id) {
+    final public function setId($id) {
 
-		$this->id = $id;
+        $this->id = $id;
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getId() {
+    final public function getId() {
 
-		return $this->id;
-		
-	}
+        return $this->id;
+        
+    }
 
-	final public function setParameters($parameters) {
+    final public function setParameters($parameters) {
 
-		$this->parameters = is_array($parameters) ? $parameters : array();
+        $this->parameters = is_array($parameters) ? $parameters : array();
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getParameters() {
-		
-		return $this->parameters;
+    final public function getParameters() {
+        
+        return $this->parameters;
 
-	}
+    }
 
-	final public function setTask($task) {
+    final public function setTask($task) {
 
-		$this->task = $task;
+        $this->task = $task;
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getTask() {
-		
-		return $this->task;
+    final public function getTask() {
+        
+        return $this->task;
 
-	}
+    }
 
-	final public function setTarget($target) {
+    final public function setTarget($target) {
 
-		$this->target = $target;
+        $this->target = $target;
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getTarget() {
-		
-		return $this->target;
+    final public function getTarget() {
+        
+        return $this->target;
 
-	}
+    }
 
-	final public function setClass($class) {
+    final public function setClass($class) {
 
-		$this->class = $class;
+        $this->class = $class;
 
-		return $this;
+        return $this;
 
-	}
+    }
 
-	final public function getClass() {
-		
-		return $this->class;
+    final public function getClass() {
+        
+        return $this->class;
 
-	}
-	
+    }
+    
 }
