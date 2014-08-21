@@ -457,7 +457,7 @@ class Extender {
 
 					$job->setName( $schedule['name'] )
 						->setId( $schedule['id'] )
-						->setParameters( $schedule['params'] )
+						->setParameters( unserialize($schedule['params']) )
 						->setTask( $schedule['task'] )
 						->setTarget( $this->tasks->getTarget($schedule['task']) )
 						->setClass( $this->tasks->getClass($schedule['task']) );

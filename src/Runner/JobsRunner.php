@@ -190,7 +190,7 @@ class JobsRunner {
                             $job[3]
                         ));
 
-                        $status = 'SUCCESS';
+                        $status = $result["success"] ? 'SUCCESS' : 'ERROR';
 
                     }
                     
