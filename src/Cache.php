@@ -57,7 +57,9 @@ class Cache {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
 
-        return unlink($cachefile);
+        if ( file_exists($cachefile) ) return unlink($cachefile);
+        
+        return true;
 
     }
 

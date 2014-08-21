@@ -188,11 +188,9 @@ class Scheduler {
 
         try {
             
-            list( $next_calculated_run, $parsed_expression )= self::validateExpression($expression);
+            list( $next_calculated_run, $parsed_expression ) = self::validateExpression($expression);
 
             list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
-
-            var_dump($parsed_expression);
 
             $parameters = serialize($params);
 
@@ -291,7 +289,7 @@ class Scheduler {
 
         Cache::purge();
 
-        return true;
+        return $result["affected_rows"] == 1 ? true : false;
 
     }
 
@@ -325,7 +323,7 @@ class Scheduler {
 
         Cache::purge();
 
-        return true;
+        return $result["affected_rows"] == 1 ? true : false;
 
     }
 
@@ -339,16 +337,22 @@ class Scheduler {
 
             $e = $cron->getExpression();
 
+            $e_array = preg_split('/\s/', $e, -1, PREG_SPLIT_NO_EMPTY);
+
+            $e_count = count($e_array);
+
+            if ( $e_count < 5 OR $e_count > 6 ) throw new Exception($e." is not a valid cron expression");
+
+            if ( $e_count == 5 ) $e_array[] = "*";
+
         }
         catch (Exception $e) {
 
             throw $e;
 
-            // throw new Exception("Invalid cron expression");
-
         }
 
-        return array( $s, $e );
+        return array( $s, $e_array );
 
     }
 
