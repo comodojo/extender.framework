@@ -251,13 +251,13 @@ class Extender {
 
 			$this->adjustNiceness();
 
-			$this->registerSignals();
+			if ( $this->getMultithreadMode() ) $this->registerSignals();
 
 		}
 
 		// init the runner
 
-		$this->runner = new JobsRunner($this->logger, $this->multithread_mode, $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
+		$this->runner = new JobsRunner($this->logger, $this->getMultithreadMode(), $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
 		$this->logger->notice("Extender ready");
 
@@ -413,7 +413,7 @@ class Extender {
 
 		// dispatch signals (if multithread active)
 
-		if ( $this->multithread_mode ) pcntl_signal_dispatch();
+		if ( $this->getMultithreadMode() ) pcntl_signal_dispatch();
 
 		// fix relative timestamp
 

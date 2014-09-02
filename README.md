@@ -1,4 +1,4 @@
 extender.framework
 ==================
 
-Database driven, multiprocess, cron tasks executor
+Database driven, multiprocess PHP cron tasks scheduler
