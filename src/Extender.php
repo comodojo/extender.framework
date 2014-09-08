@@ -221,9 +221,17 @@ class Extender {
 
         }
 
+        if ( Checks::signals() === false AND $this->daemon_mode ) {
+
+            $this->logger->critical("Extender cannot run in daemon mode without PHP Process Control Extensions");
+
+            exit(1);
+
+        }
+
         if ( Checks::database() === false ) {
 
-            $this->logger->critical("Extender database not reachable, exiting");
+            $this->logger->critical("Extender database not available, exiting");
 
             exit(1);
 
