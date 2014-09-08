@@ -50,7 +50,8 @@ class TasksTable {
         $this->tasks[$name] = array(
             "description" => $description,
             "target"      => $relative ? EXTENDER_TASK_FOLDER.$target : $target,
-            "class"       => empty($class) ? preg_replace('/\\.[^.\\s]{3,4}$/', '', $target) : $class
+            "class"       => empty($class) ? preg_replace('/^.*\/(.+)\..*$/', '$1', $target) : $class
+
         );
 
         return true;

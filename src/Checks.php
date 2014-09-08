@@ -4,7 +4,7 @@ use Comodojo\Exception\DatabaseException;
 use Comodojo\Database\Database;
 
 /**
- * Do checks
+ * Framework wide checks
  *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <info@comodojo.org>
@@ -28,6 +28,11 @@ use Comodojo\Database\Database;
 
 class Checks {
     
+    /**
+     * Check for required configuration constants
+     *
+     * @return  mixed   Boolean true in case of success, string with error message otherwise
+     */
     static final public function constants() {
 
         if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
@@ -46,18 +51,44 @@ class Checks {
 
     }
 
+    /**
+     * Check if script is running from command line
+     *
+     * @return  bool
+     */
     static final public function cli() {
 
         return php_sapi_name() === 'cli';
 
     }
 
+    /**
+     * Check if php interpreter supports pcntl_fork (required in multithread mode)
+     *
+     * @return  bool
+     */
     static final public function multithread() {
 
         return function_exists("pcntl_fork");
 
     }
 
+    /**
+     * Check if php interpreter supports pcntl signal handlers
+     *
+     * @return  bool
+     */
+    static final public function signals() {
+
+        return function_exists("pcntl_signal");
+
+    }
+
+    /**
+     * Check if database is available and initialized correctly
+     *
+     * @return  bool
+     */
     static final public function database() {
 
         try{
@@ -70,6 +101,8 @@ class Checks {
                 EXTENDER_DATABASE_USER,
                 EXTENDER_DATABASE_PASS
             );
+
+            $db->tablePrefix(EXTENDER_DATABASE_PREFIX)->table(EXTENDER_DATABASE_TABLE_JOBS)->keys("*")->get(1);
 
         }
         catch (DatabaseException $de) {

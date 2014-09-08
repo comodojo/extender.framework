@@ -1,7 +1,7 @@
 <?php namespace Comodojo\Extender;
 
 /**
- * Version information class
+ * Small cache utility class, just to cache jobs' table
  *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <info@comodojo.org>
@@ -25,8 +25,20 @@
 
 class Cache {
     
+    /**
+     * Standard cache file, will be placed in EXTENDER_CACHE_FOLDER
+     *
+     * @var     string
+     */
     static private $cachefile = "extender.cache";
     
+    /**
+     * Save jobs info into cache file
+     *
+     * @param   array   $data
+     *
+     * @return  bool
+     */
     static final public function set($data) {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
@@ -39,6 +51,11 @@ class Cache {
 
     }
 
+    /**
+     * Get jobs info from cache file
+     *
+     * @return  mixed   Array if cache not empty, false otherwise
+     */
     static final public function get() {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
@@ -53,6 +70,11 @@ class Cache {
 
     }
 
+    /**
+     * Purge cache (remove cache file)
+     *
+     * @return  bool
+     */
     static final public function purge() {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;

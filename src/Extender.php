@@ -36,333 +36,333 @@ use \Exception;
 
 class Extender {
 
-	// configurable things
-
-	/**
-	 * Max result lenght (in bytes) retrieved from parent in miltithread mode
-	 *
-	 * @var int
-	 */
-	private $max_result_bytes_in_multithread = null;
-
-	/**
-	 * Maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
-	 *
-	 * @var int
-	 */
-	private $max_childs_runtime = null;
-
-	/**
-	 * Multithread mode
-	 *
-	 * @var bool
-	 */
-	private $multithread_mode = false;
-
-	/**
-	 * Verbose mode, if requested via command line arg -v
-	 *
-	 * @var bool
-	 */
-	private $verbose_mode = false;
-
-	/**
-	 * Summary mode, if requested via command line arg -s
-	 *
-	 * @var bool
-	 */
-	private $summary_mode = false;
-
-	/**
-	 * Daemon mode, if requested via command line arg -d
-	 *
-	 * @var bool
-	 */
-	private $daemon_mode = false;	
-
-	/**
-	 * Timestamp, relative, of current extend() cycle
-	 *
-	 * @var float
-	 */
-	private $timestamp = null;
-
-	/**
-	 * Timestamp, absolute, sinnce extender was initiated
-	 *
-	 * @var float
-	 */
-	private $timestamp_absolute = null;
-
-	/**
-	 * PID of the parent extender process
-	 *
-	 * @var int
-	 */
-	private $parent_pid = null;
-
-	// Helper classes
-
-	/**
-	 * Events manager instance
-	 *
-	 * @var Object
-	 */
-	private $events = null;
-
-	/**
-	 * Console_Color2 instance
-	 *
-	 * @var Object
-	 */
-	private $color = null;
-
-	/**
-	 * Logger instance
-	 *
-	 * @var Object
-	 */
-	private $logger = null;
-
-	/**
-	 * JobsRunner instance
-	 *
-	 * @var Object
-	 */
-	private $runner = null;
-
-	/**
-	 * TasksTable instance
-	 *
-	 * @var Object
-	 */
-	private $tasks = null;
+    // configurable things
+
+    /**
+     * Max result lenght (in bytes) retrieved from parent in miltithread mode
+     *
+     * @var int
+     */
+    private $max_result_bytes_in_multithread = null;
+
+    /**
+     * Maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
+     *
+     * @var int
+     */
+    private $max_childs_runtime = null;
+
+    /**
+     * Multithread mode
+     *
+     * @var bool
+     */
+    private $multithread_mode = false;
+
+    /**
+     * Verbose mode, if requested via command line arg -v
+     *
+     * @var bool
+     */
+    private $verbose_mode = false;
+
+    /**
+     * Summary mode, if requested via command line arg -s
+     *
+     * @var bool
+     */
+    private $summary_mode = false;
+
+    /**
+     * Daemon mode, if requested via command line arg -d
+     *
+     * @var bool
+     */
+    private $daemon_mode = false;   
+
+    /**
+     * Timestamp, relative, of current extend() cycle
+     *
+     * @var float
+     */
+    private $timestamp = null;
+
+    /**
+     * Timestamp, absolute, sinnce extender was initiated
+     *
+     * @var float
+     */
+    private $timestamp_absolute = null;
+
+    /**
+     * PID of the parent extender process
+     *
+     * @var int
+     */
+    private $parent_pid = null;
+
+    /**
+     * Set exender in paused mode (no job will be processed)
+     *
+     * @var bool
+     */
+    private $paused = false;
+
+    // Helper classes
+
+    /**
+     * Events manager instance
+     *
+     * @var Object
+     */
+    private $events = null;
+
+    /**
+     * Console_Color2 instance
+     *
+     * @var Object
+     */
+    private $color = null;
+
+    /**
+     * Logger instance
+     *
+     * @var Object
+     */
+    private $logger = null;
+
+    /**
+     * JobsRunner instance
+     *
+     * @var Object
+     */
+    private $runner = null;
 
-	/**
-	 * JobsResult instance
-	 *
-	 * @var Object
-	 */
-	private $results = null;
+    /**
+     * TasksTable instance
+     *
+     * @var Object
+     */
+    private $tasks = null;
 
-	// checks and locks are static!
-	
-	// local archives
+    /**
+     * JobsResult instance
+     *
+     * @var Object
+     */
+    private $results = null;
 
-	/**
-	 * Failed processes, refreshed each cycle (in daemon mode)
-	 *
-	 * @var int
-	 */
-	private $failed_processes = 0;
-	
-	/**
-	 * Completed processes
-	 *
-	 * @var int
-	 */
-	private $completed_processes = 0;
-	
-	/**
-	 * Inter process communication sockets
-	 *
-	 * @var array
-	 */
-	private $ipc_array = array();
+    // checks and locks are static!
+    
+    // local archives
 
-	/**
-	 * Constructor method
-	 *
-	 * Prepare extender environment, do checks and fire extender.ready event
-	 */
-	final public function __construct() {
+    /**
+     * Failed processes, refreshed each cycle (in daemon mode)
+     *
+     * @var int
+     */
+    private $failed_processes = 0;
+    
+    /**
+     * Completed processes
+     *
+     * @var int
+     */
+    private $completed_processes = 0;
 
-		// setup default timezone (in daemon mode, timezone warning may break extender)
+    /**
+     * Constructor method
+     *
+     * Prepare extender environment, do checks and fire extender.ready event
+     */
+    final public function __construct() {
 
-		date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
+        // setup default timezone (in daemon mode, timezone warning may break extender)
 
-		$this->timestamp_absolute = microtime(true);
+        date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
 
-		$this->color = new Console_Color2();
+        $this->timestamp_absolute = microtime(true);
 
-		// get command line options (vsdh)
+        $this->color = new Console_Color2();
 
-		list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
+        // get command line options (vsdh)
 
-		if ( $help_mode ) {
+        list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
 
-			self::showHelp($this->color);
+        if ( $help_mode ) {
 
-			exit(0);
+            self::showHelp($this->color);
 
-		}
+            exit(0);
 
-		$this->logger = new Debug($this->verbose_mode, $this->color);
+        }
 
-		$this->events = new Events($this->logger);
+        $this->logger = new Debug($this->verbose_mode, $this->color);
 
-		// do checks
+        $this->events = new Events($this->logger);
 
-		$check_constants = Checks::constants();
+        // do checks
 
-		if ( $check_constants !== true ) {
+        $check_constants = Checks::constants();
 
-			$this->logger->critical($check_constants);
+        if ( $check_constants !== true ) {
 
-			exit(1);
+            $this->logger->critical($check_constants);
 
-		}
+            exit(1);
 
-		if ( Checks::cli() === false ) {
+        }
 
-			$this->logger->critical("Extender runs only in php-cli, exiting");
+        if ( Checks::cli() === false ) {
 
-			exit(1);
+            $this->logger->critical("Extender runs only in php-cli, exiting");
 
-		}
+            exit(1);
 
-		if ( Checks::database() === false ) {
+        }
 
-			$this->logger->critical("Extender database not reachable, exiting");
+        if ( Checks::database() === false ) {
 
-			exit(1);
+            $this->logger->critical("Extender database not reachable, exiting");
 
-		}
+            exit(1);
 
-		$this->tasks = new TasksTable();
+        }
 
-		$this->schedule = new Schedule();
+        $this->tasks = new TasksTable();
 
-		// setup extender parameters
+        $this->schedule = new Schedule();
 
-		$this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
+        // setup extender parameters
 
-		$this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 300;
+        $this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
 
-		$this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
+        $this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 300;
 
-		// if in daemon mode, remember parent pid, setup lock and register signal handlers
+        $this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
-		if ( $this->daemon_mode ) {
+        // if in daemon mode, remember parent pid, setup lock and register signal handlers
 
-			$this->parent_pid = posix_getpid();
+        if ( $this->daemon_mode ) {
 
-			Lock::register($this->parent_pid);
+            $this->parent_pid = posix_getpid();
 
-			$this->adjustNiceness();
+            Lock::register($this->parent_pid);
 
-			if ( $this->getMultithreadMode() ) $this->registerSignals();
+            $this->adjustNiceness();
 
-		}
+            if ( Checks::signals() ) $this->registerSignals();
 
-		// init the runner
+        }
 
-		$this->runner = new JobsRunner($this->logger, $this->getMultithreadMode(), $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
+        // init the runner
 
-		$this->logger->notice("Extender ready");
+        $this->runner = new JobsRunner($this->logger, $this->getMultithreadMode(), $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
-		// fire extender ready event
+        $this->logger->notice("Extender ready");
 
-		$this->events->fire("extender.ready", "VOID", $this->logger);
+        // fire extender ready event
 
-		// we are ready to go!
+        $this->events->fire("extender.ready", "VOID", $this->logger);
 
-	}
+        // we are ready to go!
 
-	/**
-	 * Set max result length (in bytes) that should be read from child tasks
-	 *
-	 * @param 	int 	$bytes 	Maximum length (bytes)
-	 *
-	 * @return 	Object 			$this
-	 */
-	final public function setMaxResultLength($bytes) {
+    }
 
-		$this->max_result_bytes_in_multithread = filter_var($bytes, FILTER_VALIDATE_INT, array( "default" => 2048 ));
+    /**
+     * Set max result length (in bytes) that should be read from child tasks
+     *
+     * @param   int     $bytes  Maximum length (bytes)
+     *
+     * @return  Object          $this
+     */
+    final public function setMaxResultLength($bytes) {
 
-		return $this;
+        $this->max_result_bytes_in_multithread = filter_var($bytes, FILTER_VALIDATE_INT, array( "default" => 2048 ));
 
-	}
+        return $this;
 
-	/**
-	 * Get max result length (in bytes)
-	 *
-	 * @return 	int 	Bytes parent should read (max)
-	 */
-	final public function getMaxResultLength() {
+    }
 
-		return $this->max_result_bytes_in_multithread;
+    /**
+     * Get max result length (in bytes)
+     *
+     * @return  int     Bytes parent should read (max)
+     */
+    final public function getMaxResultLength() {
 
-	}
+        return $this->max_result_bytes_in_multithread;
 
-	/**
-	 * Set maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
-	 *
-	 * After $time seconds, parent will start killing tasks
-	 *
-	 * @param 	int 	$time 	Maximum time (seconds)
-	 *
-	 * @return 	Object 			$this
-	 */
-	final public function setMaxChildsRuntime($time) {
+    }
 
-		$this->max_childs_runtime = filter_var($time, FILTER_VALIDATE_INT, array( "min_range" => 1, "default" => 300 ));
+    /**
+     * Set maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
+     *
+     * After $time seconds, parent will start killing tasks
+     *
+     * @param   int     $time   Maximum time (seconds)
+     *
+     * @return  Object          $this
+     */
+    final public function setMaxChildsRuntime($time) {
 
-		return $this;
+        $this->max_childs_runtime = filter_var($time, FILTER_VALIDATE_INT, array( "min_range" => 1, "default" => 300 ));
 
-	}
+        return $this;
 
-	/**
-	 * Get maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
-	 *
-	 * @return 	int 	Time parent will wait for childs to be completed
-	 */
-	final public function getMaxChildsRuntime() {
+    }
 
-		return $this->max_childs_runtime;
+    /**
+     * Get maximum time (in seconds) the parent will wait for child tasks to be completed (in miltithread mode)
+     *
+     * @return  int     Time parent will wait for childs to be completed
+     */
+    final public function getMaxChildsRuntime() {
 
-	}
+        return $this->max_childs_runtime;
 
-	/**
-	 * Set working mode (single or multithread)
-	 *
-	 * If multithread enabled, extender will use pcntl to fork child tasks
-	 *
-	 * @param 	bool 	$mode 	Enable/disable multithread
-	 *
-	 * @return 	Object 			$this
-	 */
-	final public function setMultithreadMode($mode) {
+    }
 
-		$this->multithread_mode = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
+    /**
+     * Set working mode (single or multithread)
+     *
+     * If multithread enabled, extender will use pcntl to fork child tasks
+     *
+     * @param   bool    $mode   Enable/disable multithread
+     *
+     * @return  Object          $this
+     */
+    final public function setMultithreadMode($mode) {
 
-		return $this;
+        $this->multithread_mode = filter_var($mode, FILTER_VALIDATE_BOOLEAN);
 
-	}
+        return $this;
 
-	/**
-	 * Get multithread mode status
-	 *
-	 * @return 	bool 	True if enabled, false if disabled
-	 */
-	final public function getMultithreadMode() {
+    }
 
-		return ( $this->multithread_mode AND Checks::multithread() ) ? true : false;
+    /**
+     * Get multithread mode status
+     *
+     * @return  bool    True if enabled, false if disabled
+     */
+    final public function getMultithreadMode() {
 
-	}
+        return ( $this->multithread_mode AND Checks::multithread() ) ? true : false;
 
-	/**
-	 * Get daemon mode status
-	 *
-	 * @return 	bool 	True if enabled, false if disabled
-	 */
-	final public function getDaemonMode() {
+    }
 
-		return $this->daemon_mode;
+    /**
+     * Get daemon mode status
+     *
+     * @return  bool    True if enabled, false if disabled
+     */
+    final public function getDaemonMode() {
 
-	}
+        return $this->daemon_mode;
 
-	/**
+    }
+
+    /**
      * Register a task to TasksTable
      *
      * @param   string    $name         Task name (unique)
@@ -375,25 +375,25 @@ class Extender {
      */
     final public function addTask($name, $target, $description, $class=null, $relative=true) {
 
-		if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
+        if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
 
-			$this->logger->warning("Skipping task due to invalid definition", array(
-				"NAME"		 =>	$name,
-				"TARGET"	 =>	$target,
-				"DESCRIPTION"=> $description,
-				"CLASS"      => $class,
-				"RELATIVE"	 => $relative
-			));
+            $this->logger->warning("Skipping task due to invalid definition", array(
+                "NAME"       => $name,
+                "TARGET"     => $target,
+                "DESCRIPTION"=> $description,
+                "CLASS"      => $class,
+                "RELATIVE"   => $relative
+            ));
 
-			return false;
+            return false;
 
-		}
+        }
 
-		else return true;
+        else return true;
 
-	}
+    }
 
-	/**
+    /**
      * Include a plugin
      *
      * @param   string  $plugin     The plugin name
@@ -405,268 +405,342 @@ class Extender {
 
     }
 
-	/**
-	 * Do extend!
-	 *
-	 */
-	public function extend() {
+    /**
+     * Do extend!
+     *
+     */
+    public function extend() {
 
-		// dispatch signals (if multithread active)
+        // dispatch signals (if multithread active)
 
-		if ( $this->getMultithreadMode() ) pcntl_signal_dispatch();
+        if ( $this->getMultithreadMode() ) pcntl_signal_dispatch();
 
-		// fix relative timestamp
+        // if extender is paused (SIGINT), skip to extend
 
-		$this->timestamp = microtime(true);
+        if ( $this->paused ) return;
 
-		// fire tasktable event
+        // fix relative timestamp
 
-		$this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
+        $this->timestamp = microtime(true);
 
-		try {
+        // fire tasktable event
 
-			// get schedules and dispatch schedule event
+        $this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
 
-			$schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
-		
-			$this->schedule->setSchedules( $schedules );
+        try {
 
-			$this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
+            // get schedules and dispatch schedule event
 
-			// if no jobs in queue, exit gracefully
+            $schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
+        
+            $this->schedule->setSchedules( $schedules );
 
-			if ( $this->schedule->howMany() == 0 ) {
+            $this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
 
-				$this->logger->info("No jobs to process right now, exiting");
+            // if no jobs in queue, exit gracefully
 
-				$this->logger->notice("Extender completed\n");
+            if ( $this->schedule->howMany() == 0 ) {
 
-				if ( $this->getDaemonMode() === false ) exit(0);
+                $this->logger->info("No jobs to process right now, exiting");
 
-				return;
+                $this->logger->notice("Extender completed\n");
 
-			}
+                if ( $this->getDaemonMode() === false ) exit(0);
 
-			// compose jobs
+                return;
 
-			foreach ($this->schedule->getSchedules() as $schedule) {
+            }
 
-				if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
+            // compose jobs
 
-					$job = new Job();
+            foreach ($this->schedule->getSchedules() as $schedule) {
 
-					$job->setName( $schedule['name'] )
-						->setId( $schedule['id'] )
-						->setParameters( unserialize($schedule['params']) )
-						->setTask( $schedule['task'] )
-						->setTarget( $this->tasks->getTarget($schedule['task']) )
-						->setClass( $this->tasks->getClass($schedule['task']) );
+                if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
 
-					$this->runner->addJob($job);
+                    $job = new Job();
 
-				} else {
+                    $job->setName( $schedule['name'] )
+                        ->setId( $schedule['id'] )
+                        ->setParameters( unserialize($schedule['params']) )
+                        ->setTask( $schedule['task'] )
+                        ->setTarget( $this->tasks->getTarget($schedule['task']) )
+                        ->setClass( $this->tasks->getClass($schedule['task']) );
 
-					$this->logger->warning("Skipping job due to unknown task", array(
-						"ID"	 =>	$schedule['id'],
-						"NAME"	 =>	$schedule['name'],
-						"TASK"   => $schedule['task']
-					));
+                    $this->runner->addJob($job);
 
-				}
+                } else {
 
-			}
+                    $this->logger->warning("Skipping job due to unknown task", array(
+                        "ID"     => $schedule['id'],
+                        "NAME"   => $schedule['name'],
+                        "TASK"   => $schedule['task']
+                    ));
 
-			// lauch runner
+                }
 
-			$result = $this->runner->run();
+            }
 
-			// free runner for next cycle
+            // lauch runner
 
-			$this->runner->free();
+            $result = $this->runner->run();
 
-			// compose results
+            // free runner for next cycle
 
-			$this->results = new JobsResult($result);
+            $this->runner->free();
 
-			// update schedules
+            // compose results
 
-			Scheduler::updateSchedules($this->logger, $result);
+            $this->results = new JobsResult($result);
 
-			// increment counters
+            // update schedules
 
-			foreach ($result as $r) {
-				
-				if ( $r[2] ) $this->completed_processes++;
+            Scheduler::updateSchedules($this->logger, $result);
 
-				else $this->failed_processes++;
+            // increment counters
 
-			}
+            foreach ($result as $r) {
+                
+                if ( $r[2] ) $this->completed_processes++;
 
-		} catch (Exception $e) {
+                else $this->failed_processes++;
 
-			$this->logger->error($e->getMessage());
+            }
 
-			if ( $this->getDaemonMode() === false ) exit(1);
-			
-		}
+        } catch (Exception $e) {
 
-		// fire result event
+            $this->logger->error($e->getMessage());
 
-		$this->events->fire("extender.result", "VOID", $this->results);
+            if ( $this->getDaemonMode() === false ) exit(1);
+            
+        }
 
-		$this->logger->notice("Extender completed\n");
+        // fire result event
 
-		// show summary (if -s)
+        $this->events->fire("extender.result", "VOID", $this->results);
 
-		if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
+        $this->logger->notice("Extender completed\n");
 
-		if ( $this->getDaemonMode() === false ) exit(0);
+        // show summary (if -s)
 
-	}
+        if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
 
-	/**
-	 * Change parent process priority according to EXTENDER_NICENESS
-	 *
-	 */
-	final public function adjustNiceness() {
+        if ( $this->getDaemonMode() === false ) exit(0);
 
-		if ( $this->multithread_mode AND defined("EXTENDER_PARENT_NICENESS") ) {
+    }
 
-			$niceness = proc_nice(EXTENDER_PARENT_NICENESS);
+    /**
+     * Change parent process priority according to EXTENDER_NICENESS
+     *
+     */
+    final public function adjustNiceness() {
 
-			if ( $niceness == false ) $this->logger->warning("Unable to set parent process niceness to ".EXTENDER_PARENT_NICENESS);
+        if ( defined("EXTENDER_PARENT_NICENESS") ) {
 
-		}
+            $niceness = proc_nice(EXTENDER_PARENT_NICENESS);
 
-	}
+            if ( $niceness == false ) $this->logger->warning("Unable to set parent process niceness to ".EXTENDER_PARENT_NICENESS);
 
-	/**
-	 * Register signals
-	 *
-	 */
-	final public function registerSignals() {
+        }
 
-		pcntl_signal(SIGTERM, array($this,'sigTermHandler'));
+    }
 
-		pcntl_signal(SIGINT, array($this,'sigTermHandler'));
+    /**
+     * Register signals
+     *
+     */
+    final public function registerSignals() {
 
-		pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
+        $pluggable_signals = array(
+            SIGHUP, SIGCHLD, SIGUSR2, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS, SIGFPE,
+            SIGSEGV, SIGPIPE, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, SIGURG, SIGXCPU, SIGXFSZ,
+            SIGVTALRM, SIGPROF, SIGWINCH, SIGIO, SIGSYS, SIGBABY
+        );
 
-		register_shutdown_function(array($this,'shutdown'));
+        if (defined('SIGPOLL'))   $pluggable_signals[] = SIGPOLL;
+        if (defined('SIGPWR'))    $pluggable_signals[] = SIGPWR;
+        if (defined('SIGSTKFLT')) $pluggable_signals[] = SIGSTKFLT;
 
-	}
+        // register supported signals
 
-	/**
+        pcntl_signal(SIGTERM, array($this,'sigTermHandler'));
+
+        pcntl_signal(SIGINT, array($this,'sigIntHandler'));
+
+        pcntl_signal(SIGCONT, array($this,'sigContHandler'));
+
+        pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
+
+        // register pluggable signals
+
+        foreach ($pluggable_signals as $signal) {
+            
+            pcntl_signal($signal, array($this,'genericSignalHandler'));
+
+        }
+
+        // register shutdown function
+
+        register_shutdown_function(array($this,'shutdown'));
+
+    }
+
+    /**
      * Delete $pid file after exit() called
      *
      */
     final public function shutdown() {
 
-		if ( $this->parent_pid == posix_getpid() ) {
+        if ( $this->parent_pid == posix_getpid() ) {
 
-			Lock::release();
+            $this->logger->ifno("Received SHUTDOWN signal, cleaning extender environment");
 
-			Status::release();
+            Lock::release();
 
-		}
+            Status::release();
 
-	}
+        }
 
-	final public function sigTermHandler() {
+    }
 
-		if ( $this->parent_pid == posix_getpid() ) {
+    final public function sigTermHandler() {
 
-			$this->runner->killAll($this->parent_pid);
+        if ( $this->parent_pid == posix_getpid() ) {
 
-			exit(1);
+            $this->logger->ifno("Received TERM signal, shoutting down extender gracefully");
 
-		}
+            $this->runner->killAll($this->parent_pid);
 
-	}
+            exit(1);
 
-	final public function sigUsr1Handler() {
+        }
 
-		if ( $this->parent_pid == posix_getpid() ) Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes);
+    }
 
-	}
+    final public function sigUsr1Handler() {
 
-	private static function showHelp($color) {
+        if ( $this->parent_pid == posix_getpid() ) {
 
-		echo Version::getDescription();
+            $this->logger->ifno("Received USR1 signal, dumping status parameters");
 
-		echo "\nVersion: ".$color->convert("%g".Version::getVersion()."%n");
+            Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes);
 
-		echo "\n\nAvailable options:";
+        }
 
-		echo "\n------------------";
+    }
 
-		echo "\n".$color->convert("%g -v %n").": verbose mode, extender will print debug information (use it with daemon mode for testing purpose only!)";
+    final public function sigIntHandler() {
 
-		echo "\n".$color->convert("%g -s %n").": show summary of executed jobs (if any)";
+        if ( $this->parent_pid == posix_getpid() ) {
 
-		echo "\n".$color->convert("%g -d %n").": run extender in daemon mode";
+            $this->logger->ifno("Received INT signal, pausing extender");
 
-		echo "\n".$color->convert("%g -h %n").": show this help";
+            $this->paused = true;
 
-		echo "\n\n";
+        }
 
-	}
+    }
 
-	private static function getCommandlineOptions() {
+    final public function sigContHandler() {
 
-		$options = getopt("svdh");
+        if ( $this->parent_pid == posix_getpid() ) {
 
-		return array(
-			array_key_exists('v', $options) ? true : false,
-			array_key_exists('s', $options) ? true : false,
-			array_key_exists('d', $options) ? true : false,
-			array_key_exists('h', $options) ? true : false
-		);
+            $this->logger->ifno("Received CONT signal, resuming extender");
 
-	}
+            $this->paused = false;
 
-	private static function showSummary($timestamp, $completed_processes, $color) {
+        }
 
-		$header_string = "\n\n --- Comodojo Extender Summary --- ".date('c',$timestamp)."\n\n";
+    }
 
-		$tbl = new Console_Table(CONSOLE_TABLE_ALIGN_LEFT, CONSOLE_TABLE_BORDER_ASCII, 1, null, true);
+    final public function genericSignalHandler($signal) {
 
-		$tbl->setHeaders(array(
-			'Pid',
-			'Name',
-			'Success',
-			'Result (truncated)',
-			'Time elapsed'
-		));
-		
-		foreach ($completed_processes as $key => $completed_process) {
+        if ( $this->parent_pid == posix_getpid() ) {
 
-			$pid = $completed_process[0];
+            $this->logger->ifno("Received "+$signal+" signal, firing associated event(s)");
 
-			$name = $completed_process[1];
+            $this->events->fire("extender.signal."+$signal, "VOID", $this);
 
-			$success = $color->convert($completed_process[2] ? "%gYES%n" : "%rNO%n");
+        }
 
-			$result = str_replace(array("\r", "\n"), " ", $completed_process[5]);
+    }
 
-			$result = strlen($result) >= 80 ? substr($result,0,80)."..." : $result;
+    private static function showHelp($color) {
 
-			$elapsed = $completed_process[2] ? ($completed_process[4]-$completed_process[3]) : "--";
+        echo Version::getDescription();
 
-			$tbl->addRow(array(
-				$pid,
-				$name,
-				$success,
-				$result,
-				$elapsed
-			));
+        echo "\nVersion: ".$color->convert("%g".Version::getVersion()."%n");
 
-		}
+        echo "\n\nAvailable options:";
 
-		$footer_string = "\n\nTotal script runtime: ".(microtime(true)-$timestamp)." seconds\r\n\n";
-		
-		print $header_string.$tbl->getTable().$footer_string;
-		
-	}
+        echo "\n------------------";
+
+        echo "\n".$color->convert("%g -v %n").": verbose mode, extender will print debug information (use it with daemon mode for testing purpose only!)";
+
+        echo "\n".$color->convert("%g -s %n").": show summary of executed jobs (if any)";
+
+        echo "\n".$color->convert("%g -d %n").": run extender in daemon mode";
+
+        echo "\n".$color->convert("%g -h %n").": show this help";
+
+        echo "\n\n";
+
+    }
+
+    private static function getCommandlineOptions() {
+
+        $options = getopt("svdh");
+
+        return array(
+            array_key_exists('v', $options) ? true : false,
+            array_key_exists('s', $options) ? true : false,
+            array_key_exists('d', $options) ? true : false,
+            array_key_exists('h', $options) ? true : false
+        );
+
+    }
+
+    private static function showSummary($timestamp, $completed_processes, $color) {
+
+        $header_string = "\n\n --- Comodojo Extender Summary --- ".date('c',$timestamp)."\n\n";
+
+        $tbl = new Console_Table(CONSOLE_TABLE_ALIGN_LEFT, CONSOLE_TABLE_BORDER_ASCII, 1, null, true);
+
+        $tbl->setHeaders(array(
+            'Pid',
+            'Name',
+            'Success',
+            'Result (truncated)',
+            'Time elapsed'
+        ));
+        
+        foreach ($completed_processes as $key => $completed_process) {
+
+            $pid = $completed_process[0];
+
+            $name = $completed_process[1];
+
+            $success = $color->convert($completed_process[2] ? "%gYES%n" : "%rNO%n");
+
+            $result = str_replace(array("\r", "\n"), " ", $completed_process[5]);
+
+            $result = strlen($result) >= 80 ? substr($result,0,80)."..." : $result;
+
+            $elapsed = $completed_process[2] ? ($completed_process[4]-$completed_process[3]) : "--";
+
+            $tbl->addRow(array(
+                $pid,
+                $name,
+                $success,
+                $result,
+                $elapsed
+            ));
+
+        }
+
+        $footer_string = "\n\nTotal script runtime: ".(microtime(true)-$timestamp)." seconds\r\n\n";
+        
+        print $header_string.$tbl->getTable().$footer_string;
+        
+    }
 
 }

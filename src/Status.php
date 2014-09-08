@@ -25,24 +25,37 @@
 
 class Status {
 
+    /**
+     * Standard dump file, will be placed in EXTENDER_CACHE_FOLDER
+     *
+     * @var     string
+     */
     static private $statusfile = "extender.status";
 
+    /**
+     * Dump live informations from extender process (if in daemon mode and pcntl installed)
+     *
+     * @param   int     $timestamp_absolute
+     * @param   itn     $parent_pid
+     * @param   int     $completed_processes
+     * @param   itn     $failed_processes
+     */
     static public final function dump($timestamp_absolute, $parent_pid, $completed_processes, $failed_processes) {
 
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
         $data = array(
-        	"STARTED"   =>  $timestamp_absolute,
-			"TIME"		=>	microtime(true) - $timestamp_absolute,
-			"PARENTPID" =>	$parent_pid,
-			"COMPLETED" =>	$completed_processes,
-			"FAILED"	=>	$failed_processes,
-			"CPUAVG"	=>	sys_getloadavg(),
-			"MEM"		=>	memory_get_usage(true),
-			"MEMPEAK"	=>	memory_get_peak_usage(true),
-			"USER"		=>	get_current_user(),
-			"NICENESS"	=>	pcntl_getpriority()
-		);
+            "STARTED"   =>  $timestamp_absolute,
+            "TIME"      =>  microtime(true) - $timestamp_absolute,
+            "PARENTPID" =>  $parent_pid,
+            "COMPLETED" =>  $completed_processes,
+            "FAILED"    =>  $failed_processes,
+            "CPUAVG"    =>  sys_getloadavg(),
+            "MEM"       =>  memory_get_usage(true),
+            "MEMPEAK"   =>  memory_get_peak_usage(true),
+            "USER"      =>  get_current_user(),
+            "NICENESS"  =>  pcntl_getpriority()
+        );
 
         $content = serialize($data);
 
@@ -59,11 +72,9 @@ class Status {
 
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
-        if ( file_exists($statusfile) ) $status = unlink($statusfile);
+        if ( file_exists($statusfile) ) return unlink($statusfile);
         
-        else $status = false;
-        
-        return $status;
+        else return false;
 
     }
 
