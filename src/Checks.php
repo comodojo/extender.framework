@@ -1,7 +1,7 @@
 <?php namespace Comodojo\Extender;
 
 use Comodojo\Exception\DatabaseException;
-use Comodojo\Database\Database;
+use Comodojo\Database\EnhancedDatabase;
 
 /**
  * Framework wide checks
@@ -93,7 +93,7 @@ class Checks {
 
         try{
 
-            $db = new Database(
+            $db = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
                 EXTENDER_DATABASE_HOST,
                 EXTENDER_DATABASE_PORT,

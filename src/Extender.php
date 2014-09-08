@@ -552,7 +552,7 @@ class Extender {
 
         $pluggable_signals = array(
             SIGHUP, SIGCHLD, SIGUSR2, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS, SIGFPE,
-            SIGSEGV, SIGPIPE, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, SIGURG, SIGXCPU, SIGXFSZ,
+            SIGSEGV, SIGPIPE, SIGALRM, SIGTTIN, SIGTTOU, SIGURG, SIGXCPU, SIGXFSZ,
             SIGVTALRM, SIGPROF, SIGWINCH, SIGIO, SIGSYS, SIGBABY
         );
 
@@ -564,7 +564,9 @@ class Extender {
 
         pcntl_signal(SIGTERM, array($this,'sigTermHandler'));
 
-        pcntl_signal(SIGINT, array($this,'sigIntHandler'));
+        pcntl_signal(SIGINT, array($this,'sigTermHandler'));
+
+        pcntl_signal(SIGTSTP, array($this,'sigStopHandler'));
 
         pcntl_signal(SIGCONT, array($this,'sigContHandler'));
 
@@ -592,7 +594,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received SHUTDOWN signal, cleaning extender environment");
+            $this->logger->info("Shutdown in progress, cleaning environment.");
 
             Lock::release();
 
@@ -606,7 +608,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received TERM signal, shoutting down extender gracefully");
+            $this->logger->info("Received TERM signal, shoutting down extender gracefully");
 
             $this->runner->killAll($this->parent_pid);
 
@@ -620,7 +622,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received USR1 signal, dumping status parameters");
+            $this->logger->info("Received USR1 signal, dumping status parameters");
 
             Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes);
 
@@ -628,11 +630,11 @@ class Extender {
 
     }
 
-    final public function sigIntHandler() {
+    final public function sigStopHandler() {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received INT signal, pausing extender");
+            $this->logger->info("Received STOP signal, pausing extender");
 
             $this->paused = true;
 
@@ -644,7 +646,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received CONT signal, resuming extender");
+            $this->logger->info("Received CONT signal, resuming extender");
 
             $this->paused = false;
 
@@ -656,9 +658,9 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->ifno("Received "+$signal+" signal, firing associated event(s)");
+            $this->logger->info("Received ".$signal." signal, firing associated event(s)");
 
-            $this->events->fire("extender.signal."+$signal, "VOID", $this);
+            $this->events->fire("extender.signal.".$signal, "VOID", $this);
 
         }
 
