@@ -157,12 +157,22 @@ class Task {
 
     }
 
+    /**
+     * Get all provided parameters in array
+     * 
+     * @return  Array
+     */
     final public function getParameters() {
 
         return $this->parameters;
 
     }
 
+    /**
+     * Get a provided parameter's value
+     * 
+     * @return  mixed   parameter value if provided or null otherwise
+     */
     final public function getParameter($parameter) {
 
         if ( array_key_exists($parameter, $this->parameters) ) return $this->parameters[$parameter];

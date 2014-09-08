@@ -624,7 +624,7 @@ class Extender {
 
             $this->logger->info("Received USR1 signal, dumping status parameters");
 
-            Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes);
+            Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
 
         }
 

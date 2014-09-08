@@ -40,11 +40,12 @@ class Status {
      * @param   int     $completed_processes
      * @param   itn     $failed_processes
      */
-    static public final function dump($timestamp_absolute, $parent_pid, $completed_processes, $failed_processes) {
+    static public final function dump($timestamp_absolute, $parent_pid, $completed_processes, $failed_processes, $paused) {
 
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
         $data = array(
+            "RUNNING"   =>  $paused ? 0 : 1,
             "STARTED"   =>  $timestamp_absolute,
             "TIME"      =>  microtime(true) - $timestamp_absolute,
             "PARENTPID" =>  $parent_pid,
