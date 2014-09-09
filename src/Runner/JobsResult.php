@@ -32,6 +32,11 @@ class JobsResult {
      */
     private $completed_processes = array();
 
+    /**
+     * Class constructor
+     *
+     * @param   array   $processes
+     */
     final public function __construct($processes) {
 
         $this->completed_processes = $processes;

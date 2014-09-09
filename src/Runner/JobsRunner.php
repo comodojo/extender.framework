@@ -27,24 +27,79 @@ use \Exception;
 
 class JobsRunner {
 
+    /**
+     * Jobs database (a simple array!).
+     *
+     * @var     array
+     */
     private $jobs = array();
 
+    /**
+     * Logger instance
+     *
+     * @var     Object
+     */
     private $logger = null;
 
+    /**
+     * Multithread switch
+     *
+     * @var     bool
+     */
     private $multithread = false;
 
+    /**
+     * Array of completed processes
+     *
+     * @var     array
+     */
     private $completed_processes = array();
 
+    /**
+     * Array of running processes
+     *
+     * @var     array
+     */
     private $running_processes = array();
 
+    /**
+     * Array of forked processes
+     *
+     * @var     array
+     */
     private $forked_processes = array();
 
+    /**
+     * Amount of data (bits) to read from interprocess sockets
+     *
+     * @var     int
+     */
     private $max_result_bytes_in_multithread = null;
 
+    /**
+     * Maximum child runtime (after this interval parent process will start to kill)
+     *
+     * @var     array
+     */
     private $max_childs_runtime = null;
 
+    /**
+     * Array of ipc inter-processes sockets
+     *
+     * @var     array
+     */
     private $ipc_array = array();
 
+    static private $lagger_timeout = 10;
+
+    /**
+     * Runner constructor
+     *
+     * @param   array   $logger                             Logger instance
+     * @param   array   $multithread                        Enable/disable multithread mode
+     * @param   array   $max_result_bytes_in_multithread    Max result bytes
+     * @param   array   $max_childs_runtime                 Max child runtime
+     */
     final public function __construct($logger, $multithread, $max_result_bytes_in_multithread, $max_childs_runtime) {
 
         $this->logger = $logger;
@@ -57,6 +112,13 @@ class JobsRunner {
 
     }
 
+    /**
+     * Add job to current queue
+     *
+     * @param   Object  $job    An instance of \Comodojo\Extender\Job\Job
+     *
+     * @return  string          A job unique identifier
+     */
     final public function addJob(\Comodojo\Extender\Job\Job $job) {
 
         $uid = self::getJobUid();
@@ -101,6 +163,10 @@ class JobsRunner {
 
     }
 
+    /**
+     * Free (reset) runner instance
+     *
+     */
     final public function free() {
 
         $this->jobs = array();
@@ -111,7 +177,12 @@ class JobsRunner {
 
     }
 
-    public function run() {
+    /**
+     * Execute job(s) in current queue
+     *
+     * @return  array   An array of completed processes
+     */
+    final public function run() {
         
         foreach ($this->jobs as $jobUid => $job) {
             
@@ -150,7 +221,7 @@ class JobsRunner {
                 //$job[2] is start timestamp
                 //$job[3] is job id
 
-                if( !$this->is_running($pid) ) {
+                if( !self::isRunning($pid) ) {
 
                     list($reader,$writer) = $this->ipc_array[$job[1]];
 
@@ -210,7 +281,7 @@ class JobsRunner {
                             "MAX_RUNTIME"   => $this->max_childs_runtime
                         ));
 
-                        $kill = $this->kill($pid);
+                        $kill = self::kill($pid);
 
                         if ( $kill ) $this->logger->warning("Pid ".$pid." killed");
 
@@ -245,7 +316,29 @@ class JobsRunner {
 
     }
 
-    public function runSinglethread($jobUid) {
+    /**
+     * Terminate all running processes
+     *
+     * @param   int     Parent process pid
+     */
+    final public function killAll($parent_pid) {
+
+        foreach ($this->running_processes as $pid => $process) {
+
+            if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+
+        }
+
+    }
+
+    /**
+     * Run job in singlethread mode
+     *
+     * @param   string  Job unique identifier
+     *
+     * @return  array   {[pid],[name],[success],[start],[end],[result],[id]}
+     */
+    private function runSinglethread($jobUid) {
 
         $job = $this->jobs[$jobUid];
 
@@ -289,7 +382,14 @@ class JobsRunner {
 
     }
 
-    public function runMultithread($jobUid) {
+    /**
+     * Run job in singlethread mode
+     *
+     * @param   string  Job unique identifier
+     *
+     * @return  array   {[pid],[name],[success],[start],[end],[result],[id]}
+     */
+    private function runMultithread($jobUid) {
 
         $job = $this->jobs[$jobUid];
 
@@ -363,7 +463,7 @@ class JobsRunner {
 
             //PARENT will take actions on processes later
 
-            $this->adjustNiceness($pid);
+            self::adjustNiceness($pid, $this->logger);
 
         } else {
             
@@ -433,48 +533,55 @@ class JobsRunner {
      * 
      * @return  bool
      */
-    private final function is_running($pid) {
+    static private function isRunning($pid) {
 
         return (pcntl_waitpid($pid, $this->status, WNOHANG) === 0);
 
     }
 
-    private final function kill($pid) {
+    /**
+     * Kill a child process
+     * 
+     * @return  bool
+     */
+    static private function kill($pid) {
 
-        if (function_exists("pcntl_signal")) return posix_kill($pid, SIGTERM); //JOB can handle the SIGTERM
-        
-        else return posix_kill($pid, SIGKILL); //JOB cannot handle the SIGTERM, so terminate it w SIGKILL
+        $kill_time = time() + self::$lagger_timeout;
 
-    }
+        $term = posix_kill($pid, SIGTERM);
 
-    public final function killAll($parent_pid) {
-
-        foreach ($this->running_processes as $pid => $process) {
-
-            if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+        while ( time() < $kill_time ) {
+            
+            if ( !self::isRunning($pid) ) return $term;
 
         }
 
+        return posix_kill($pid, SIGKILL);
+
     }
 
+    /**
+     * Get a job unique identifier
+     * 
+     * @return  string
+     */
     static private function getJobUid() {
 
         return md5(uniqid(rand(), true), 0);
 
     }
 
-
     /**
      * Change child process priority according to EXTENDER_NICENESS
      *
      */
-    private function adjustNiceness($pid) {
+    static private function adjustNiceness($pid, $logger) {
 
-        if ( $this->multithread AND defined("EXTENDER_CHILD_NICENESS") ) {
+        if ( Checks::multithread() AND defined("EXTENDER_CHILD_NICENESS") ) {
 
             $niceness = pcntl_setpriority($pid, EXTENDER_CHILD_NICENESS);
 
-            if ( $niceness == false ) $this->logger->warning("Unable to set child process ".$pid." niceness to ".EXTENDER_CHILD_NICENESS);
+            if ( $niceness == false ) $logger->warning("Unable to set child process ".$pid." niceness to ".EXTENDER_CHILD_NICENESS);
 
         }
 

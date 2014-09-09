@@ -225,6 +225,13 @@ class Scheduler {
 
     }
 
+    /**
+     * Remove a schedule
+     *
+     * @param   string  $name
+     *
+     * @return  bool
+     */
     final static public function removeSchedule($name) {
         
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
@@ -259,6 +266,13 @@ class Scheduler {
 
     }
 
+    /**
+     * Enable a schedule
+     *
+     * @param   string  $name
+     *
+     * @return  bool
+     */
     final static public function enableSchedule($name) {
 
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
@@ -293,6 +307,13 @@ class Scheduler {
 
     }
 
+    /**
+     * Disable a schedule
+     *
+     * @param   string  $name
+     *
+     * @return  bool
+     */
     final static public function disableSchedule($name) {
 
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
@@ -327,6 +348,14 @@ class Scheduler {
 
     }
 
+    /**
+     * Validate a cron expression and, if valid, return next run timestamp plus
+     * an array of expression parts
+     *
+     * @param   string  $expression
+     *
+     * @return  array   Next run timestamp at first position, expression parts at second
+     */
     final static public function validateExpression($expression) {
 
         try {
@@ -356,6 +385,11 @@ class Scheduler {
 
     }
 
+    /**
+     * Get planned jobs
+     *
+     * @return  array
+     */
     static private function getJobs() {
         
         $jobs = Cache::get();
@@ -400,6 +434,15 @@ class Scheduler {
         
     }
     
+    /**
+     * Determine if a job should be executed
+     *
+     * @param   array   $job
+     * @param   object  $logger
+     * @param   float   $timestamp
+     *
+     * @return  bool
+     */
     static private function shouldRunJob($job, $logger, $timestamp) {
 
         $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
