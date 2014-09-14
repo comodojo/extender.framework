@@ -35,6 +35,7 @@ class Checks {
      */
     static final public function constants() {
 
+        if ( !defined("EXTENDER_IDLE_TIME") ) return "Idle time not configured correctly. \n\n Please check your extender configuration and define constant: EXTENDER_IDLE_TIME.";
         if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
         if ( !defined("EXTENDER_DATABASE_HOST") ) return "Unknown database host. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_HOST.";
         if ( !defined("EXTENDER_DATABASE_PORT") ) return "Invalid database port. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PORT.";

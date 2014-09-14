@@ -602,7 +602,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->info("Shutdown in progress, cleaning environment.");
+            $this->logger->info("Shutdown in progress, cleaning environment");
 
             Lock::release();
 
@@ -616,7 +616,7 @@ class Extender {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
-            $this->logger->info("Received TERM signal, shoutting down extender gracefully");
+            $this->logger->info("Received TERM signal, shutting down extender gracefully");
 
             $this->runner->killAll($this->parent_pid);
 
