@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Runner;
 
 use \Exception;
+use \Comodojo\Extender\Checks;
 
 /**
  * Jobs runner
