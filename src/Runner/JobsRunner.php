@@ -152,6 +152,7 @@ class JobsRunner {
 
             $this->logger->error('Error including job',array(
                 "JOBUID"=> $uid,
+                "TARGET"=> $target,
                 "ERROR" => $e->getMessage(),
                 "ERRID" => $e->getCode()
             ));
@@ -536,7 +537,7 @@ class JobsRunner {
      */
     static private function isRunning($pid) {
 
-        return (pcntl_waitpid($pid, $this->status, WNOHANG) === 0);
+        return (pcntl_waitpid($pid, $status, WNOHANG) === 0);
 
     }
 
