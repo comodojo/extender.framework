@@ -50,7 +50,7 @@ class TasksTable {
         $this->tasks[$name] = array(
             "description" => $description,
             "target"      => $relative ? EXTENDER_TASK_FOLDER.$target : EXTENDER_REAL_PATH.$target,
-            "class"       => empty($class) ? preg_replace('/^.*\/(.+)\..*$/', '$1', $target) : $class
+            "class"       => empty($class) ? self::processTaskClass($target, $relative) : $class
 
         );
 
@@ -160,6 +160,12 @@ class TasksTable {
         if ( array_key_exists($task, $this->tasks) ) return true;
 
         else return false;
+
+    }
+
+    static private function processTaskClass($target, $relative) {
+
+        return $relative ? preg_replace('/^.*\/(.+)\..*$/', '$1', "/".$target) : preg_replace('/^.*\/(.+)\..*$/', '$1', $target);
 
     }
 

@@ -190,6 +190,8 @@ class Scheduler {
             
             list( $next_calculated_run, $parsed_expression ) = self::validateExpression($expression);
 
+            $firstrun = (int)date("U", strtotime($next_calculated_run));
+
             list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
 
             $parameters = serialize($params);
@@ -207,10 +209,10 @@ class Scheduler {
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys(array("name", "task", "description",
                     "min", "hour", "dayofmonth", "month", 
-                    "dayofweek", "year", "params"))
+                    "dayofweek", "year", "params","firstrun"))
                 ->values(array($name, $task, $description,
                     $min, $hour, $dayofmonth, $month,
-                    $dayofweek, $year, $parameters))
+                    $dayofweek, $year, $parameters, $firstrun))
                 ->store();
 
         } catch (Exception $e) {
@@ -411,7 +413,7 @@ class Scheduler {
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys(array("id","name","task","description",
                     "min","hour","dayofmonth","month","dayofweek","year",
-                    "params","lastrun"))
+                    "params","lastrun","firstrun"))
                 ->where("enabled","=",true)
                 ->get();
 
@@ -446,35 +448,44 @@ class Scheduler {
     static private function shouldRunJob($job, $logger, $timestamp) {
 
         $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
-        
-        $last_date = date_create();
 
-        date_timestamp_set($last_date, $job['lastrun']);
+        if ( empty($job['lastrun']) ) {
 
-        try {
+            $next_calculated_run = (int)$job['firstrun'];
 
-            $cron = CronExpression::factory($expression);
+        } else {
 
-            $next_calculated_run = $cron->getNextRunDate($last_date)->format('U');
+            $last_date = date_create();
 
-        }
-        catch (Exception $e) {
+            date_timestamp_set($last_date, (int)$job['lastrun']);    
 
-            $logger->error("Job ".$job['name']." cannot be executed due to cron parsing error",array(
-                "ERROR" => $e->getMessage(),
-                "ERRID" => $e->getCode()
-            ));
+            try {
 
-            return false;
+                $cron = CronExpression::factory($expression);
+
+                $next_calculated_run = $cron->getNextRunDate($last_date)->format('U');
+
+            }
+            catch (Exception $e) {
+
+                $logger->error("Job ".$job['name']." cannot be executed due to cron parsing error",array(
+                    "ERROR" => $e->getMessage(),
+                    "ERRID" => $e->getCode()
+                ));
+
+                return false;
+
+            }
 
         }
 
         $torun = $next_calculated_run <= $timestamp ? true : false;
-
+        
         $logger->debug("Job ".$job['name'].($torun ? " will be" : " will not be")." executed", array(
-            "EXPRESSION" => $expression,
-            "LASTRUNDATE"=> date('c',$job['lastrun']),
-            "NEXTRUN"    => date('c',$next_calculated_run)
+            "EXPRESSION"  => $expression,
+            "FIRSTRUNDATE"=> date('c',$job['firstrun']),
+            "LASTRUNDATE" => date('c',$job['lastrun']),
+            "NEXTRUN"     => date('c',$next_calculated_run)
         ));
 
         return $torun;
