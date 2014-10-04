@@ -30,14 +30,14 @@ class Version {
      *
      * @var     string
      */
-    static private $description = "Database driven, multiprocess, pseudo-cron tasks executor";
+    static private $description = "Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler in PHP";
 
     /**
      * Extender current version
      *
      * @var     string
      */
-    static private $version = "1.0.0";
+    static private $version = "1.0.0-beta1";
 
     /**
      * Get extender framework description
