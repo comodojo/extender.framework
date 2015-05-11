@@ -55,7 +55,7 @@ class Status {
             "MEM"       =>  memory_get_usage(true),
             "MEMPEAK"   =>  memory_get_peak_usage(true),
             "USER"      =>  get_current_user(),
-            "NICENESS"  =>  pcntl_getpriority()
+            "NICENESS"  =>  function_exists('pcntl_getpriority') ? pcntl_getpriority() : "UNDEFINED"
         );
 
         $content = serialize($data);

@@ -3,6 +3,7 @@
 use \Comodojo\Exception\TaskException;
 use \Comodojo\Exception\DatabaseException;
 use \Comodojo\Database\EnhancedDatabase;
+use \Exception;
 
 /**
  * Task class
@@ -134,6 +135,8 @@ class Task {
                 EXTENDER_DATABASE_USER,
                 EXTENDER_DATABASE_PASS
             );
+
+            $this->dbh->autoClean();
 
         } catch (DatabaseException $de) {
             
