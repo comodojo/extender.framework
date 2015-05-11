@@ -91,6 +91,11 @@ class Task {
      * Parameters that extender may provide
      */
     private $parameters = array();
+
+    /**
+     * Database handler
+     */
+    private $dbh = array();
     
     /**
      * Task constructor.
@@ -117,15 +122,28 @@ class Task {
 
         $this->class = get_class($this);
 
-        // $this->logger = new Logger($name);
+        // Setup database (worklog!)
+
+        try{
+
+            $this->dbh = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
+
+        } catch (DatabaseException $de) {
+            
+            throw $de;
+
+        }
 
         // Setup an exit strategy if multithread enabled (parent may kill child process if timeout exceeded)
 
         if ( filter_var($multithread, FILTER_VALIDATE_BOOLEAN) ) {
-
-            //declare(ticks = 1);
-
-            //register SIGTERM signal
 
             pcntl_signal(SIGTERM, function() {
 
@@ -139,21 +157,15 @@ class Task {
 
         }
 
-        // $this->log_level = $this->getLogLevel(EXTENDER_LOG_LEVEL);
+    }
 
-        // if ( filter_var($log, FILTER_VALIDATE_BOOLEAN) OR (EXTENDER_LOG_ENABLED AND EXTENDER_LOG_TASKS) ) {
+    /**
+     * Class destructor, just to unset database handler
+     * 
+     */
+    final public function __destruct() {
 
-        //  $target = EXTENDER_LOG_FOLDER.$this->pid.'-'.$this->class.'.log';
-
-        //  $handler = new StreamHandler($target, $level);
-
-        // } else {
-
-        //  $handler = new NullHandler($level);
-
-        // }
-
-        // $this->logger->pushHandler($handler);
+        unset($this->dbh);
 
     }
 
@@ -227,13 +239,13 @@ class Task {
 
             // open worklog
 
-            $this->worklog_id = self::createWorklog($this->pid, $this->name, $this->class, $this->start_timestamp);
+            $this->worklog_id = $this->createWorklog($this->pid, $this->name, $this->class, $this->start_timestamp);
 
             $this->result = $this->run();
 
             $this->end_timestamp = microtime(true);
 
-            self::closeWorklog($this->worklog_id, true, $this->result, $this->end_timestamp);
+            $this->closeWorklog($this->worklog_id, true, $this->result, $this->end_timestamp);
 
         }
         catch (Exception $e) {
@@ -244,7 +256,7 @@ class Task {
 
                 if ( is_null($this->end_timestamp) ) $this->end_timestamp = microtime(true);
 
-                self::closeWorklog($this->worklog_id, false, $this->result, $this->end_timestamp);
+                $this->closeWorklog($this->worklog_id, false, $this->result, $this->end_timestamp);
 
             }
 
@@ -269,20 +281,20 @@ class Task {
     /**
      * Create the worklog for current job
      */
-    static private function createWorklog($pid, $name, $class, $start_timestamp) {
+    private function createWorklog($pid, $name, $class, $start_timestamp) {
         
         try{
 
-            $db = new EnhancedDatabase(
-                EXTENDER_DATABASE_MODEL,
-                EXTENDER_DATABASE_HOST,
-                EXTENDER_DATABASE_PORT,
-                EXTENDER_DATABASE_NAME,
-                EXTENDER_DATABASE_USER,
-                EXTENDER_DATABASE_PASS
-            );
+            // $db = new EnhancedDatabase(
+            //     EXTENDER_DATABASE_MODEL,
+            //     EXTENDER_DATABASE_HOST,
+            //     EXTENDER_DATABASE_PORT,
+            //     EXTENDER_DATABASE_NAME,
+            //     EXTENDER_DATABASE_USER,
+            //     EXTENDER_DATABASE_PASS
+            // );
 
-            $w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+            $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("pid","name","task","status","start"))
                 ->values(array($pid, $name, $class, 'STARTED', $start_timestamp))
@@ -291,13 +303,13 @@ class Task {
         }
         catch (DatabaseException $de) {
             
-            unset($db);
+            //unset($db);
 
             throw $de;
 
         }
         
-        unset($db);
+        //unset($db);
 
         return $w_result['id'];
             
@@ -306,20 +318,20 @@ class Task {
     /**
      * Close worklog for current job
      */
-    static private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
+    private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
         
         try{
             
-            $db = new EnhancedDatabase(
-                EXTENDER_DATABASE_MODEL,
-                EXTENDER_DATABASE_HOST,
-                EXTENDER_DATABASE_PORT,
-                EXTENDER_DATABASE_NAME,
-                EXTENDER_DATABASE_USER,
-                EXTENDER_DATABASE_PASS
-            );
+            // $db = new EnhancedDatabase(
+            //     EXTENDER_DATABASE_MODEL,
+            //     EXTENDER_DATABASE_HOST,
+            //     EXTENDER_DATABASE_PORT,
+            //     EXTENDER_DATABASE_NAME,
+            //     EXTENDER_DATABASE_USER,
+            //     EXTENDER_DATABASE_PASS
+            // );
 
-            $w_result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+            $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("status", "success", "result", "end"))
                 ->values(array("FINISHED", $success, $result, $end_timestamp))
@@ -329,13 +341,13 @@ class Task {
         }
         catch (DatabaseException $de) {
             
-            unset($db);
+            //unset($db);
             
             throw $de;
 
         }
         
-        unset($db);
+        //unset($db);
         
     }
     
