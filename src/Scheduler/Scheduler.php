@@ -4,6 +4,7 @@ use \Cron\CronExpression;
 use \Comodojo\Exception\DatabaseException;
 use \Comodojo\Database\EnhancedDatabase;
 use \Comodojo\Extender\Cache;
+use \Comodojo\Extender\Planner;
 use \Exception;
 
 /**
@@ -43,6 +44,8 @@ class Scheduler {
 
         $schedules = array();
 
+        $planned = array();
+
         try {
             
             $jobs = self::getJobs();
@@ -50,6 +53,8 @@ class Scheduler {
             foreach ($jobs as $job) {
 
                 if ( self::shouldRunJob($job, $logger, $timestamp) ) array_push($schedules, $job);
+
+                else $planned[] = self::shouldPlanJob($job);
                 
             }   
 
@@ -75,7 +80,7 @@ class Scheduler {
 
         $logger->info("\n".sizeof($schedules)." job(s) in current queue");
 
-        return $schedules;
+        return array( $schedules, empty($planned) ? null : min($planned) );
 
     }
 
@@ -126,11 +131,13 @@ class Scheduler {
         unset($db);
 
         Cache::purge();
+        
+        Planner::release();
 
     }
 
     /**
-     * Update sincle schedule (last run)
+     * Update single schedule (last run)
      *
      * @param   Object  $logger
      * @param   float   $lastrum
@@ -166,6 +173,8 @@ class Scheduler {
         unset($db);
 
         Cache::purge();
+        
+        Planner::release();
 
     }
 
@@ -222,6 +231,8 @@ class Scheduler {
         }
 
         Cache::purge();
+        
+        Planner::release();
 
         return array($result['id'], $next_calculated_run);
 
@@ -263,6 +274,8 @@ class Scheduler {
         if ( $result['affected_rows'] == 0 ) return false;
 
         Cache::purge();
+        
+        Planner::release();
 
         return true;
 
@@ -304,6 +317,8 @@ class Scheduler {
         }
 
         Cache::purge();
+        
+        Planner::release();
 
         return $result["affected_rows"] == 1 ? true : false;
 
@@ -345,6 +360,8 @@ class Scheduler {
         }
 
         Cache::purge();
+        
+        Planner::release();
 
         return $result["affected_rows"] == 1 ? true : false;
 
@@ -489,6 +506,46 @@ class Scheduler {
         ));
 
         return $torun;
+
+    }
+
+    /**
+     * Determine next planned jobs
+     *
+     * @param   array   $job
+     *
+     * @return  int
+     */
+    static private function shouldPlanJob($job) {
+
+        $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year']));
+
+        if ( empty($job['lastrun']) ) {
+
+            $next_calculated_run = (int)$job['firstrun'];
+
+        } else {
+
+            $last_date = date_create();
+
+            date_timestamp_set($last_date, (int)$job['lastrun']);  
+
+            try {
+
+                $cron = CronExpression::factory($expression);
+
+                $next_calculated_run = $cron->getNextRunDate($last_date)->format('U');
+
+            }
+            catch (Exception $e) {
+
+                return false;
+
+            }
+
+        }
+
+        return $next_calculated_run;
 
     }
 

@@ -273,6 +273,12 @@ class Extender {
 
         $this->events->fire("extender.ready", "VOID", $this->logger);
 
+        // store initial status and queue information
+
+        Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
+
+        Queue::dump(0,0);
+        
         // we are ready to go!
 
     }
@@ -435,11 +441,41 @@ class Extender {
 
         $this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
 
+        // get the next planned activity interval 
+
+        $plans = Planner::get();
+
+        if ( !is_null($plans) AND $this->timestamp < $plans ) {
+
+            // nothing to do right now, still waiting if in daemon mode
+
+            $this->logger->info("Next planned job: ".date('c',$plans));
+
+            $this->logger->notice("Extender completed\n");
+
+            if ( $this->getDaemonMode() === false ) {
+
+                $this->shutdown(true);
+
+                exit(0);
+
+            }
+
+            return;
+
+        }
+
+        // if no plan is retrieved, try to retrieve it from scheduler
+
         try {
 
             // get schedules and dispatch schedule event
 
-            $schedules = Scheduler::getSchedules($this->logger, $this->timestamp);
+            list($schedules, $planned) = Scheduler::getSchedules($this->logger, $this->timestamp);
+
+            // write next planned activity interval
+
+            if ( !is_null($planned) AND $planned != 0 ) Planner::set($planned);
         
             $this->schedule->setSchedules( $schedules );
 
@@ -453,7 +489,13 @@ class Extender {
 
                 $this->logger->notice("Extender completed\n");
 
-                if ( $this->getDaemonMode() === false ) exit(0);
+                if ( $this->getDaemonMode() === false ) {
+
+                    $this->shutdown(true);
+
+                    exit(0);
+
+                }
 
                 return;
 
@@ -532,7 +574,15 @@ class Extender {
 
         if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
 
-        if ( $this->getDaemonMode() === false ) exit(0);
+        Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
+
+        if ( $this->getDaemonMode() === false ) {
+
+            $this->shutdown(true);
+
+            exit(0);
+
+        }
 
     }
 
@@ -578,7 +628,7 @@ class Extender {
 
         pcntl_signal(SIGCONT, array($this,'sigContHandler'));
 
-        pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
+        //pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
 
         // register pluggable signals
 
@@ -595,10 +645,10 @@ class Extender {
     }
 
     /**
-     * Delete $pid file after exit() called
+     * Delete all status file after exit() called
      *
      */
-    final public function shutdown() {
+    final public function shutdown($force=false) {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
@@ -608,10 +658,31 @@ class Extender {
 
             Status::release();
 
+            Queue::release();
+
+            Planner::release();
+
+        }
+
+        if ( $force === true ) {
+
+            $this->logger->info("Shutdown in progress, cleaning environment");
+
+            Status::release();
+
+            Queue::release();
+
+            Planner::release();
+
         }
 
     }
 
+    /**
+     * The sigTerm handler.
+     * 
+     * It kills everything and then exit with status 1
+     */
     final public function sigTermHandler() {
 
         if ( $this->parent_pid == posix_getpid() ) {
@@ -626,18 +697,11 @@ class Extender {
 
     }
 
-    final public function sigUsr1Handler() {
-
-        if ( $this->parent_pid == posix_getpid() ) {
-
-            $this->logger->info("Received USR1 signal, dumping status parameters");
-
-            Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
-
-        }
-
-    }
-
+    /**
+     * The sigStop handler.
+     * 
+     * It just pauses extender execution
+     */
     final public function sigStopHandler() {
 
         if ( $this->parent_pid == posix_getpid() ) {
@@ -650,6 +714,11 @@ class Extender {
 
     }
 
+    /**
+     * The sigCont handler.
+     * 
+     * It just resume extender execution
+     */
     final public function sigContHandler() {
 
         if ( $this->parent_pid == posix_getpid() ) {
@@ -662,6 +731,11 @@ class Extender {
 
     }
 
+    /**
+     * The generig signal handler.
+     * 
+     * It can be used to handle custom signals
+     */
     final public function genericSignalHandler($signal) {
 
         if ( $this->parent_pid == posix_getpid() ) {

@@ -2,6 +2,7 @@
 
 use \Exception;
 use \Comodojo\Extender\Checks;
+use \Comodojo\Extender\Queue;
 
 /**
  * Jobs runner
@@ -90,7 +91,30 @@ class JobsRunner {
      * @var     array
      */
     private $ipc_array = array();
+    
+    /**
+     * Number of processes waiting in the queue
+     *
+     * @var     int
+     */
+    private $queued_processes = 0;
 
+    /**
+     * Array of chunks from current jobs
+     * 
+     * It is used to divide jobs in groups and generate the queue
+     *
+     * @var     array
+     */
+    private $queued_chunks = array();
+
+    /**
+     * Time between SIGTERM and SIGKILL when child is killed
+     * 
+     * Just to give it a chance
+     *
+     * @var     int
+     */
     static private $lagger_timeout = 10;
 
     /**
@@ -185,10 +209,80 @@ class JobsRunner {
      * @return  array   An array of completed processes
      */
     final public function run() {
-        
-        foreach ($this->jobs as $jobUid => $job) {
+
+        // if jobs > concurrent jobs, create the queue
+
+        if ( $this->multithread AND defined(EXTENDER_MAX_CHILDS) AND sizeof($this->jobs) > EXTENDER_MAX_CHILDS AND EXTENDER_MAX_CHILDS != 0 ) {
+
+            $this->queued_processes = sizeof($this->jobs);
+
+            // split jobs in chunks
+
+            $this->queued_chunks = array_chunk($this->jobs, EXTENDER_MAX_CHILDS, true);
+
+            // exec chunks, one at time
+
+            foreach ($this->queued_chunks as $chunk) {
+                
+                $this->queued_processes = $this->queued_processes - sizeof($chunk);
+
+                Queue::dump(sizeof($chunk), $this->queued_processes);
+
+                $this->forker($chunk);
+
+                if ( $this->multithread ) $this->logger->info("Extender forked ".sizeof($this->forked_processes)." process(es) in the running queue", $this->forked_processes);
+
+                $this->catcher();
+
+                $this->forked_processes = array();
+
+            }
+
+        } else {
+
+            Queue::dump(sizeof($this->jobs), 0);
+
+            $this->forker($this->jobs);
+
+            if ( $this->multithread ) $this->logger->info("Extender forked ".sizeof($this->forked_processes)." process(es) in the running queue", $this->forked_processes);
+
+            $this->catcher();
+
+        }
+
+        // Dump the end queue status
+
+        Queue::dump(sizeof($this->running_processes), $this->queued_processes);
+
+        return $this->completed_processes;
+
+    }
+
+    /**
+     * Terminate all running processes
+     *
+     * @param   int     Parent process pid
+     */
+    final public function killAll($parent_pid) {
+
+        foreach ($this->running_processes as $pid => $process) {
+
+            if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+
+        }
+
+    }
+
+    /**
+     * Fork or exec some jobs
+     *
+     * @param   array   $jobs   A subset of $this->jobs to process in a round
+     */
+    private function forker($jobs) {
+
+        foreach ($jobs as $jobUid => $job) {
             
-            if ( $this->multithread AND sizeof($this->jobs) > 1 ) {
+            if ( $this->multithread AND sizeof($jobs) > 1 ) {
 
                 $status = $this->runMultithread($jobUid);
 
@@ -210,7 +304,13 @@ class JobsRunner {
 
         }
 
-        if ( $this->multithread ) $this->logger->info("Extender forked ".sizeof($this->forked_processes)." process(es) in the running queue", $this->forked_processes);
+    }
+
+    /**
+     * Catch results from completed jobs
+     * 
+     */
+    private function catcher() {
 
         $exec_time = microtime(true);
 
@@ -311,23 +411,6 @@ class JobsRunner {
                 }
 
             }
-
-        }
-
-        return $this->completed_processes;
-
-    }
-
-    /**
-     * Terminate all running processes
-     *
-     * @param   int     Parent process pid
-     */
-    final public function killAll($parent_pid) {
-
-        foreach ($this->running_processes as $pid => $process) {
-
-            if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
 
         }
 

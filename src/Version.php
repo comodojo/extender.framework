@@ -37,7 +37,7 @@ class Version {
      *
      * @var     string
      */
-    static private $version = "1.0.0-beta1";
+    static private $version = "1.0.0-beta2";
 
     /**
      * Get extender framework description
