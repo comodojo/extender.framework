@@ -212,7 +212,7 @@ class JobsRunner {
 
         // if jobs > concurrent jobs, create the queue
 
-        if ( $this->multithread AND defined(EXTENDER_MAX_CHILDS) AND sizeof($this->jobs) > EXTENDER_MAX_CHILDS AND EXTENDER_MAX_CHILDS != 0 ) {
+        if ( $this->multithread AND defined("EXTENDER_MAX_CHILDS") AND sizeof($this->jobs) > EXTENDER_MAX_CHILDS AND EXTENDER_MAX_CHILDS != 0 ) {
 
             $this->queued_processes = sizeof($this->jobs);
 
