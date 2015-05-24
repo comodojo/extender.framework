@@ -1,12 +1,10 @@
 # Comodojo extender
 
+![extender logo](assets/extender-logo-250.png)
+
 Comodojo extender is a database driven, multiprocess, (pseudo) cron tasks scheduler written in PHP.
 
 It supports multiprocessing via [PHP Process Control extensions](http://php.net/manual/en/refs.fileprocess.process.php) and is designed to work with different databases.
-
-## Requirements
-
-To work properly, extender requires a cli-enabled PHP installation >=5.3.0 and a database; by default, extender auto-create a new SQLite3 database, but this behaviour can be changed easly.
 
 ## Basic concepts
 

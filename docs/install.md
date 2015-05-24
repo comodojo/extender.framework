@@ -2,6 +2,10 @@
 
 Comodojo extender could be installed via composer, using dedicated `comodojo/extender.project` package.
 
+## Requirements
+
+To work properly, extender requires a cli-enabled PHP installation >=5.3.0 and a database; by default, extender auto-create a new SQLite3 database, but this behaviour can be changed easly.
+
 ## Basic installation
 
 First [install composer](https://getcomposer.org/), then create a new extender/project using this command:
