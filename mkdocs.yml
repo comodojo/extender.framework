@@ -1,4 +1,4 @@
 site_name: comodojo extender documentation
 pages:
-- [introduction.md, Home]
-- [install.md, Installing extender]
+- [docs/introduction.md, Home]
+- [docs/install.md, Installing extender]
