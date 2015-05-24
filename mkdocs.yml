@@ -1,6 +1,15 @@
-site_name: Comodojo extender documentation
+site_name: comodojo::docs/extender.framework
+site_url: http://docs.comodojo.org/extender
+repo_url: https://github.com/comodojo/extender.framework
+copyright: Marco Giovinazzi (info@comodojo.org)
+site_dir: extender.docs
 site_favicon: assets/favicon.ico
+markdown_extensions:
+    toc:
+        permalink: True
+theme: readthedocs
 pages:
 - ['index.md', 'Home']
-- ['install.md', 'Installing extender']
-theme: readthedocs
+- ['install.md', 'Installation']
+- ['basicconfig.md', 'Configuration']
+- ['running.md', 'Running extender']

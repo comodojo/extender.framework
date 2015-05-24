@@ -1,6 +1,6 @@
 # Installing extender
 
-Comodojo extender could be installed via composer, using dedicated `comodojo/extender.project` package.
+Comodojo extender could be installed via composer, using dedicated [comodojo/extender.project](https://github.com/comodojo/extender.project) package.
 
 ## Requirements
 
@@ -18,7 +18,7 @@ This will install a new instance of extender and required dependencies in "exten
 
 Extender relies on `comodojo/database` library for database handling. Before running extender for the first time, you need to create tables for jobs definition and worklog archive.
 
-The `econtrol.php install` command does all the job, but first you need to define database type in `extender-config.php" configuration file. At the time of writing, extender is reported to work with SQLite and MySQL, but may work with others databases supported by `comodojo/database` lib.
+The `econtrol.php install` command does all the job, but first you need to define database type in `extender-config.php` configuration file. At the time of writing, extender is reported to work with SQLite and MySQL, but may work with others databases supported by `comodojo/database` lib.
 
 Out of the bundle, framework will create a new SQLite database and required tables; this is the default comfiguration:
 
