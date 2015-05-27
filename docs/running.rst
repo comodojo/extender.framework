@@ -1,11 +1,17 @@
-# Running extender
+Running extender
+================
 
-By default, framework (if installed via [comodojo/extender.project](https://github.com/comodojo/extender.project) package) comes with two ready-to-run scripts:
+.. highlight:: php
+
+.. _extender.project: https://github.com/comodojo/extender.project
+
+When created, a new instance of `extender.project`_ includes two ready-to-run scripts:
 
 - `extender.php`: main framework worker
 - `econtrol.php`: command line controller used to install and manage extender
 
-## extender.php
+extender.php
+************
 
 It can be runned as a one-time executable or in daemon mode.
 
@@ -19,7 +25,8 @@ It does not accept any argument in input, but has some options that modify scrip
 
 4. `-d` - enable daemon mode
 
-## econtrol.php
+econtrol.php
+************
 
 The econtrol script contains commands used to interact with the framework.
 
