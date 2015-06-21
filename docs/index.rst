@@ -27,6 +27,11 @@ Extender is structured on top of following main concepts:
    install
    basicconfig
    running
+   daemonizing
+   tasks
+   jobs
+   commands
+   plugins
 
 
 Indices and tables

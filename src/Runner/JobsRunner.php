@@ -115,7 +115,7 @@ class JobsRunner {
      *
      * @var     int
      */
-    static private $lagger_timeout = 10;
+    static private $lagger_timeout = 5;
 
     /**
      * Runner constructor
@@ -267,7 +267,8 @@ class JobsRunner {
 
         foreach ($this->running_processes as $pid => $process) {
 
-            if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+            // if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
+            if ( $pid !== $parent_pid) self::kill($pid);
 
         }
 

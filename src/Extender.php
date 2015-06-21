@@ -377,6 +377,65 @@ class Extender {
     }
 
     /**
+     * Get the number of completed processes
+     *
+     * @return  int
+     */
+    final public function getCompletedProcesses() {
+        
+        return $this->completed_processes;
+        
+    }
+
+    /**
+     * Get the number of failed processes
+     *
+     * @return int
+     */
+    final public function getFailedProcesses() {
+        
+        return $this->failed_processes;
+        
+    }
+    
+    /**
+     * Get current version
+     *
+     * @return  string
+     */
+    final public function getVersion() {
+        
+        return Version::getVersion();
+        
+    }
+    
+    /**
+     * Add hook for an event
+     *
+     * @param   string  $event      The event name
+     * @param   mixed   $callback   The callback (or class if $method is specified)
+     * @param   string  $method     (optional) Method for $callback
+     */
+    final public function addHook($event, $callback, $method=null) {
+
+        try {
+
+            $this->events->add($event, $callback, $method);
+
+        } catch (Exception $e) {
+
+            //debug error but do not stop extender
+            $this->logger->warning( 'Unable to add hook'.Array(
+                'CALLBACK' => $callback,
+                'METHOD' => $method,
+                'EVENT' => $event
+            ) );
+
+        }
+
+    }
+
+    /**
      * Register a task to TasksTable
      *
      * @param   string    $name         Task name (unique)
