@@ -44,7 +44,7 @@ class Planner {
 
         $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
 
-        $status = file_put_contents($planfile, $planned);
+        return file_put_contents($planfile, $planned);
 
     }
 
@@ -64,7 +64,7 @@ class Planner {
 
         if ( file_exists($planfile) ) $plans = file_get_contents($planfile);
 
-        return $plans;
+        return intval($plans);
 
     }
 
@@ -79,7 +79,7 @@ class Planner {
 
         if ( file_exists($planfile) ) return unlink($planfile);
         
-        else return false;
+        else return true;
 
     }
 

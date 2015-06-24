@@ -33,7 +33,7 @@ The econtrol script contains commands used to interact with the framework.
 
 Each command is an independent, parametrizable script; commands can be packed in bundles and deployed/updated directly via composer.
 
-When launched, econtrol shows something like:
+When launched, econtrol shows something like::
 
        ______                                __            __        
       / ____/ ____    ____ ___   ____   ____/ / ____      / /  ____  

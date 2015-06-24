@@ -60,7 +60,7 @@ class Status {
 
         $content = serialize($data);
 
-        $status = file_put_contents($statusfile, $content);
+        return file_put_contents($statusfile, $content);
 
     }
 

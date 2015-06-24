@@ -68,12 +68,12 @@ Custom signals can be catched and handled using the internal event subsystem.
 
 In few words, to define a custom signal handler it is necessary to define a plugin that catch the respective event.
 
-A brief example using lamba function:
+A brief example using lamba function::
 
     $extender->addHook("extender.signal.SIGUSR2", function($instance) {
         echo "Extender completed ".$instance->getCompletedProcesses." processes."
     });
-    
+
 Here's a list of currently pluggable events:
 
 - SIGHUP,

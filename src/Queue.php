@@ -51,7 +51,7 @@ class Queue {
 
         $content = serialize($data);
 
-        $status = file_put_contents($queuefile, $content);
+        return file_put_contents($queuefile, $content);
 
     }
 

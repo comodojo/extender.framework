@@ -18,7 +18,7 @@ A task should:
 - implement the `run()` method;
 - return a brief string as result (limited bye `EXTENDER_MAX_RESULT_BYTES` constant).
 
-A simple `HelloWorld" task could be defined as:
+A simple *HelloWorld* task could be defined as::
 
     <?php namespace Comodojo\Extender\Task;
 
@@ -41,7 +41,7 @@ Registering a task
 
 Once added, a task should be registered into extender using the `$extender->addTask()` method **before** the `$extender->extend()` or `$extender->process()`.
 
-The syntax of this method is:
+The syntax of this method is::
 
     $extender->addTask([name], [target], [description], [:class], [:relative])
 
@@ -69,3 +69,44 @@ Tasks bundles
 *************
 
 Tasks can be packed in bundles and installed using composer.
+
+Creating a bundle is all about packaging tasks in the right way and defining a valid *composer.json* file. The `ExtenderInstallerActions.php` script will do all job of registering/updating/removing included tasks.
+
+To achive this, installer expects:
+
+- the type of package declared as *extender-tasks-bundle*;
+- tasks placed in a *tasks* directory;
+- **extra** field of *composer.json* populated with a *comodojo-tasks-register* object, containing name, target, description and (eventually) class of single tasks.
+
+So, for our *HelloWorldTask* the structure of package will be::
+
+	mytasks/
+		- tasks/
+			- HelloWorldTask.php
+		- composer.json
+
+And the *composer.json*::
+
+	{
+	    "name": "my/mytasks",
+	    "description": "My first tasks' bundle",
+	    "type": "extender-tasks-bundle",
+	    "extra": {
+	        "comodojo-tasks-register": [
+	        	{
+	        		"name": "HelloWord",
+	        		"target": "HelloWorldTask.php",
+	        		"description": "Greetings from extender"
+	        	}    
+	        ]
+	    },
+	    "autoload": {
+	        "psr-4": {
+	             "Comodojo\\Extender\\Task\\": "tasks"
+	         }
+	    }
+	}
+
+That's all, our task is ready to be executed::
+
+	(missing block)

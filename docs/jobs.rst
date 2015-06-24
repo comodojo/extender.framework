@@ -20,7 +20,7 @@ A job is technically composed by following values:
     
 Where:
 
-- *expression* is a cron-compatible expression composed by:
+- *expression* is a cron-compatible expression composed by::
 
     *    *    *    *    *    *
     -    -    -    -    -    -
@@ -44,13 +44,13 @@ The `extender.commandsbundle.default`_ package (installed automatically by `exte
 Add and remove a job
 """"""""""""""""""""
 
-To add a job:
+To add a job::
 
     ./econtrol.php add "10 * * * * *" HelloWorldJob HelloWorld "Hourly greetings" -e
     
 This will add a hourly (h:10) job and will enable it (-e option).
 
-Optional parameters can be addedd (if job know how to handle it) using `key=value` format (comma separated):
+Optional parameters can be addedd (if job know how to handle it) using `key=value` format (comma separated)::
 
     ./econtrol.php add "15 * * * * *" HelloWorldJob2 HelloWorld "Hourly greetings (w params)" "to=Slartibartfast,where=Magrathea"
     
@@ -61,11 +61,11 @@ To delete a job:
 List jobs
 """""""""
 
-**Brief** format:
+**Brief** format::
 
     ./econtrol.php jobs
     
-This will produce something like:
+This will produce something like::
 
     Available jobs:
     ---------------
@@ -77,11 +77,11 @@ This will produce something like:
     | 15 * * * * *   | HelloWorldJob2          | HelloWorld        | Hourly greetings (w params)             | NO      |
     +----------------+-------------------------+-------------------+-----------------------------------------+---------+
 
-**Extensive** format:
+**Extensive** format::
 
     ./econtrol.php jobs -e
     
-This will produce something like:
+This will produce something like::
 
     Available jobs:
     ---------------
@@ -120,18 +120,21 @@ This will produce something like:
 Enable or disable a job
 """""""""""""""""""""""
 
+To enable a job::
+
     ./econtrol.php enable HelloWorldJob
+
+To disable it::
     
     ./econtrol.php disable HelloWorldJob
     
 Import and export jobs
 """"""""""""""""""""""
 
-Jobs can be exported and imported in a convenient json format with:
+Jobs can be exported and imported in a convenient json format with::
 
     ./econtrol.php export my-job-list.json
 
     ./econtrol.php import my-job-list.json
     
 The `import` command has a [-c] option to clean jobs table before importing from file.
-

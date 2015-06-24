@@ -21,6 +21,8 @@ Extender is structured on top of following main concepts:
 
 - Tasks, commands and plugins can be packed in packages and installed/updated/removed via composer.
 
+Table of Content:
+
 .. toctree::
    :maxdepth: 2
 

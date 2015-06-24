@@ -10,14 +10,15 @@
         "cron",
         "multiprocess"
     ],
-    "homepage": "http://extender.comodojo.org",
+    "homepage": "https://extender.comodojo.org",
      "support": {
         "issues": "https://github.com/comodojo/extender.framework/issues"
     },
     "authors": [
         {
             "name": "Marco Giovinazzi",
-            "email": "info@comodojo.org"
+            "email": "marco.giovinazzi@comodojo.org",
+            "homepage": "http://jme.altervista.org"
         }
     ],
     "autoload": {
@@ -40,9 +41,10 @@
         "pear/console_color2": "dev-master",
         "comodojo/database": "dev-master",
         "mtdowling/cron-expression": "1.0.*",
-        "monolog/monolog": "1.10.*"
+        "monolog/monolog": "1.14.*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "~4.0",
+        "scrutinizer/ocular": "~1.1"
     }
 }
