@@ -52,3 +52,16 @@ Out of the bundle, framework will create a new SQLite database and required tabl
 Using MySQL is strongly suggested if you plan to run more than 100 tasks @ day (worklog table will contain more than 30000 rows after a month).
 
 In any case, a cleanup task that delete old worklogs could be a good choise (see [example tasks](#example-tasks) at the end of this document for a working example).
+
+Finalize installation
+*********************
+
+After composer finishes its work, econtrol should be invoked to to finalize installation:
+
+    ./econtrol.php install
+    
+This command will create database tables as in configuration file. It is also possible to check configuration/environment using:
+
+    ./econtrol.php check
+
+Extender is now ready to operate.
