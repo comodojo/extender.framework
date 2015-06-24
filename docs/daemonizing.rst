@@ -23,6 +23,8 @@ The `extender.project`_ package contains two examples of init.d scripts:
 - *extender.init.deb.example* uses the debian/ubuntu `start-stop-daemon`, so it should be used in debian based OS;
 - *extender.init.rhel.example* uses the `daemon` func, so it should be used in rhel/centos based OS or in any other OS that acts the same.
 
+.. note:: If daemonized, extender will run under the specific user who called it; remember to chmod/chown working directories according to this.
+
 Daemon lifecycle
 ****************
 
