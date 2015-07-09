@@ -7,7 +7,7 @@
  *
  * There are only four available events on current extender version;
  *
- * - "extender.ready": fires when extender is ready and brings $logger as parameter (to extend monolog via plugin)
+ * - "extender": fires when extender is ready and brings $logger as parameter (to extend monolog via plugin)
  *
  * - "extender.tasks": fires when tasktable is composed; its parameter is the taskstable
  *
@@ -15,8 +15,10 @@
  *
  * - "extender.result": fires when all scheduled tasks are completed; its parameter is current results (and it cannot be modified)
  *
+ * - "extender.signal.[SIGNAME]": in case of signal received
+ *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:

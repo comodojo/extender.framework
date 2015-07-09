@@ -8,8 +8,8 @@ use Monolog\Handler\NullHandler;
 /**
  * Init the monolog logger/debugger
  * 
- * @package     Comodojo dispatcher (Spare Parts)
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @package     Comodojo extender
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -89,6 +89,17 @@ class Debug {
     }
 
     /**
+     * Get monolog instance
+     *
+     * @return \Monolog\Logger
+     */
+    final public function getLogger() {
+
+        return $this->logger;
+
+    }
+
+    /**
      * Raise an INFO message
      *
      * @param   string    $message    Message text
@@ -96,7 +107,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function info($message, array $context = array()) {
+    public function info($message, array $context = array()) {
 
         $log = $this->logger->addInfo($message, $context);
 
@@ -120,7 +131,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function notice($message, array $context = array()) {
+    public function notice($message, array $context = array()) {
 
         $log = $this->logger->addNotice($message, $context);
 
@@ -144,7 +155,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function warning($message, array $context = array()) {
+    public function warning($message, array $context = array()) {
 
         $log = $this->logger->addWarning($message, $context);
 
@@ -168,7 +179,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function error($message, array $context = array()) {
+    public function error($message, array $context = array()) {
 
         $log = $this->logger->addError($message, $context);
 
@@ -192,7 +203,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function critical($message, array $context = array()) {
+    public function critical($message, array $context = array()) {
 
         $log = $this->logger->addCritical($message, $context);
 
@@ -216,7 +227,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function alert($message, array $context = array()) {
+    public function alert($message, array $context = array()) {
 
         $log = $this->logger->addAlert($message, $context);
 
@@ -240,7 +251,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function emergency($message, array $context = array()) {
+    public function emergency($message, array $context = array()) {
 
         $log = $this->logger->addEmergency($message, $context);
 
@@ -264,7 +275,7 @@ class Debug {
      *
      * @return  bool
      */
-    final public function debug($message, array $context = array()) {
+    public function debug($message, array $context = array()) {
 
         $log = $this->logger->addDebug($message, $context);
 
@@ -279,7 +290,6 @@ class Debug {
         return $log;
 
     }
-
 
     /**
      * Map provided log level to monolog level code

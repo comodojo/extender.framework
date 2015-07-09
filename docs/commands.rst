@@ -14,7 +14,7 @@ Commands can be defined by user into the `EXTENDER_COMMAND_FOLDER` or packed in 
 Writing additional commands
 ***************************
 
-A command is essentially a class that implements the `\Comodojo\Extender\CommandCommandInterface` and is defined in the same namespace. The `Comodojo\Extender\Command\StandardCommand` class can be useful to avoid common methods definition (is, essentially, a trait defined as a class for compatibility reasons).
+A command is essentially a class that implements the `\Comodojo\Extender\CommandCommandInterface` and is defined in the same namespace. The `\Comodojo\Extender\Command\AbstractCommand` abstract class can be useful to avoid common methods definition (is, essentially, a trait defined as a class for compatibility reasons).
 
 .. note:: Take a look at the `api`_ to know all the method that your command should implement.
 
@@ -133,7 +133,3 @@ So, the composer.json of *mybundle* package will be something like::
 Once installed, every should be in place to exec those commands using::
 
 	./econtrol.php exec helloworkcommand Marvin
-
-and view something like::
-
-	(missing block)

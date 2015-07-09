@@ -8,7 +8,7 @@ use \Comodojo\Extender\Queue;
  * Jobs runner
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -120,10 +120,10 @@ class JobsRunner {
     /**
      * Runner constructor
      *
-     * @param   array   $logger                             Logger instance
-     * @param   array   $multithread                        Enable/disable multithread mode
-     * @param   array   $max_result_bytes_in_multithread    Max result bytes
-     * @param   array   $max_childs_runtime                 Max child runtime
+     * @param   Comodojo\Extender\Debug   $logger                             Logger instance
+     * @param   bool                      $multithread                        Enable/disable multithread mode
+     * @param   int                       $max_result_bytes_in_multithread    Max result bytes
+     * @param   int                       $max_childs_runtime                 Max child runtime
      */
     final public function __construct($logger, $multithread, $max_result_bytes_in_multithread, $max_childs_runtime) {
 
@@ -140,9 +140,9 @@ class JobsRunner {
     /**
      * Add job to current queue
      *
-     * @param   Object  $job    An instance of \Comodojo\Extender\Job\Job
+     * @param   Comodojo\Extender\Job\Job  $job    An instance of \Comodojo\Extender\Job\Job
      *
-     * @return  string          A job unique identifier
+     * @return  string  A job unique identifier
      */
     final public function addJob(\Comodojo\Extender\Job\Job $job) {
 
@@ -150,33 +150,22 @@ class JobsRunner {
 
         try {
 
-            $target = $job->getTarget();
-
             $class = $job->getClass();
 
-            if ( class_exists("\\Comodojo\\Extender\\Task\\".$class) === false ) {
-
-                if ( !file_exists($target) ) throw new Exception("Task file does not exists");
-
-                if ( (include($target)) === false ) throw new Exception("Task file cannot be included");
-
-            }
+            if ( class_exists($class) === false ) throw new Exception("Task cannot be loaded");
 
             $this->jobs[$uid] = array(
                 "name"      =>  $job->getName(),
                 "id"        =>  $job->getId(),
                 "parameters"=>  $job->getParameters(),
                 "task"      =>  $job->getTask(),
-                "target"    =>  $target,
                 "class"     =>  $class
             );
 
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
 
             $this->logger->error('Error including job',array(
                 "JOBUID"=> $uid,
-                "TARGET"=> $target,
                 "ERROR" => $e->getMessage(),
                 "ERRID" => $e->getCode()
             ));
@@ -439,9 +428,7 @@ class JobsRunner {
 
         $task = $job['task'];
 
-        $class = $job['class'];
-
-        $task_class = "\\Comodojo\\Extender\\Task\\".$class;
+        $task_class = $job['class'];
 
         try {
 
@@ -490,9 +477,7 @@ class JobsRunner {
 
         $task = $job['task'];
 
-        $class = $job['class'];
-
-        $task_class = "\\Comodojo\\Extender\\Task\\".$class;
+        $task_class = $job['class'];
 
         $this->ipc_array[$jobUid] = array();
 

@@ -1,7 +1,7 @@
 <?php namespace Comodojo\Extender\Command;
 
 /**
- * The CommandInterface, base interface that any command should implement
+ * Common superclass for extender default commands
  *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
@@ -23,7 +23,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-interface CommandInterface {
+abstract class AbstractCommand implements CommandInterface {
+
+    /**
+     * Array of commandline options
+     *
+     * @var array
+     */
+    protected $options = null;
+
+    /**
+     * Array of commandline arguments
+     *
+     * @var array
+     */
+    protected $args = null;
+
+    /**
+     * Internal pointer to ConsoleColor object
+     *
+     * @var object
+     */
+    protected $color = null;
+
+    /**
+     * Array of registered tasks
+     *
+     * @var array
+     */
+    protected $tasks = array();
 
     /**
      * Set options
@@ -32,7 +60,13 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setOptions($options);
+    public function setOptions($options) {
+
+        $this->options = $options;
+
+        return $this;
+
+    }
 
     /**
      * Set arguments
@@ -41,7 +75,13 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setArguments($args);
+    public function setArguments($args) {
+
+        $this->args = $args;
+
+        return $this;
+
+    }
 
     /**
      * Inject Console_Color2 instance
@@ -50,7 +90,13 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setColor($color);
+    public function setColor($color) {
+
+        $this->color = $color;
+
+        return $this;
+
+    }
 
     /**
      * Set registered tasks
@@ -59,7 +105,13 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setTasks($tasks);
+    public function setTasks($tasks) {
+
+        $this->tasks = $tasks;
+
+        return $this;
+
+    }
 
     /**
      * Get an option
@@ -68,7 +120,13 @@ interface CommandInterface {
      *
      * @return  string
      */
-    public function getOption($option);
+    public function getOption($option) {
+
+        if ( array_key_exists($option, $this->options) ) return $this->options[$option];
+
+        else return null;
+
+    }
 
     /**
      * Get an argument
@@ -77,13 +135,19 @@ interface CommandInterface {
      *
      * @return  string
      */
-    public function getArgument($arg);
+    public function getArgument($arg) {
+
+        if ( array_key_exists($arg, $this->args) ) return $this->args[$arg];
+
+        else return null;
+
+    }
 
     /**
-     * Execute command
+     * The execute method; SHOULD be implemented by each command
      *
      * @return  string
      */
-    public function execute();
+    abstract public function execute();
 
 }

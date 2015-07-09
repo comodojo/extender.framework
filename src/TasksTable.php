@@ -4,7 +4,7 @@
  * Tasks table
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -36,21 +36,18 @@ class TasksTable {
      * Register a task
      *
      * @param   string    $name         Task name (unique)
-     * @param   string    $target       Target task file
+     * @param   string    $class        The target class to invoke
      * @param   string    $description  A brief description for the task
-     * @param   string    $class        (optional) Task class, if different from file name
-     * @param   bool      $relative     (optional) If relative, a task will be loaded in EXTENDER_TASK_FOLDER
      *
      * @return  bool
      */
-    final public function addTask($name, $target, $description, $class=null, $relative=true) {
+    final public function addTask($name, $class, $description) {
 
-        if ( empty($name) OR empty($target) ) return false;
+        if ( empty($name) OR empty($class) ) return false;
 
         $this->tasks[$name] = array(
             "description" => $description,
-            "target"      => $relative ? EXTENDER_TASK_FOLDER.$target : EXTENDER_REAL_PATH.$target,
-            "class"       => empty($class) ? self::processTaskClass($target, $relative) : $class
+            "class"       => $class
 
         );
 
@@ -108,21 +105,6 @@ class TasksTable {
     }
 
     /**
-     * Get task target
-     *
-     * @param   string    $name         Task name (unique)
-     *
-     * @return  string
-     */
-    final public function getTarget($task) {
-
-        if ( $this->registered($task) ) return $this->tasks[$task]["target"];
-
-        else return null;
-
-    }
-
-    /**
      * Get task class
      *
      * @param   string    $name         Task name (unique)
@@ -160,12 +142,6 @@ class TasksTable {
         if ( array_key_exists($task, $this->tasks) ) return true;
 
         else return false;
-
-    }
-
-    static private function processTaskClass($target, $relative) {
-
-        return $relative ? preg_replace('/^.*\/(.+)\..*$/', '$1', "/".$target) : preg_replace('/^.*\/(.+)\..*$/', '$1', $target);
 
     }
 

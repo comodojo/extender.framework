@@ -16,8 +16,8 @@ use \Exception;
  *
  * Each task manage its own worklog on database and may define a Monolog instance to log to.
  *
- * @package     Comodojo dispatcher (Spare Parts)
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @package     Comodojo extender
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -36,7 +36,7 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class Task {
+abstract class Task {
         
     // Things a task may modify
 
@@ -275,11 +275,10 @@ class Task {
 
     }
 
-    public function run() {
-
-        return;
-
-    }
+    /**
+     * The run method; SHOULD be implemented by each task
+     */
+    abstract public function run();
 
     /**
      * Create the worklog for current job
@@ -288,16 +287,8 @@ class Task {
         
         try{
 
-            // $db = new EnhancedDatabase(
-            //     EXTENDER_DATABASE_MODEL,
-            //     EXTENDER_DATABASE_HOST,
-            //     EXTENDER_DATABASE_PORT,
-            //     EXTENDER_DATABASE_NAME,
-            //     EXTENDER_DATABASE_USER,
-            //     EXTENDER_DATABASE_PASS
-            // );
-
-            $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
+            $w_result = $this->dbh
+                ->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("pid","name","task","status","start"))
                 ->values(array($pid, $name, $class, 'STARTED', $start_timestamp))
@@ -306,14 +297,10 @@ class Task {
         }
         catch (DatabaseException $de) {
             
-            //unset($db);
-
             throw $de;
 
         }
         
-        //unset($db);
-
         return $w_result['id'];
             
     }
@@ -324,15 +311,6 @@ class Task {
     private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
         
         try{
-            
-            // $db = new EnhancedDatabase(
-            //     EXTENDER_DATABASE_MODEL,
-            //     EXTENDER_DATABASE_HOST,
-            //     EXTENDER_DATABASE_PORT,
-            //     EXTENDER_DATABASE_NAME,
-            //     EXTENDER_DATABASE_USER,
-            //     EXTENDER_DATABASE_PASS
-            // );
 
             $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
@@ -344,13 +322,9 @@ class Task {
         }
         catch (DatabaseException $de) {
             
-            //unset($db);
-            
             throw $de;
 
         }
-        
-        //unset($db);
         
     }
     

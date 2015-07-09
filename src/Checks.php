@@ -7,7 +7,7 @@ use Comodojo\Database\EnhancedDatabase;
  * Framework wide checks
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:

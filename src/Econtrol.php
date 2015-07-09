@@ -12,7 +12,7 @@ use \Exception;
  * Extender command line controller (econtrol)
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -91,9 +91,9 @@ class Econtrol {
      *
      * @return  bool
      */
-    final public function addTask($name, $target, $description, $class=null, $relative=true) {
+    final public function addTask($name, $class, $description) {
 
-        if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
+        if ( $this->tasks->addTask($name, $class, $description) === false ) {
 
             echo $this->color->convert("\n%ySkipping task ".$name." due to invalid definition%n\n");
 

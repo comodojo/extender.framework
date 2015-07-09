@@ -15,7 +15,7 @@ use \Exception;
  * Extender main class
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -145,13 +145,6 @@ class Extender {
      */
     private $tasks = null;
 
-    /**
-     * JobsResult instance
-     *
-     * @var Object
-     */
-    private $results = null;
-
     // checks and locks are static!
     
     // local archives
@@ -239,8 +232,6 @@ class Extender {
 
         $this->tasks = new TasksTable();
 
-        $this->schedule = new Schedule();
-
         // setup extender parameters
 
         $this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
@@ -268,10 +259,6 @@ class Extender {
         $this->runner = new JobsRunner($this->logger, $this->getMultithreadMode(), $this->max_result_bytes_in_multithread, $this->max_childs_runtime);
 
         $this->logger->notice("Extender ready");
-
-        // fire extender ready event
-
-        $this->events->fire("extender.ready", "VOID", $this->logger);
 
         // store initial status and queue information
 
@@ -408,7 +395,62 @@ class Extender {
         return Version::getVersion();
         
     }
+
+    /**
+     * Get events manager
+     *
+     * @return  \Comodojo\Extender\Events
+     */
+    final public function getEvents() {
+
+        return $this->events;
+
+    }
+
+    /**
+     * Get console color instance
+     *
+     * @return  \Console_Color2
+     */
+    final public function getColor() {
+
+        return $this->color;
+
+    }
+
+    /**
+     * Get internal debugger/logger
+     *
+     * @return  \Comodojo\Extender\Debug
+     */
+    final public function getDebugger() {
+
+        return $this->logger;
+
+    }
+
+    /**
+     * Get jobs' runner
+     *
+     * @return  \Comodojo\Extender\JobsRunner
+     */
+    final public function getJobsRunner() {
+
+        return $this->runner;
+
+    }
     
+    /**
+     * Get the tasks' table
+     *
+     * @return  \Comodojo\Extender\TaskTable
+     */
+    final public function getTasksTable() { 
+
+        return $this->tasks;
+
+    }
+
     /**
      * Add hook for an event
      *
@@ -446,16 +488,14 @@ class Extender {
      *
      * @return  bool
      */
-    final public function addTask($name, $target, $description, $class=null, $relative=true) {
+    final public function addTask($name, $class, $description) {
 
-        if ( $this->tasks->addTask($name, $target, $description, $class, $relative) === false ) {
+        if ( $this->tasks->addTask($name, $class, $description) === false ) {
 
             $this->logger->warning("Skipping task due to invalid definition", array(
                 "NAME"       => $name,
-                "TARGET"     => $target,
-                "DESCRIPTION"=> $description,
                 "CLASS"      => $class,
-                "RELATIVE"   => $relative
+                "DESCRIPTION"=> $description
             ));
 
             return false;
@@ -467,22 +507,14 @@ class Extender {
     }
 
     /**
-     * Include a plugin
-     *
-     * @param   string  $plugin     The plugin name
-     * @param   string  $folder     (optional) plugin folder (if omitted, dispatcher will use default one)
-     */
-    final public function loadPlugin($plugin, $folder=EXTENDER_PLUGIN_FOLDER) {
-
-        include $folder.$plugin.".php";
-
-    }
-
-    /**
      * Do extend!
      *
      */
     public function extend() {
+
+        // fire extender ready event
+
+        $this->events->fire("extender", "VOID", $this);
 
         // dispatch signals (if multithread active)
 
@@ -535,14 +567,18 @@ class Extender {
             // write next planned activity interval
 
             if ( !is_null($planned) AND $planned != 0 ) Planner::set($planned);
-        
-            $this->schedule->setSchedules( $schedules );
 
-            $this->schedule = $this->events->fire("extender.schedule", "SCHEDULE", $this->schedule);
+            $scheduled = new Schedule();
+        
+            $scheduled->setSchedules($schedules);
+
+            // expose the current shcedule via events
+
+            $scheduled = $this->events->fire("extender.schedule", "SCHEDULE", $scheduled);
 
             // if no jobs in queue, exit gracefully
 
-            if ( $this->schedule->howMany() == 0 ) {
+            if ( $scheduled->howMany() == 0 ) {
 
                 $this->logger->info("No jobs to process right now, exiting");
 
@@ -562,7 +598,7 @@ class Extender {
 
             // compose jobs
 
-            foreach ($this->schedule->getSchedules() as $schedule) {
+            foreach ($scheduled->getSchedules() as $schedule) {
 
                 if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
 
@@ -572,7 +608,6 @@ class Extender {
                         ->setId( $schedule['id'] )
                         ->setParameters( unserialize($schedule['params']) )
                         ->setTask( $schedule['task'] )
-                        ->setTarget( $this->tasks->getTarget($schedule['task']) )
                         ->setClass( $this->tasks->getClass($schedule['task']) );
 
                     $this->runner->addJob($job);
@@ -599,7 +634,7 @@ class Extender {
 
             // compose results
 
-            $this->results = new JobsResult($result);
+            $results = new JobsResult($result);
 
             // update schedules
 
@@ -625,7 +660,7 @@ class Extender {
 
         // fire result event
 
-        $this->events->fire("extender.result", "VOID", $this->results);
+        $this->events->fire("extender.result", "VOID", $results);
 
         $this->logger->notice("Extender completed\n");
 

@@ -9,7 +9,7 @@ use \Console_CommandLine;
  * It process command from ConsoleCommandline
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -33,10 +33,8 @@ class CommandsController {
     /**
      * Add commands to the ConsoleCommandline parser
      *
-     * @param   Object  $parser     ConsoleCommandline parser
-     * @param   array   $commands   Provided options (if any)
-     *
-     * @return  Object  $this
+     * @param   Console_CommandLine $parser     ConsoleCommandline parser
+     * @param   array               $commands   Provided options (if any)
      */
     static final public function addCommands(Console_CommandLine $parser, array $commands) {
 
@@ -76,11 +74,11 @@ class CommandsController {
     /**
      * Execute command
      *
-     * @param   string  $command   Command to execute
-     * @param   array   $options   Options provided
-     * @param   array   $args      Arguments provided
-     * @param   Object  $color     Injected Console_Color2 instance
-     * @param   array   $tasks     Array of available tasks
+     * @param   string          $command   Command to execute
+     * @param   array           $options   Options provided
+     * @param   array           $args      Arguments provided
+     * @param   Console_Color2  $color     Injected Console_Color2 instance
+     * @param   array           $tasks     Array of available tasks
      *
      * @return  string
      */

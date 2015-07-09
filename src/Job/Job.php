@@ -4,7 +4,7 @@
  * Job object
  *
  * @package     Comodojo extender
- * @author      Marco Giovinazzi <info@comodojo.org>
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -52,13 +52,6 @@ class Job {
      * @var     string
      */
     private $task = null;
-
-    /**
-     * Job target
-     *
-     * @var     string
-     */
-    private $target = null;
 
     /**
      * Job class
@@ -168,32 +161,6 @@ class Job {
     final public function getTask() {
         
         return $this->task;
-
-    }
-
-    /**
-     * Set job target
-     *
-     * @param   string  $target     The job target
-     *
-     * @return  Object  $this
-     */
-    final public function setTarget($target) {
-
-        $this->target = $target;
-
-        return $this;
-
-    }
-
-    /**
-     * Get job target
-     *
-     * @return  string
-     */
-    final public function getTarget() {
-        
-        return $this->target;
 
     }
 

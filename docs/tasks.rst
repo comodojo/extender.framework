@@ -1,8 +1,6 @@
 Creating Tasks
 ==============
 
-.. highlight:: php
-
 .. _extender.project: https://github.com/comodojo/extender.project
 
 Tasks are the core components of extender framework.
@@ -14,14 +12,15 @@ Anatomy of a task
 
 A task should:
 
-- extend the `Task` class in `\Comodojo\Extender\Task` namespace;
+- extend the `\Comodojo\Extender\Task\Task` abstract class;
 - implement the `run()` method;
-- return a brief string as result (limited bye `EXTENDER_MAX_RESULT_BYTES` constant).
+- return a brief string as result (limited by `EXTENDER_MAX_RESULT_BYTES` constant).
 
 A simple *HelloWorld* task could be defined as::
 
-    <?php namespace Comodojo\Extender\Task;
+    <?php namespace My\Tasks;
 
+    use \Comodojo\Extender\Task\Task;
     use \Comodojo\Exception\TaskException;
     
     class HelloWorldTask extends Task {
@@ -43,25 +42,21 @@ Once added, a task should be registered into extender using the `$extender->addT
 
 The syntax of this method is::
 
-    $extender->addTask([name], [target], [description], [:class], [:relative])
+    $extender->addTask([name], [class], [description])
 
 Where:
 
 - *name* is the name the task will have into the framework (a string of alphanumeric characters, no spaces, possibly in CamelCase);
-- *target* is the filename of task;
+- *class* is the full (namespaced) class of task;
 - *description* is a brief description of what the task will do;
-- *class* is the class declared into task file;
-- *relative* a bool that determine if *target* is a filename or a full path.
 
-Last two parameters are optional.
+.. warning:: Extender assumes that task class is autoloaded by composer. Do not forget to registering your class into *composer.json* or task execution will generate error.
 
-The first (*class*) can be used to specify the class declared into task file **only** if it differs from the file name (although namespace should the same).
+.. note:: Preconfigure autoloader sets the `\Comodojo\Extender\Task` namespace as directory `EXTENDER_TASK_FOLDER` defined into `extender.project`_. If defined in this directory (not-bundled tasks), there is nothing to declare to autoloade.
 
-The second (*relative*) can be used if the task file is in a different path from the default one AND is not declared into autoloader. Extender, in fact, will verify first that the class exists and, only if not available, will try to include it as a standalone script.
+So, the syntax to call our `HelloWorldTask` will be something like::
 
-The syntax to call our `HelloWorldTask` will be something like::
-
-    $extender->addTask("helloworld", "HelloWorldTask.php", "Greetings from extender", null, true);
+    $extender->addTask("helloworld", "\\Comodojo\\Extender\\Task\\HelloWorldTask", "Greetings from extender");
 
 .. note:: The `extender.project`_ has a specific configuration file to register tasks called *tasks-config.php*.
 
@@ -75,7 +70,7 @@ Creating a bundle is all about packaging tasks in the right way and defining a v
 To achive this, installer expects:
 
 - the type of package declared as *extender-tasks-bundle*;
-- tasks placed in a *tasks* directory;
+- task classes autoloaded by composer;
 - **extra** field of *composer.json* populated with a *comodojo-tasks-register* object, containing name, target, description and (eventually) class of single tasks.
 
 So, for our *HelloWorldTask* the structure of package will be::
@@ -88,25 +83,33 @@ So, for our *HelloWorldTask* the structure of package will be::
 And the *composer.json*::
 
 	{
-	    "name": "my/mytasks",
+	    "name": "my/tasks",
 	    "description": "My first tasks' bundle",
 	    "type": "extender-tasks-bundle",
 	    "extra": {
 	        "comodojo-tasks-register": [
 	        	{
-	        		"name": "HelloWord",
-	        		"target": "HelloWorldTask.php",
+	        		"name": "HelloWorld",
+	        		"class": "\\My\\Tasks\\HelloWorldTask",
 	        		"description": "Greetings from extender"
 	        	}    
 	        ]
 	    },
 	    "autoload": {
 	        "psr-4": {
-	             "Comodojo\\Extender\\Task\\": "tasks"
+	             "My\\Tasks\\": "tasks"
 	         }
 	    }
 	}
 
 That's all, our task is ready to be executed::
 
-	(missing block)
+	Available tasks:
+	---------------
+
+	+-----------+-------------------------+
+	| Name      | Description             |
+	+-----------+-------------------------+
+	| HelloWord | Greetings from extender |
+	+-----------+-------------------------+
+
