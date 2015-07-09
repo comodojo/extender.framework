@@ -64,18 +64,6 @@ class JobTest extends \PHPUnit_Framework_TestCase {
 
     }
 
-    public function testSetTarget() {
-
-        $result = $this->job->setTarget('task.php');
-
-        $this->assertInstanceOf('\Comodojo\Extender\Job\Job', $result);
-
-        $result = $this->job->getTarget();
-
-        $this->assertEquals('task.php', $result);
-
-    }
-
     public function testSetClass() {
 
         $result = $this->job->setClass('TestClass');

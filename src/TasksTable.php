@@ -64,9 +64,9 @@ class TasksTable {
      */
     final public function removeTask($name) {
 
-        if ( $this->registered($task) ) {
+        if ( $this->registered($name) ) {
 
-            unset($this->tasks[$task]);
+            unset($this->tasks[$name]);
 
             return true;
 
