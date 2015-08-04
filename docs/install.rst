@@ -64,4 +64,26 @@ This command will create database tables as in configuration file. It is also po
 
     ./econtrol.php check
 
-Extender is now ready to operate.
+Extender is now ready to operate::
+
+    $ ./econtrol.php check
+
+    Extender checks:
+    ----------------
+    
+    Extender minimum parameters configured: PASSED
+    Multiprocess support available: YES
+    Daemon support (signaling): YES
+    Extender database available and configured: YES
+    
+    Extender parameters:
+    --------------------
+    
+    Framework path: /var/extender/configs/../
+    Multiprocess enabled: 1
+    Idle time (daemon mode): 1
+    Max result bytes per task: 2048
+    Max child runtime: 600
+    Parent niceness: default
+    Childs niceness: default
+

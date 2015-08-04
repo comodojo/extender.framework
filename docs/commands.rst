@@ -132,4 +132,4 @@ So, the composer.json of *mybundle* package will be something like::
 
 Once installed, every should be in place to exec those commands using::
 
-	./econtrol.php exec helloworkcommand Marvin
+	./econtrol.php helloworkcommand Marvin
