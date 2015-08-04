@@ -30,21 +30,21 @@ class Version {
      *
      * @var     string
      */
-    static private $description = "Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler in PHP";
+    private static $description = "Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler in PHP";
 
     /**
      * Extender current version
      *
      * @var     string
      */
-    static private $version = "1.0.0-beta4";
+    private static $version = "1.0.0-beta4";
 
     /**
      * Get extender framework description
      *
      * @return  string
      */
-    static final public function getDescription() {
+    final static public function getDescription() {
 
         $description = ( defined("EXTENDER_CUSTOM_DESCRIPTION") AND is_string(EXTENDER_CUSTOM_DESCRIPTION) ) ? EXTENDER_CUSTOM_DESCRIPTION : self::$description;
 
@@ -59,7 +59,7 @@ class Version {
      *
      * @return  string
      */
-    static final public function getVersion() {
+    final static public function getVersion() {
 
         return ( defined("EXTENDER_CUSTOM_VERSION") AND is_string(EXTENDER_CUSTOM_VERSION) ) ? EXTENDER_CUSTOM_VERSION : self::$version;
 
@@ -70,7 +70,7 @@ class Version {
      *
      * @return  string
      */
-    static private function ascii() {
+    private static function ascii() {
 
         $ascii = "\n   ______                                __            __        \r\n";
         $ascii .= "  / ____/ ____    ____ ___   ____   ____/ / ____      / /  ____  \r\n";

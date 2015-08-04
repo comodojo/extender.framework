@@ -30,7 +30,7 @@ class Queue {
      *
      * @var     string
      */
-    static private $queuefile = "extender.queue";
+    private static $queuefile = "extender.queue";
 
     /**
      * Dump live informations from extender process (if in daemon mode and pcntl installed)
@@ -40,7 +40,7 @@ class Queue {
      * @param   int     $completed_processes
      * @param   itn     $failed_processes
      */
-    static public final function dump($running, $queued) {
+    final public static function dump($running, $queued) {
 
         $queuefile = EXTENDER_CACHE_FOLDER.self::$queuefile;
 
@@ -60,7 +60,7 @@ class Queue {
      *
      * @return  bool
      */
-    static final public function release() {
+    final public static function release() {
 
         $queuefile = EXTENDER_CACHE_FOLDER.self::$queuefile;
 

@@ -36,7 +36,7 @@ class CommandsController {
      * @param   Console_CommandLine $parser     ConsoleCommandline parser
      * @param   array               $commands   Provided options (if any)
      */
-    static final public function addCommands(Console_CommandLine $parser, array $commands) {
+    final public static function addCommands(Console_CommandLine $parser, array $commands) {
 
         foreach ($commands as $command => $parameters) {
             
@@ -82,7 +82,7 @@ class CommandsController {
      *
      * @return  string
      */
-    static final public function executeCommand($command, $options, $args, $color, \Comodojo\Extender\TasksTable $tasks) {
+    final public static function executeCommand($command, $options, $args, $color, \Comodojo\Extender\TasksTable $tasks) {
 
         $command_class = "\\Comodojo\\Extender\\Command\\".$command;
 

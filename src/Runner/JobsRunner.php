@@ -604,7 +604,7 @@ class JobsRunner {
      * 
      * @return  bool
      */
-    static private function isRunning($pid) {
+    private static function isRunning($pid) {
 
         return (pcntl_waitpid($pid, $status, WNOHANG) === 0);
 
@@ -615,7 +615,7 @@ class JobsRunner {
      * 
      * @return  bool
      */
-    static private function kill($pid) {
+    private static function kill($pid) {
 
         $kill_time = time() + self::$lagger_timeout;
 
@@ -636,7 +636,7 @@ class JobsRunner {
      * 
      * @return  string
      */
-    static private function getJobUid() {
+    private static function getJobUid() {
 
         return md5(uniqid(rand(), true), 0);
 
@@ -646,7 +646,7 @@ class JobsRunner {
      * Change child process priority according to EXTENDER_NICENESS
      *
      */
-    static private function adjustNiceness($pid, $logger) {
+    private static function adjustNiceness($pid, $logger) {
 
         if ( Checks::multithread() AND defined("EXTENDER_CHILD_NICENESS") ) {
 

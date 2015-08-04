@@ -33,7 +33,7 @@ class Checks {
      *
      * @return  mixed   Boolean true in case of success, string with error message otherwise
      */
-    static final public function constants() {
+    final public static function constants() {
 
         if ( !defined("EXTENDER_IDLE_TIME") ) return "Idle time not configured correctly. \n\n Please check your extender configuration and define constant: EXTENDER_IDLE_TIME.";
         if ( !defined("EXTENDER_DATABASE_MODEL") ) return "Invalid database model. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_MODEL.";
@@ -57,7 +57,7 @@ class Checks {
      *
      * @return  bool
      */
-    static final public function cli() {
+    final public static function cli() {
 
         return php_sapi_name() === 'cli';
 
@@ -68,7 +68,7 @@ class Checks {
      *
      * @return  bool
      */
-    static final public function multithread() {
+    final public static function multithread() {
 
         return function_exists("pcntl_fork");
 
@@ -79,7 +79,7 @@ class Checks {
      *
      * @return  bool
      */
-    static final public function signals() {
+    final public static function signals() {
 
         return function_exists("pcntl_signal");
 
@@ -90,7 +90,7 @@ class Checks {
      *
      * @return  bool
      */
-    static final public function database() {
+    final public static function database() {
 
         try{
 

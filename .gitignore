@@ -1,5 +1,6 @@
 composer.phar
 composer.lock
+coverage.clover
 vendor/
 docs/_build/
 build

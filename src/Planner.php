@@ -30,7 +30,7 @@ class Planner {
      *
      * @var     string
      */
-    static private $planfile = "extender.plans";
+    private static $planfile = "extender.plans";
 
     /**
      * Dump live informations from extender process (if in daemon mode and pcntl installed)
@@ -40,7 +40,7 @@ class Planner {
      * @param   int     $completed_processes
      * @param   itn     $failed_processes
      */
-    static public final function set($planned) {
+    final public static function set($planned) {
 
         $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
 
@@ -56,7 +56,7 @@ class Planner {
      * @param   int     $completed_processes
      * @param   itn     $failed_processes
      */
-    static public final function get() {
+    final public static function get() {
 
         $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
 
@@ -73,7 +73,7 @@ class Planner {
      *
      * @return  bool
      */
-    static final public function release() {
+    final public static function release() {
 
         $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
 

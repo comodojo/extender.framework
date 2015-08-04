@@ -30,7 +30,7 @@ class Cache {
      *
      * @var     string
      */
-    static private $cachefile = "extender.cache";
+    private static $cachefile = "extender.cache";
     
     /**
      * Save jobs info into cache file
@@ -39,7 +39,7 @@ class Cache {
      *
      * @return  bool
      */
-    static final public function set($data) {
+    final public static function set($data) {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
 
@@ -56,7 +56,7 @@ class Cache {
      *
      * @return  mixed   Array if cache not empty, false otherwise
      */
-    static final public function get() {
+    final public static function get() {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
 
@@ -75,7 +75,7 @@ class Cache {
      *
      * @return  bool
      */
-    static final public function purge() {
+    final public static function purge() {
 
         $cachefile = EXTENDER_CACHE_FOLDER.self::$cachefile;
 

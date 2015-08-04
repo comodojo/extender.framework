@@ -40,7 +40,7 @@ class Scheduler {
      *
      * @return  array
      */
-    final static public function getSchedules($logger, $timestamp) {
+    final public static function getSchedules($logger, $timestamp) {
 
         $schedules = array();
 
@@ -90,7 +90,7 @@ class Scheduler {
      * @param   Object  $logger
      * @param   array   $completed_processes
      */
-    final static public function updateSchedules($logger, $completed_processes) {
+    final public static function updateSchedules($logger, $completed_processes) {
 
         if ( empty($completed_processes) ) {
 
@@ -142,7 +142,7 @@ class Scheduler {
      * @param   Object  $logger
      * @param   float   $lastrum
      */
-    final static public function updateSchedule($name, $lastrun) {
+    final public static function updateSchedule($name, $lastrun) {
 
         if ( empty($name) ) throw new Exception("Invalid job name");
 
@@ -189,7 +189,7 @@ class Scheduler {
      *
      * @return  array
      */
-    final static public function addSchedule($expression, $name, $task, $description=null, $params=array()) {
+    final public static function addSchedule($expression, $name, $task, $description=null, $params=array()) {
 
         if ( empty($name) ) throw new Exception("Invalid job name");
 
@@ -245,7 +245,7 @@ class Scheduler {
      *
      * @return  bool
      */
-    final static public function removeSchedule($name) {
+    final public static function removeSchedule($name) {
         
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
 
@@ -288,7 +288,7 @@ class Scheduler {
      *
      * @return  bool
      */
-    final static public function enableSchedule($name) {
+    final public static function enableSchedule($name) {
 
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
 
@@ -331,7 +331,7 @@ class Scheduler {
      *
      * @return  bool
      */
-    final static public function disableSchedule($name) {
+    final public static function disableSchedule($name) {
 
         if ( empty($name) ) throw new Exception("Invalid or empty job name");
 
@@ -375,7 +375,7 @@ class Scheduler {
      *
      * @return  array   Next run timestamp at first position, expression parts at second
      */
-    final static public function validateExpression($expression) {
+    final public static function validateExpression($expression) {
 
         try {
 
@@ -409,7 +409,7 @@ class Scheduler {
      *
      * @return  array
      */
-    static private function getJobs() {
+    private static function getJobs() {
         
         $jobs = Cache::get();
 
@@ -462,7 +462,7 @@ class Scheduler {
      *
      * @return  bool
      */
-    static private function shouldRunJob($job, $logger, $timestamp) {
+    private static function shouldRunJob($job, $logger, $timestamp) {
 
         $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
 
@@ -516,7 +516,7 @@ class Scheduler {
      *
      * @return  int
      */
-    static private function shouldPlanJob($job) {
+    private static function shouldPlanJob($job) {
 
         $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year']));
 

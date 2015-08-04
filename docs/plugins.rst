@@ -3,7 +3,7 @@ Plugins
 
 In Extender, plugins represent a safe way to modify framework behaviour hooking functions to embedded events.
 
-Let's take an example. Immagine to want extender to print current version each time it's invoked::
+Let's take an example. Imagine to want extender to print current version each time it's invoked::
 
 	<?php namespace My\Plugins;
 
@@ -29,7 +29,24 @@ To enable this plugin, just hook it at *extender* event (see next section for mo
 How extender emits events 
 *************************
 
-(missing content)
+Extender emits events at each run cycle and/or a signal is received.
+
+Run cycle related events are:
+
+- *extender* - marks the frameworks has entered the running cycle and exposes the whole `\Comodojo\Extender\Extender` class without expecting any return value;
+- *extender.tasks* - provides and expects a `\Comodojo\Extender\TasksTable` object;
+- *extender.schedule* - provides and expects a `\Comodojo\Extender\Scheduler\Schedule` object;
+- *extender.result* - marks the framework has ended the running cycle and exposes collected results;
+
+Signal related events follow this schema:
+
+	extender.signal.[*POSIX_SIGNAL*]
+
+For example *extender.signal.SIGUSR1* is emitted when a SIGUSR1 is received.
+
+All these events can be used in plugins to alter/customize the framework's behaviour.
+
+.. note:: *SIGTERM*, *SIGINT*, *SIGTSTP* and *SIGCONT* events are used by the framework's embedded functions and **are not pluggable**, so **no event is emitted if one of these signals is received**.
 
 Plugin bundles
 **************

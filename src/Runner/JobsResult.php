@@ -65,7 +65,7 @@ class JobsResult {
      *
      * @return  string
      */
-    static private function convert($processes) {
+    private static function convert($processes) {
 
         $assoc_processes = array();
 

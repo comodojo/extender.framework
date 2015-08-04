@@ -32,7 +32,7 @@ class Lock {
      *
      * @var     string
      */
-    static private $lockfile = "extender.pid";
+    private static $lockfile = "extender.pid";
     
     /**
      * Register pid into lock file
@@ -41,7 +41,7 @@ class Lock {
      *
      * @return  bool
      */
-    static final public function register($pid) {
+    final public static function register($pid) {
 
         if ( empty($pid) ) throw new Exception("Invalid pid reference");
 
@@ -60,7 +60,7 @@ class Lock {
      *
      * @return  bool
      */
-    static final public function release() {
+    final public static function release() {
 
         $lockfile = EXTENDER_CACHE_FOLDER.self::$lockfile;
         

@@ -1,5 +1,7 @@
 <?php namespace Comodojo\Extender;
 
+use \Exception;
+
 /**
  * Extender events class
  *
@@ -258,20 +260,20 @@ class Events {
 
                     case 'TASKSTABLE':
 
-                    $value = $return_value instanceof \Comodojo\Extender\Task\TasksTable ? $return_value : $value;
+                    $return = $return_value instanceof \Comodojo\Extender\TasksTable ? $return_value : $value;
 
                     break;
 
                     case 'SCHEDULE':
 
-                    $value = $return_value instanceof \Comodojo\Extender\Scheduler\Schedule ? $return_value : $value;
+                    $return = $return_value instanceof \Comodojo\Extender\Scheduler\Schedule ? $return_value : $value;
 
                     break;
 
                     case 'VOID':
                     default:
 
-                    $value = $value;
+                    $return = $value;
 
                     break;
 
@@ -279,7 +281,7 @@ class Events {
 
             }
 
-            return $value;
+            return $return;
 
         }
 

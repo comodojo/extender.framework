@@ -30,7 +30,7 @@ class Status {
      *
      * @var     string
      */
-    static private $statusfile = "extender.status";
+    private static $statusfile = "extender.status";
 
     /**
      * Dump live informations from extender process (if in daemon mode and pcntl installed)
@@ -40,7 +40,7 @@ class Status {
      * @param   int     $completed_processes
      * @param   itn     $failed_processes
      */
-    static public final function dump($timestamp_absolute, $parent_pid, $completed_processes, $failed_processes, $paused) {
+    final public static function dump($timestamp_absolute, $parent_pid, $completed_processes, $failed_processes, $paused) {
 
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
@@ -69,7 +69,7 @@ class Status {
      *
      * @return  bool
      */
-    static final public function release() {
+    final public static function release() {
 
         $statusfile = EXTENDER_CACHE_FOLDER.self::$statusfile;
 
