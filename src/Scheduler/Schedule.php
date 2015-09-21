@@ -1,5 +1,7 @@
 <?php namespace Comodojo\Extender\Scheduler;
 
+use \Exception;
+
 /**
  * Scheduler table (Schedule)
  *
@@ -60,7 +62,17 @@ class Schedule {
      */
     final public function addSchedule($name, $task, $expression, $description=null, $parameters=array()) {
 
-        if ( empty($name) OR empty($task) OR empty($expression) OR Scheduler::validateExpression($expression) ) return false;
+        if ( empty($name) OR empty($task) OR empty($expression) ) return false;
+
+        try {
+                
+            Scheduler::validateExpression($expression);
+
+        } catch (Exception $e) {
+            
+            return false;
+
+        }
 
         list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = explode(" ", trim($expression));
 
@@ -82,11 +94,9 @@ class Schedule {
     }
 
     /**
-     * Delete a task from registry
+     * Get schedules as array
      *
-     * @param   string    $name         Task name (unique)
-     *
-     * @return  bool
+     * @return  array
      */
     final public function getSchedules() {
 
@@ -107,7 +117,7 @@ class Schedule {
 
         foreach ($this->schedules as $schedule) {
 
-            if ( $schedule['name'] = $job ) return true;
+            if ( $schedule['name'] == $job ) return true;
             
         }
 
@@ -128,7 +138,7 @@ class Schedule {
 
         foreach ($this->schedules as $schedule) {
 
-            if ( $schedule['name'] = $job ) return $schedule;
+            if ( $schedule['name'] == $job ) return $schedule;
             
         }
 
