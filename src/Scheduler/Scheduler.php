@@ -139,8 +139,8 @@ class Scheduler {
     /**
      * Update single schedule (last run)
      *
-     * @param   Object  $logger
-     * @param   float   $lastrum
+     * @param   string  $name
+     * @param   float   $lastrun
      */
     final public static function updateSchedule($name, $lastrun) {
 
@@ -389,7 +389,7 @@ class Scheduler {
 
             $e_count = count($e_array);
 
-            if ( $e_count < 5 OR $e_count > 6 ) throw new Exception($e." is not a valid cron expression");
+            if ( $e_count < 5 || $e_count > 6 ) throw new Exception($e." is not a valid cron expression");
 
             if ( $e_count == 5 ) $e_array[] = "*";
 

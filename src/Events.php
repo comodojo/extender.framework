@@ -51,7 +51,7 @@ class Events {
     /**
      * Logger, injected by extender
      *
-     * @var float
+     * @var \Comodojo\Extender\Debug
      */
     private $logger = null;
 
@@ -60,8 +60,9 @@ class Events {
      *
      * It does nothing special: called at boot time, only notify that events
      * are ready.
+     * 
+     * @param   \Comodojo\Extender\Debug    $logger
      *
-     * @return null
      */
     final public function __construct($logger) {
 
@@ -118,7 +119,7 @@ class Events {
      */
     final public function remove($event, $callback=null) {
 
-        if ( is_null($callback) AND isset($this->hooks[$event]) ) {
+        if ( is_null($callback) && isset($this->hooks[$event]) ) {
 
             unset($this->hooks[$event]);
 
@@ -215,7 +216,6 @@ class Events {
                             'METHOD'   => $callback[1]
                         ));
 
-                        debug("Skipping not-callable hook ".$event."::".$callback[0].":".$callback[1], "WARNING", "events");
                         continue;
 
                     }
@@ -260,20 +260,20 @@ class Events {
 
                     case 'TASKSTABLE':
 
-                    $return = $return_value instanceof \Comodojo\Extender\TasksTable ? $return_value : $value;
+                    $value = $return_value instanceof \Comodojo\Extender\TasksTable ? $return_value : $value;
 
                     break;
 
                     case 'SCHEDULE':
 
-                    $return = $return_value instanceof \Comodojo\Extender\Scheduler\Schedule ? $return_value : $value;
+                    $value = $return_value instanceof \Comodojo\Extender\Scheduler\Schedule ? $return_value : $value;
 
                     break;
 
                     case 'VOID':
                     default:
 
-                    $return = $value;
+                    // $value = $value;
 
                     break;
 
@@ -281,7 +281,7 @@ class Events {
 
             }
 
-            return $return;
+            return $value;
 
         }
 

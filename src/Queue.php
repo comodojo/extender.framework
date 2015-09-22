@@ -33,12 +33,12 @@ class Queue {
     private static $queuefile = "extender.queue";
 
     /**
-     * Dump live informations from extender process (if in daemon mode and pcntl installed)
+     * Dump live informations about planned and running jobs
      *
-     * @param   int     $timestamp_absolute
-     * @param   itn     $parent_pid
-     * @param   int     $completed_processes
-     * @param   itn     $failed_processes
+     * @param   int     $running
+     * @param   int     $queued
+     * 
+     * @return bool
      */
     final public static function dump($running, $queued) {
 
@@ -56,7 +56,7 @@ class Queue {
     }
 
     /**
-     * Remove the status file
+     * Remove the queue file
      *
      * @return  bool
      */

@@ -65,7 +65,7 @@ class Job {
      *
      * @param   string  $name   The job name
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Job\Job
      */
     final public function setName($name) {
 
@@ -89,9 +89,9 @@ class Job {
     /**
      * Set job id
      *
-     * @param   string  $id     The job id
+     * @param   int     $id     The job id
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Job\Job
      */
     final public function setId($id) {
 
@@ -117,7 +117,7 @@ class Job {
      *
      * @param   array   $parameters     Provided job parameters
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Job\Job
      */
     final public function setParameters($parameters) {
 
@@ -143,7 +143,7 @@ class Job {
      *
      * @param   string  $task   The task name
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Job\Job
      */
     final public function setTask($task) {
 
@@ -169,7 +169,7 @@ class Job {
      *
      * @param   string  $class   The job class
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Job\Job
      */
     final public function setClass($class) {
 

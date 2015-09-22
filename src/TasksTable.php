@@ -43,7 +43,7 @@ class TasksTable {
      */
     final public function addTask($name, $class, $description) {
 
-        if ( empty($name) OR empty($class) ) return false;
+        if ( empty($name) || empty($class) ) return false;
 
         $this->tasks[$name] = array(
             "description" => $description,
@@ -79,7 +79,7 @@ class TasksTable {
     /**
      * Check if task is registered
      *
-     * @param   string    $name         Task name (unique)
+     * @param   string    $task    Task name (unique)
      *
      * @return  string
      */
@@ -92,7 +92,7 @@ class TasksTable {
     /**
      * Get task description
      *
-     * @param   string    $name         Task name (unique)
+     * @param   string    $task    Task name (unique)
      *
      * @return  string
      */
@@ -107,7 +107,7 @@ class TasksTable {
     /**
      * Get task class
      *
-     * @param   string    $name         Task name (unique)
+     * @param   string    $task    Task name (unique)
      *
      * @return  string
      */
@@ -133,7 +133,7 @@ class TasksTable {
     /**
      * Check if task is registered
      *
-     * @param   string    $name         Task name (unique)
+     * @param   string    $task    Task name (unique)
      *
      * @return  bool
      */

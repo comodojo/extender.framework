@@ -17,7 +17,7 @@ General properties
 
 EXTENDER_TIMEZONE
 """""""""""""""""
-(string> Local timezone, to not rely on the system's timezone settings (optional if correctly configured in php.ini).::
+Local timezone, to not rely on the system's timezone settings (optional if correctly configured in php.ini).::
 
 	define("EXTENDER_TIMEZONE", "Europe/Rome");
 

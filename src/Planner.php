@@ -33,28 +33,24 @@ class Planner {
     private static $planfile = "extender.plans";
 
     /**
-     * Dump live informations from extender process (if in daemon mode and pcntl installed)
+     * Store timestamp of next planned job
      *
-     * @param   int     $timestamp_absolute
-     * @param   itn     $parent_pid
-     * @param   int     $completed_processes
-     * @param   itn     $failed_processes
+     * @param   int     $planned
+     * 
+     * @return bool
      */
     final public static function set($planned) {
 
-        $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
+        $planfile = EXTENDER_CACHE_FOLDER . self::$planfile;
 
         return file_put_contents($planfile, $planned);
 
     }
 
     /**
-     * 
+     * Get the timestamp of next planned job 
      *
-     * @param   int     $timestamp_absolute
-     * @param   itn     $parent_pid
-     * @param   int     $completed_processes
-     * @param   itn     $failed_processes
+     * @return int
      */
     final public static function get() {
 
@@ -69,7 +65,7 @@ class Planner {
     }
 
     /**
-     * Remove the status file
+     * Remove the plan file
      *
      * @return  bool
      */

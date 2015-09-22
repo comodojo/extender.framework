@@ -42,23 +42,23 @@ abstract class AbstractCommand implements CommandInterface {
     /**
      * Internal pointer to ConsoleColor object
      *
-     * @var object
+     * @var \Console_Color2
      */
     protected $color = null;
 
     /**
      * Array of registered tasks
      *
-     * @var array
+     * @var \Comodojo\Extender\Task\TasksTable
      */
-    protected $tasks = array();
+    protected $tasks = null;
 
     /**
      * Set options
      *
      * @param   array   $options    Provided options (if any)
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Command\AbstractCommand
      */
     public function setOptions($options) {
 
@@ -73,7 +73,7 @@ abstract class AbstractCommand implements CommandInterface {
      *
      * @param   array   $args       Provided arguments (if any)
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Command\AbstractCommand
      */
     public function setArguments($args) {
 
@@ -88,7 +88,7 @@ abstract class AbstractCommand implements CommandInterface {
      *
      * @param   Object  $color     The Console_Color2 instance
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Command\AbstractCommand
      */
     public function setColor($color) {
 
@@ -103,7 +103,7 @@ abstract class AbstractCommand implements CommandInterface {
      *
      * @param   \Comodojo\Extender\Task\TasksTable   $tasks     TaskTable
      *
-     * @return  Object  $this
+     * @return  \Comodojo\Extender\Command\AbstractCommand
      */
     public function setTasks($tasks) {
 

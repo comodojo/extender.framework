@@ -36,28 +36,28 @@ class Econtrol {
     /**
      * Console_CommandLine parser instance
      *
-     * @var     Object
+     * @var \Console_CommandLine
      */
     private $parser = null;
 
     /**
      * Console_Color2 instance
      *
-     * @var     Object
+     * @var \Console_Color2
      */
     private $color = null;
 
     /**
      * Array of registered/declared tasks
      *
-     * @var     Object
+     * @var array
      */
     private $tasks = null;
 
     /**
      * Array of registered/declared commands
      *
-     * @var     Object
+     * @var array
      */
     private $commands = array();
 
@@ -84,10 +84,8 @@ class Econtrol {
      * Register a task
      *
      * @param   string    $name         Task name (unique)
-     * @param   string    $target       Target task file
+     * @param   string    $class        Task class
      * @param   string    $description  A brief description for the task
-     * @param   string    $class        (optional) Task class, if different from file name
-     * @param   bool      $relative     (optional) If relative, a task will be loaded in EXTENDER_TASK_FOLDER
      *
      * @return  bool
      */
@@ -115,7 +113,7 @@ class Econtrol {
      */
     final public function addCommand($command, $parameters=array()) {
 
-        if ( empty($command) or !is_array($parameters) ) {
+        if ( empty($command) || !is_array($parameters) ) {
 
             echo $this->color->convert("\n%ySkipping command ".$command." due to invalid definition%n\n");
 
@@ -162,19 +160,19 @@ class Econtrol {
 
             $this->parser->displayError( $this->color->convert("\n\n%y".$ce->getMessage()."%n\n") );
 
-            // exit(1);
+            exit(1);
 
         } catch (ShellException $se) {
 
             $this->parser->displayError( $this->color->convert("\n\n%R".$se->getMessage()."%n\n") );
 
-            // exit(1);
+            exit(1);
 
         } catch (Exception $e) {
 
             $this->parser->displayError( $this->color->convert("\n\n%r".$e->getMessage()."%n\n") );
 
-            // exit(1);
+            exit(1);
 
         }
 

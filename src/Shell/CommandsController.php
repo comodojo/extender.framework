@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Shell;
 
 use \Comodojo\Exception\ShellException;
+use \Exception;
 use \Console_CommandLine;
 
 /**
@@ -43,11 +44,11 @@ class CommandsController {
             $params = array();
 
             if ( array_key_exists('description', $parameters) ) $params['description'] = $parameters['description'];
-            if ( array_key_exists('aliases', $parameters) AND is_array($parameters['aliases']) ) $params['aliases'] = $parameters['aliases'];
+            if ( array_key_exists('aliases', $parameters) && is_array($parameters['aliases']) ) $params['aliases'] = $parameters['aliases'];
 
             $command = $parser->addCommand($command, $params);
 
-            if ( array_key_exists('options', $parameters) AND is_array($parameters['options']) ) {
+            if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
 
                 foreach ($parameters['options'] as $option => $option_parameters) {
                     
@@ -57,7 +58,7 @@ class CommandsController {
 
             }
 
-            if ( array_key_exists('arguments', $parameters) AND is_array($parameters['arguments']) ) {
+            if ( array_key_exists('arguments', $parameters) && is_array($parameters['arguments']) ) {
 
                 foreach ($parameters['arguments'] as $argument => $argument_parameters) {
                     
