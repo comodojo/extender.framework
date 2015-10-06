@@ -23,7 +23,6 @@
     ],
     "autoload": {
         "psr-4": {
-            "Comodojo\\Exception\\": "src/Exception",
             "Comodojo\\Extender\\Command\\": "src/Command",
             "Comodojo\\Extender\\Job\\": "src/Job",
             "Comodojo\\Extender\\Runner\\": "src/Runner",
@@ -39,9 +38,10 @@
         "pear/pear_exception": "*",
         "pear/console_table": "1.2.*",
         "pear/console_color2": "dev-master",
-        "comodojo/database": "dev-master",
+        "comodojo/database": "~1.0",
         "mtdowling/cron-expression": "1.0.*",
-        "monolog/monolog": "1.14.*"
+        "monolog/monolog": "~1.0",
+        "comodojo/exceptions": "@stable"
     },
     "require-dev": {
         "phpunit/phpunit": "~4.0",

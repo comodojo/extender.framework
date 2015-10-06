@@ -234,7 +234,7 @@ class Scheduler {
         
         Planner::release();
 
-        return array($result['id'], $next_calculated_run);
+        return array($result->getInsertId(), $next_calculated_run);
 
     }
 
@@ -271,7 +271,7 @@ class Scheduler {
 
         }
 
-        if ( $result['affected_rows'] == 0 ) return false;
+        if ( $result->getAffectedRows() == 0 ) return false;
 
         Cache::purge();
         
@@ -320,7 +320,7 @@ class Scheduler {
         
         Planner::release();
 
-        return $result["affected_rows"] == 1 ? true : false;
+        return $result->getAffectedRows() == 1 ? true : false;
 
     }
 
@@ -363,7 +363,7 @@ class Scheduler {
         
         Planner::release();
 
-        return $result["affected_rows"] == 1 ? true : false;
+        return $result->getAffectedRows() == 1 ? true : false;
 
     }
 
@@ -445,7 +445,7 @@ class Scheduler {
         
         unset($db);
 
-        $jobs = $result['data'];
+        $jobs = $result->getData();
 
         Cache::set($jobs);
 
