@@ -301,7 +301,7 @@ abstract class Task {
 
         }
         
-        return $w_result['id'];
+        return $w_result->getInsertId();
             
     }
     
