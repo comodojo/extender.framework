@@ -124,7 +124,9 @@ class TasksTable {
      *
      * @return  array
      */
-    final public function getTasks() {
+    final public function getTasks($sort=false) {
+        
+        if ( $sort === true ) ksort($this->tasks);
 
         return $this->tasks;
 
