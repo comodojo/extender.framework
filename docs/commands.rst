@@ -43,7 +43,7 @@ Let's take an "hello world" example.::
 
 	}
 
-Once defined, a command should be registered into the framework. The *commands-config.php* file can be used for this purpose.
+Once defined, a command should be registered into the framework. The *extender-commands-config.php* file can be used for this purpose.
 
 The format is the following::
 
@@ -83,9 +83,9 @@ First, let's take a look at the (proposed) directory structure of a package::
 			- customcommand.php
 		- composer.json
 
-Commands' classes should be autoloaded (using composer); in addition, something should be written in *commands-config.php* file. The project package does all the job automatically using **extra** field of *composer.json*.
+Commands' classes should be autoloaded (using composer); in addition, something should be written in *extender-commands-config.php* file. The project package does all the job automatically using **extra** field of *composer.json*.
 
-To enable this feature, the package's type **should** be declared as *extender-commands-bundle* and the *extra* field should contain a *comodojo-commands-register* subfield.
+To enable this feature, the package's type **should** be declared as *extender-commands-bundle* or *comodojo-bundle* and the *extra* field should contain a *comodojo-commands-register* subfield.
 
 So, the composer.json of *mybundle* package will be something like::
 

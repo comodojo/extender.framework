@@ -298,7 +298,7 @@ abstract class Task {
                 ->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("pid","name","jobid","task","status","start"))
-                ->values(array($pthis->id, $this->name, $this->jobid, $this->class, 'STARTED', $this->start_timestamp))
+                ->values(array($this->pid, $this->name, $this->jobid, $this->class, 'STARTED', $this->start_timestamp))
                 ->store();
 
         }
