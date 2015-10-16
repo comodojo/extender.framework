@@ -74,6 +74,11 @@ abstract class Task {
     private $pid = null;
     
     /**
+     * Id of the job that launched this tasks
+     */
+    private $jobid = null;
+
+    /**
      * The job result (if any)
      */
     private $job_result = null;
@@ -109,7 +114,7 @@ abstract class Task {
      * 
      * @return  Object  $this 
      */
-    final public function __construct($parameters, $pid=null, $name=null, $timestamp=null, $multithread=null) {
+    final public function __construct($parameters, $pid=null, $name=null, $timestamp=null, $multithread=null, $jobid=null) {
         
         // Setup task
 
@@ -122,6 +127,8 @@ abstract class Task {
         $this->start_timestamp = is_null($timestamp) ? microtime(true) : $timestamp;
 
         $this->class = get_class($this);
+
+        $this->jobid = is_numeric($jobid) ? $jobid : null;
 
         // Setup database (worklog!)
 
@@ -248,7 +255,7 @@ abstract class Task {
 
             $this->end_timestamp = microtime(true);
 
-            $this->closeWorklog($this->worklog_id, true, $this->result, $this->end_timestamp);
+            $this->closeWorklog(true);
 
         }
         catch (Exception $e) {
@@ -259,7 +266,7 @@ abstract class Task {
 
                 if ( is_null($this->end_timestamp) ) $this->end_timestamp = microtime(true);
 
-                $this->closeWorklog($this->worklog_id, false, $this->result, $this->end_timestamp);
+                $this->closeWorklog(false);
 
             }
 
@@ -283,15 +290,15 @@ abstract class Task {
     /**
      * Create the worklog for current job
      */
-    private function createWorklog($pid, $name, $class, $start_timestamp) {
+    protected function createWorklog() {
         
         try{
 
             $w_result = $this->dbh
                 ->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
-                ->keys(array("pid","name","task","status","start"))
-                ->values(array($pid, $name, $class, 'STARTED', $start_timestamp))
+                ->keys(array("pid","name","jobid","task","status","start"))
+                ->values(array($pthis->id, $this->name, $this->jobid, $this->class, 'STARTED', $this->start_timestamp))
                 ->store();
 
         }
@@ -308,15 +315,15 @@ abstract class Task {
     /**
      * Close worklog for current job
      */
-    private function closeWorklog($worklog_id, $success, $result, $end_timestamp) {
+    protected function closeWorklog($success) {
         
         try{
 
             $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("status", "success", "result", "end"))
-                ->values(array("FINISHED", $success, $result, $end_timestamp))
-                ->where( "id", "=", $worklog_id )
+                ->values(array("FINISHED", $success, $this->result, $this->end_timestamp))
+                ->where( "id", "=", $this->worklog_id )
                 ->update();
 
         }

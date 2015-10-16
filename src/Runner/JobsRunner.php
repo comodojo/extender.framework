@@ -434,7 +434,7 @@ class JobsRunner {
 
             // create a task instance
 
-            $thetask = new $task_class($parameters, null, $name, $start_timestamp, false);
+            $thetask = new $task_class($parameters, null, $name, $start_timestamp, false, $id);
 
             // get the task pid (we are in singlethread mode)
 
@@ -540,7 +540,7 @@ class JobsRunner {
             
             socket_close($reader);
 
-            $thetask = new $task_class($parameters, null, $name, $start_timestamp, true);
+            $thetask = new $task_class($parameters, null, $name, $start_timestamp, true, $id);
 
             try{
 
