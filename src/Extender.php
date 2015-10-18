@@ -8,6 +8,7 @@ use \Comodojo\Extender\Runner\JobsRunner;
 use \Comodojo\Extender\Runner\JobsResult;
 use \Comodojo\Extender\Job\Job;
 use \Comodojo\Extender\Debug;
+use \Comodojo\Extender\Events;
 use \Comodojo\Extender\TasksTable;
 use \Exception;
 
@@ -113,35 +114,35 @@ class Extender {
     /**
      * Events manager instance
      *
-     * @var Object
+     * @var \Comodojo\Extender\Events
      */
     private $events = null;
 
     /**
      * Console_Color2 instance
      *
-     * @var Object
+     * @var \Console_Color2
      */
     private $color = null;
 
     /**
      * Logger instance
      *
-     * @var Object
+     * @var \Comodojo\Extender\Debug
      */
     private $logger = null;
 
     /**
      * JobsRunner instance
      *
-     * @var Object
+     * @var \Comodojo\Extender\Runner\JobsRunner
      */
     private $runner = null;
 
     /**
      * TasksTable instance
      *
-     * @var Object
+     * @var \Comodojo\Extender\TasksTable
      */
     private $tasks = null;
 
@@ -186,7 +187,8 @@ class Extender {
 
             self::showHelp($this->color);
 
-            exit(0);
+            // exit(0);
+            self::end(0);
 
         }
 
@@ -202,7 +204,8 @@ class Extender {
 
             $this->logger->critical($check_constants);
 
-            exit(1);
+            // exit(1);
+            self::end(1);
 
         }
 
@@ -210,7 +213,8 @@ class Extender {
 
             $this->logger->critical("Extender runs only in php-cli, exiting");
 
-            exit(1);
+            // exit(1);
+            self::end(1);
 
         }
 
@@ -218,7 +222,8 @@ class Extender {
 
             $this->logger->critical("Extender cannot run in daemon mode without PHP Process Control Extensions");
 
-            exit(1);
+            // exit(1);
+            self::end(1);
 
         }
 
@@ -226,7 +231,8 @@ class Extender {
 
             $this->logger->critical("Extender database not available, exiting");
 
-            exit(1);
+            // exit(1);
+            self::end(1);
 
         }
 
@@ -457,6 +463,8 @@ class Extender {
      * @param   string  $event      The event name
      * @param   mixed   $callback   The callback (or class if $method is specified)
      * @param   string  $method     (optional) Method for $callback
+     *
+     * @return  bool
      */
     final public function addHook($event, $callback, $method=null) {
 
@@ -467,13 +475,17 @@ class Extender {
         } catch (Exception $e) {
 
             //debug error but do not stop extender
-            $this->logger->warning( 'Unable to add hook'.Array(
+            $this->logger->warning( 'Unable to add hook', array(
                 'CALLBACK' => $callback,
                 'METHOD' => $method,
                 'EVENT' => $event
             ) );
 
+            return false;
+
         }
+
+        return true;
 
     }
 
@@ -548,7 +560,8 @@ class Extender {
 
                 $this->shutdown(true);
 
-                exit(0);
+                // exit(0);
+                self::end(0);
 
             }
 
@@ -588,7 +601,8 @@ class Extender {
 
                     $this->shutdown(true);
 
-                    exit(0);
+                    // exit(0);
+                    self::end(0);
 
                 }
 
@@ -654,7 +668,12 @@ class Extender {
 
             $this->logger->error($e->getMessage());
 
-            if ( $this->getDaemonMode() === false ) exit(1);
+            if ( $this->getDaemonMode() === false ) {
+
+                // exit(1);
+                self::end(1);
+
+            }
             
         }
 
@@ -674,7 +693,8 @@ class Extender {
 
             $this->shutdown(true);
 
-            exit(0);
+            // exit(0);
+            self::end(0);
 
         }
 
@@ -785,7 +805,8 @@ class Extender {
 
             $this->runner->killAll($this->parent_pid);
 
-            exit(1);
+            // exit(1);
+            self::end(1);
 
         }
 
@@ -919,6 +940,22 @@ class Extender {
         
         print $header_string.$tbl->getTable().$footer_string;
         
+    }
+
+    private static function end($returnCode) {
+
+        if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {
+
+            if ( $returnCode === 1 ) throw new Exception("PHPUnit Test Exception");
+            
+            else return $returnCode;
+
+        } else {
+
+            exit($returnCode);
+
+        }
+
     }
 
 }
