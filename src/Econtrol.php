@@ -67,6 +67,16 @@ class Econtrol {
      */
     public function __construct() {
 
+        // check if econtrol is running from cli
+
+        if ( Checks::cli() === false ) {
+
+            echo "Econtrol runs only in php-cli, exiting";
+
+            self::end(1);
+
+        }
+
         if ( defined('EXTENDER_TIMEZONE') ) date_default_timezone_set(EXTENDER_TIMEZONE);
 
         $this->parser = new Console_CommandLine(array(
@@ -142,15 +152,13 @@ class Econtrol {
 
             if ( $check_constants !== true ) throw new ShellException($check_constants);
 
-            if ( Checks::cli() === false ) throw new ShellException("Extender Shell runs only in php-cli, exiting.");
-
             $result = $this->parser->parse();
             
             if ( empty($result->command_name) ) {
 
                 $this->parser->displayUsage();
 
-                exit(0);
+                self::end(0);
 
             }
 
@@ -160,25 +168,41 @@ class Econtrol {
 
             $this->parser->displayError( $this->color->convert("\n\n%y".$ce->getMessage()."%n\n") );
 
-            exit(1);
+            self::end(1);
 
         } catch (ShellException $se) {
 
             $this->parser->displayError( $this->color->convert("\n\n%R".$se->getMessage()."%n\n") );
 
-            exit(1);
+            self::end(1);
 
         } catch (Exception $e) {
 
             $this->parser->displayError( $this->color->convert("\n\n%r".$e->getMessage()."%n\n") );
 
-            exit(1);
+            self::end(1);
 
         }
 
         echo "\n".$return."\n\n";
 
-        exit(0);
+        self::end(0);
+
+    }
+
+    private static function end($returnCode) {
+
+        if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {
+
+            if ( $returnCode === 1 ) throw new Exception("PHPUnit Test Exception");
+            
+            else return $returnCode;
+
+        } else {
+
+            exit($returnCode);
+
+        }
 
     }
 

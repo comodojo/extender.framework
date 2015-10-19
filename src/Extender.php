@@ -171,6 +171,16 @@ class Extender {
      */
     final public function __construct() {
 
+        // check if extender is running from cli
+
+        if ( Checks::cli() === false ) {
+
+            echo "Extender runs only in php-cli, exiting";
+
+            self::end(1);
+
+        }
+
         // setup default timezone (in daemon mode, timezone warning may break extender)
 
         date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
@@ -187,7 +197,6 @@ class Extender {
 
             self::showHelp($this->color);
 
-            // exit(0);
             self::end(0);
 
         }
@@ -204,16 +213,6 @@ class Extender {
 
             $this->logger->critical($check_constants);
 
-            // exit(1);
-            self::end(1);
-
-        }
-
-        if ( Checks::cli() === false ) {
-
-            $this->logger->critical("Extender runs only in php-cli, exiting");
-
-            // exit(1);
             self::end(1);
 
         }
@@ -222,7 +221,6 @@ class Extender {
 
             $this->logger->critical("Extender cannot run in daemon mode without PHP Process Control Extensions");
 
-            // exit(1);
             self::end(1);
 
         }
@@ -231,7 +229,6 @@ class Extender {
 
             $this->logger->critical("Extender database not available, exiting");
 
-            // exit(1);
             self::end(1);
 
         }
@@ -407,7 +404,7 @@ class Extender {
      *
      * @return  \Comodojo\Extender\Events
      */
-    final public function getEvents() {
+    final public function events() {
 
         return $this->events;
 
@@ -418,7 +415,7 @@ class Extender {
      *
      * @return  \Console_Color2
      */
-    final public function getColor() {
+    final public function color() {
 
         return $this->color;
 
@@ -429,7 +426,7 @@ class Extender {
      *
      * @return  \Comodojo\Extender\Debug
      */
-    final public function getDebugger() {
+    final public function debugger() {
 
         return $this->logger;
 
@@ -440,7 +437,7 @@ class Extender {
      *
      * @return  \Comodojo\Extender\JobsRunner
      */
-    final public function getJobsRunner() {
+    final public function runner() {
 
         return $this->runner;
 
@@ -451,7 +448,7 @@ class Extender {
      *
      * @return  \Comodojo\Extender\TaskTable
      */
-    final public function getTasksTable() { 
+    final public function tasks() { 
 
         return $this->tasks;
 
@@ -560,7 +557,6 @@ class Extender {
 
                 $this->shutdown(true);
 
-                // exit(0);
                 self::end(0);
 
             }
@@ -601,7 +597,6 @@ class Extender {
 
                     $this->shutdown(true);
 
-                    // exit(0);
                     self::end(0);
 
                 }
@@ -670,7 +665,6 @@ class Extender {
 
             if ( $this->getDaemonMode() === false ) {
 
-                // exit(1);
                 self::end(1);
 
             }
@@ -693,7 +687,6 @@ class Extender {
 
             $this->shutdown(true);
 
-            // exit(0);
             self::end(0);
 
         }
@@ -805,7 +798,6 @@ class Extender {
 
             $this->runner->killAll($this->parent_pid);
 
-            // exit(1);
             self::end(1);
 
         }

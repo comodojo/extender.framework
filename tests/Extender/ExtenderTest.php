@@ -76,23 +76,23 @@ class ExtenderTest extends \PHPUnit_Framework_TestCase {
 
     	// components
 
-    	$result = $this->extender->getEvents();
+    	$result = $this->extender->events();
 
     	$this->assertInstanceOf('\Comodojo\Extender\Events', $result);
 
-    	$result = $this->extender->getColor();
+    	$result = $this->extender->color();
 
     	$this->assertInstanceOf('\Console_Color2', $result);
 
-    	$result = $this->extender->getDebugger();
+    	$result = $this->extender->debugger();
 
     	$this->assertInstanceOf('\Comodojo\Extender\Debug', $result);
 
-    	$result = $this->extender->getJobsRunner();
+    	$result = $this->extender->runner();
 
     	$this->assertInstanceOf('\Comodojo\Extender\Runner\JobsRunner', $result);
 
-    	$result = $this->extender->getTasksTable();
+    	$result = $this->extender->tasks();
 
     	$this->assertInstanceOf('\Comodojo\Extender\TasksTable', $result);
 
