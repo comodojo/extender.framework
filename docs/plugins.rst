@@ -57,9 +57,9 @@ Creating a bundle is all about packaging plugins in the right way and defining a
 
 To achive this, installer expects:
 
-- the type of package declared as *extender-plugins-bundle*;
+- the type of package declared as *extender-plugins-bundle* or *comodojo-bundle*;
 - plugin classes autoloaded by composer;
-- **extra** field of *composer.json* populated with a *comodojo-plugins-load* object, containing class, (eventually) method and event to hook plugin to.
+- **extra** field of *composer.json* populated with a *comodojo-plugins-load* or (preferably) a *extender-plugin-load* subfield, containing class, (eventually) method and event to hook plugin to.
 
 So, for our *TestPlugin* the structure of package will be::
 
@@ -75,7 +75,7 @@ And the *composer.json*::
 	    "description": "My first plugins' bundle",
 	    "type": "extender-plugins-bundle",
 	    "extra": {
-	        "comodojo-plugins-load": [
+	        "extender-plugin-load": [
 	        	{
 	        		"event": "extender",
 	        		"class": "\\My\\Plugins\\TestPlugin",

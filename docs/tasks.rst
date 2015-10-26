@@ -58,7 +58,7 @@ So, the syntax to call our `HelloWorldTask` will be something like::
 
     $extender->addTask("helloworld", "\\Comodojo\\Extender\\Task\\HelloWorldTask", "Greetings from extender");
 
-.. note:: The `extender.project`_ has a specific configuration file to register tasks called *tasks-config.php*.
+.. note:: The `extender.project`_ has a specific configuration file to register tasks called *extender-tasks-config.php*.
 
 Tasks bundles
 *************
@@ -69,9 +69,9 @@ Creating a bundle is all about packaging tasks in the right way and defining a v
 
 To achive this, installer expects:
 
-- the type of package declared as *extender-tasks-bundle*;
+- the type of package declared as *extender-tasks-bundle* or *comodojo-bundle*;
 - task classes autoloaded by composer;
-- **extra** field of *composer.json* populated with a *comodojo-tasks-register* object, containing name, target, description and (eventually) class of single tasks.
+- **extra** field of *composer.json* populated with a *comodojo-tasks-register* or (preferably) a *extender-task-register* subfield, containing name, target, description and (eventually) class of single tasks.
 
 So, for our *HelloWorldTask* the structure of package will be::
 
@@ -87,7 +87,7 @@ And the *composer.json*::
 	    "description": "My first tasks' bundle",
 	    "type": "extender-tasks-bundle",
 	    "extra": {
-	        "comodojo-tasks-register": [
+	        "extender-task-register": [
 	        	{
 	        		"name": "HelloWorld",
 	        		"class": "\\My\\Tasks\\HelloWorldTask",
