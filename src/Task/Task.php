@@ -267,10 +267,11 @@ abstract class Task {
 
         }
 
-        return Array(
-            "success"   =>  true,
-            "timestamp" =>  $this->end_timestamp,
-            "result"    =>  $this->result
+        return array(
+            "success"   => true,
+            "timestamp" => $this->end_timestamp,
+            "result"    => $this->result,
+            "worklogid" => $this->worklog_id
         );
 
     }

@@ -306,7 +306,7 @@ class Scheduler {
             $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys("enabled")
-                ->values(true)
+                ->values(array(true))
                 ->where("name","=",$name)
                 ->update();
 
@@ -349,7 +349,7 @@ class Scheduler {
             $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys("enabled")
-                ->values(false)
+                ->values(array(false))
                 ->where("name","=",$name)
                 ->update();
 
