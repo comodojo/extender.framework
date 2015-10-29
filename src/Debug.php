@@ -63,7 +63,7 @@ class Debug {
 
         $name = defined('EXTENDER_LOG_NAME') ? EXTENDER_LOG_NAME : 'extender-default';
 
-        $level = $this->getLevel( defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'DEBUG' );
+        $level = $this->getLevel(defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'DEBUG');
 
         $target = defined('EXTENDER_LOG_TARGET') ? EXTENDER_LOG_TARGET : null;
 
@@ -71,10 +71,9 @@ class Debug {
 
         if ( $enabled ) {
 
-            $handler = is_null($target) ? new ErrorLogHandler() : new StreamHandler( defined('EXTENDER_LOG_FOLDER') ? EXTENDER_LOG_FOLDER.$target : $target, $level);
+            $handler = is_null($target) ? new ErrorLogHandler() : new StreamHandler(defined('EXTENDER_LOG_FOLDER') ? EXTENDER_LOG_FOLDER.$target : $target, $level);
 
-        }
-        else {
+        } else {
 
             $handler = new NullHandler($level);
 
@@ -300,7 +299,7 @@ class Debug {
      */
     private function getLevel($level) {
 
-        switch (strtoupper($level)) {
+        switch ( strtoupper($level) ) {
 
             case 'INFO':
                 $logger_level = Logger::INFO;

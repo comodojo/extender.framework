@@ -50,7 +50,7 @@ class JobsResult {
      *
      * @return  array()
      */
-    final public function get($raw=true) {
+    final public function get($raw = true) {
 
         if ( $raw === true ) return $this->completed_processes;
 
@@ -69,7 +69,7 @@ class JobsResult {
 
         $assoc_processes = array();
 
-        foreach ($processes as $process) {
+        foreach ( $processes as $process ) {
             
             array_push($assoc_processes, array(
                 'pid'    =>  $process[0],

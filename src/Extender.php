@@ -267,7 +267,7 @@ class Extender {
 
         Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
 
-        Queue::dump(0,0);
+        Queue::dump(0, 0);
         
         // we are ready to go!
 
@@ -278,11 +278,11 @@ class Extender {
      *
      * @param   int     $bytes  Maximum length (bytes)
      *
-     * @return  Object          $this
+     * @return  Extender          $this
      */
     final public function setMaxResultLength($bytes) {
 
-        $this->max_result_bytes_in_multithread = filter_var($bytes, FILTER_VALIDATE_INT, array( "default" => 2048 ));
+        $this->max_result_bytes_in_multithread = filter_var($bytes, FILTER_VALIDATE_INT, array("default" => 2048));
 
         return $this;
 
@@ -306,11 +306,11 @@ class Extender {
      *
      * @param   int     $time   Maximum time (seconds)
      *
-     * @return  Object          $this
+     * @return  Extender          $this
      */
     final public function setMaxChildsRuntime($time) {
 
-        $this->max_childs_runtime = filter_var($time, FILTER_VALIDATE_INT, array( "min_range" => 1, "default" => 300 ));
+        $this->max_childs_runtime = filter_var($time, FILTER_VALIDATE_INT, array("min_range" => 1, "default" => 300));
 
         return $this;
 
@@ -334,7 +334,7 @@ class Extender {
      *
      * @param   bool    $mode   Enable/disable multithread
      *
-     * @return  Object          $this
+     * @return  Extender          $this
      */
     final public function setMultithreadMode($mode) {
 
@@ -351,7 +351,7 @@ class Extender {
      */
     final public function getMultithreadMode() {
 
-        return ( $this->multithread_mode AND Checks::multithread() ) ? true : false;
+        return ($this->multithread_mode AND Checks::multithread()) ? true : false;
 
     }
 
@@ -435,7 +435,7 @@ class Extender {
     /**
      * Get jobs' runner
      *
-     * @return  \Comodojo\Extender\JobsRunner
+     * @return  JobsRunner
      */
     final public function runner() {
 
@@ -446,9 +446,9 @@ class Extender {
     /**
      * Get the tasks' table
      *
-     * @return  \Comodojo\Extender\TaskTable
+     * @return  TasksTable
      */
-    final public function tasks() { 
+    final public function tasks() {
 
         return $this->tasks;
 
@@ -463,7 +463,7 @@ class Extender {
      *
      * @return  bool
      */
-    final public function addHook($event, $callback, $method=null) {
+    final public function addHook($event, $callback, $method = null) {
 
         try {
 
@@ -472,11 +472,11 @@ class Extender {
         } catch (Exception $e) {
 
             //debug error but do not stop extender
-            $this->logger->warning( 'Unable to add hook', array(
+            $this->logger->warning('Unable to add hook', array(
                 'CALLBACK' => $callback,
                 'METHOD' => $method,
                 'EVENT' => $event
-            ) );
+            ));
 
             return false;
 
@@ -490,10 +490,8 @@ class Extender {
      * Register a task to TasksTable
      *
      * @param   string    $name         Task name (unique)
-     * @param   string    $target       Target task file
      * @param   string    $description  A brief description for the task
      * @param   string    $class        (optional) Task class, if different from file name
-     * @param   bool      $relative     (optional) If relative, a task will be loaded in EXTENDER_TASK_FOLDER
      *
      * @return  bool
      */
@@ -509,9 +507,7 @@ class Extender {
 
             return false;
 
-        }
-
-        else return true;
+        } else return true;
 
     }
 
@@ -549,7 +545,7 @@ class Extender {
 
             // nothing to do right now, still waiting if in daemon mode
 
-            $this->logger->info("Next planned job: ".date('c',$plans));
+            $this->logger->info("Next planned job: ".date('c', $plans));
 
             $this->logger->notice("Extender completed\n");
 
@@ -607,17 +603,17 @@ class Extender {
 
             // compose jobs
 
-            foreach ($scheduled->getSchedules() as $schedule) {
+            foreach ( $scheduled->getSchedules() as $schedule ) {
 
                 if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
 
                     $job = new Job();
 
-                    $job->setName( $schedule['name'] )
-                        ->setId( $schedule['id'] )
-                        ->setParameters( unserialize($schedule['params']) )
-                        ->setTask( $schedule['task'] )
-                        ->setClass( $this->tasks->getClass($schedule['task']) );
+                    $job->setName($schedule['name'])
+                        ->setId($schedule['id'])
+                        ->setParameters(unserialize($schedule['params']))
+                        ->setTask($schedule['task'])
+                        ->setClass($this->tasks->getClass($schedule['task']));
 
                     $this->runner->addJob($job);
 
@@ -651,7 +647,7 @@ class Extender {
 
             // increment counters
 
-            foreach ($result as $r) {
+            foreach ( $result as $r ) {
                 
                 if ( $r[2] ) $this->completed_processes++;
 
@@ -721,33 +717,33 @@ class Extender {
             SIGVTALRM, SIGPROF, SIGWINCH, SIGIO, SIGSYS, SIGBABY
         );
 
-        if (defined('SIGPOLL'))   $pluggable_signals[] = SIGPOLL;
-        if (defined('SIGPWR'))    $pluggable_signals[] = SIGPWR;
-        if (defined('SIGSTKFLT')) $pluggable_signals[] = SIGSTKFLT;
+        if ( defined('SIGPOLL') )   $pluggable_signals[] = SIGPOLL;
+        if ( defined('SIGPWR') )    $pluggable_signals[] = SIGPWR;
+        if ( defined('SIGSTKFLT') ) $pluggable_signals[] = SIGSTKFLT;
 
         // register supported signals
 
-        pcntl_signal(SIGTERM, array($this,'sigTermHandler'));
+        pcntl_signal(SIGTERM, array($this, 'sigTermHandler'));
 
-        pcntl_signal(SIGINT, array($this,'sigTermHandler'));
+        pcntl_signal(SIGINT, array($this, 'sigTermHandler'));
 
-        pcntl_signal(SIGTSTP, array($this,'sigStopHandler'));
+        pcntl_signal(SIGTSTP, array($this, 'sigStopHandler'));
 
-        pcntl_signal(SIGCONT, array($this,'sigContHandler'));
+        pcntl_signal(SIGCONT, array($this, 'sigContHandler'));
 
         //pcntl_signal(SIGUSR1, array($this,'sigUsr1Handler'));
 
         // register pluggable signals
 
-        foreach ($pluggable_signals as $signal) {
+        foreach ( $pluggable_signals as $signal ) {
             
-            pcntl_signal($signal, array($this,'genericSignalHandler'));
+            pcntl_signal($signal, array($this, 'genericSignalHandler'));
 
         }
 
         // register shutdown function
 
-        register_shutdown_function(array($this,'shutdown'));
+        register_shutdown_function(array($this, 'shutdown'));
 
     }
 
@@ -755,7 +751,7 @@ class Extender {
      * Delete all status file after exit() called
      *
      */
-    final public function shutdown($force=false) {
+    final public function shutdown($force = false) {
 
         if ( $this->parent_pid == posix_getpid() ) {
 
@@ -890,9 +886,12 @@ class Extender {
 
     }
 
+    /**
+     * @param double $timestamp
+     */
     private static function showSummary($timestamp, $completed_processes, $color) {
 
-        $header_string = "\n\n --- Comodojo Extender Summary --- ".date('c',$timestamp)."\n\n";
+        $header_string = "\n\n --- Comodojo Extender Summary --- ".date('c', $timestamp)."\n\n";
 
         $tbl = new Console_Table(CONSOLE_TABLE_ALIGN_LEFT, CONSOLE_TABLE_BORDER_ASCII, 1, null, true);
 
@@ -904,7 +903,7 @@ class Extender {
             'Time elapsed'
         ));
         
-        foreach ($completed_processes as $key => $completed_process) {
+        foreach ( $completed_processes as $key => $completed_process ) {
 
             $pid = $completed_process[0];
 
@@ -914,9 +913,9 @@ class Extender {
 
             $result = str_replace(array("\r", "\n"), " ", $completed_process[5]);
 
-            $result = strlen($result) >= 80 ? substr($result,0,80)."..." : $result;
+            $result = strlen($result) >= 80 ? substr($result, 0, 80)."..." : $result;
 
-            $elapsed = $completed_process[2] ? ($completed_process[4]-$completed_process[3]) : "--";
+            $elapsed = $completed_process[2] ? ($completed_process[4] - $completed_process[3]) : "--";
 
             $tbl->addRow(array(
                 $pid,
@@ -928,12 +927,15 @@ class Extender {
 
         }
 
-        $footer_string = "\n\nTotal script runtime: ".(microtime(true)-$timestamp)." seconds\r\n\n";
+        $footer_string = "\n\nTotal script runtime: ".(microtime(true) - $timestamp)." seconds\r\n\n";
         
         print $header_string.$tbl->getTable().$footer_string;
         
     }
 
+    /**
+     * @param integer $returnCode
+     */
     private static function end($returnCode) {
 
         if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {

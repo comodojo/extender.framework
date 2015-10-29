@@ -107,9 +107,7 @@ class Econtrol {
 
             return false;
 
-        }
-
-        else return true;
+        } else return true;
 
     }
 
@@ -121,7 +119,7 @@ class Econtrol {
      *
      * @return  bool
      */
-    final public function addCommand($command, $parameters=array()) {
+    final public function addCommand($command, $parameters = array()) {
 
         if ( empty($command) || !is_array($parameters) ) {
 
@@ -166,19 +164,19 @@ class Econtrol {
 
         } catch (Console_CommandLine_Exception $ce) {
 
-            $this->parser->displayError( $this->color->convert("\n\n%y".$ce->getMessage()."%n\n") );
+            $this->parser->displayError($this->color->convert("\n\n%y".$ce->getMessage()."%n\n"));
 
             self::end(1);
 
         } catch (ShellException $se) {
 
-            $this->parser->displayError( $this->color->convert("\n\n%R".$se->getMessage()."%n\n") );
+            $this->parser->displayError($this->color->convert("\n\n%R".$se->getMessage()."%n\n"));
 
             self::end(1);
 
         } catch (Exception $e) {
 
-            $this->parser->displayError( $this->color->convert("\n\n%r".$e->getMessage()."%n\n") );
+            $this->parser->displayError($this->color->convert("\n\n%r".$e->getMessage()."%n\n"));
 
             self::end(1);
 
@@ -190,6 +188,9 @@ class Econtrol {
 
     }
 
+    /**
+     * @param integer $returnCode
+     */
     private static function end($returnCode) {
 
         if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {

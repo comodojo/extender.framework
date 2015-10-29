@@ -83,7 +83,7 @@ class Events {
      *
      * @return  Object  $this
      */
-    final public function add($event, $callback, $method=null) {
+    final public function add($event, $callback, $method = null) {
 
         if ( is_null($method) ) {
 
@@ -91,9 +91,7 @@ class Events {
 
             else $this->hooks[$event] = Array($callback);
 
-        }
-
-        else {
+        } else {
 
             if ( isset($this->hooks[$event]) ) array_push($this->hooks[$event], Array($callback, $method));
 
@@ -117,7 +115,7 @@ class Events {
      *
      * @return  bool
      */
-    final public function remove($event, $callback=null) {
+    final public function remove($event, $callback = null) {
 
         if ( is_null($callback) && isset($this->hooks[$event]) ) {
 
@@ -125,11 +123,9 @@ class Events {
 
             return true;
 
-        }
+        } else if ( isset($this->hooks[$event]) ) {
 
-        else if ( isset($this->hooks[$event]) ) {
-
-            foreach ($this->hooks[$event] as $key => $hook) {
+            foreach ( $this->hooks[$event] as $key => $hook ) {
 
                 if ( is_array($hook) ) {
 
@@ -141,8 +137,7 @@ class Events {
 
                     }
 
-                }
-                else {
+                } else {
 
                     if ( $hook == $callback ) {
 
@@ -158,9 +153,7 @@ class Events {
 
             return false;
 
-        }
-
-        else return false;
+        } else return false;
 
     }
 
@@ -181,7 +174,7 @@ class Events {
 
         if ( isset($this->hooks[$event]) ) {
 
-            foreach($this->hooks[$event] as $callback) {
+            foreach ( $this->hooks[$event] as $callback ) {
 
                 $return_value = null;
 
@@ -207,8 +200,7 @@ class Events {
 
                         }
 
-                    }
-                    else {
+                    } else {
 
                         $this->logger->warning('Skipping not-callable hook', array(
                             'EVENT'    => $event,
@@ -220,8 +212,7 @@ class Events {
 
                     }
 
-                }
-                else {
+                } else {
 
                     if ( is_callable($callback) ) {
 
@@ -242,8 +233,7 @@ class Events {
 
                         }
 
-                    }
-                    else {
+                    } else {
 
                         $this->logger->warning('Skipping not-callable hook', array(
                             'EVENT'    => $event,
@@ -256,7 +246,7 @@ class Events {
 
                 }
 
-                switch ($type) {
+                switch ( $type ) {
 
                     case 'TASKSTABLE':
 

@@ -41,7 +41,7 @@ class Planner {
      */
     final public static function set($planned) {
 
-        $planfile = EXTENDER_CACHE_FOLDER . self::$planfile;
+        $planfile = EXTENDER_CACHE_FOLDER.self::$planfile;
 
         return file_put_contents($planfile, $planned);
 

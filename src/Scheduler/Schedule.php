@@ -60,7 +60,7 @@ class Schedule {
      *
      * @return  bool
      */
-    final public function addSchedule($name, $task, $expression, $description=null, $parameters=array()) {
+    final public function addSchedule($name, $task, $expression, $description = null, $parameters = array()) {
 
         if ( empty($name) OR empty($task) OR empty($expression) ) return false;
 
@@ -115,7 +115,7 @@ class Schedule {
 
         if ( empty($job) ) return false;
 
-        foreach ($this->schedules as $schedule) {
+        foreach ( $this->schedules as $schedule ) {
 
             if ( $schedule['name'] == $job ) return true;
             
@@ -136,7 +136,7 @@ class Schedule {
 
         if ( empty($job) ) return null;
 
-        foreach ($this->schedules as $schedule) {
+        foreach ( $this->schedules as $schedule ) {
 
             if ( $schedule['name'] == $job ) return $schedule;
             

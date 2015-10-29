@@ -92,7 +92,7 @@ class Checks {
      */
     final public static function database() {
 
-        try{
+        try {
 
             $db = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
@@ -105,8 +105,7 @@ class Checks {
 
             $db->tablePrefix(EXTENDER_DATABASE_PREFIX)->table(EXTENDER_DATABASE_TABLE_JOBS)->keys("*")->get(1);
 
-        }
-        catch (DatabaseException $de) {
+        } catch (DatabaseException $de) {
 
             unset($db);
 

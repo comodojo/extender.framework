@@ -39,7 +39,7 @@ class CommandsController {
      */
     final public static function addCommands(Console_CommandLine $parser, array $commands) {
 
-        foreach ($commands as $command => $parameters) {
+        foreach ( $commands as $command => $parameters ) {
             
             $params = array();
 
@@ -50,7 +50,7 @@ class CommandsController {
 
             if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
 
-                foreach ($parameters['options'] as $option => $option_parameters) {
+                foreach ( $parameters['options'] as $option => $option_parameters ) {
                     
                     $command->addOption($option, $option_parameters);
 
@@ -60,7 +60,7 @@ class CommandsController {
 
             if ( array_key_exists('arguments', $parameters) && is_array($parameters['arguments']) ) {
 
-                foreach ($parameters['arguments'] as $argument => $argument_parameters) {
+                foreach ( $parameters['arguments'] as $argument => $argument_parameters ) {
                     
                     $command->addArgument($argument, $argument_parameters);
 

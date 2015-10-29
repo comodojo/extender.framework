@@ -52,7 +52,7 @@ class Scheduler {
             
             $jobs = self::getJobs();
 
-            foreach ($jobs as $job) {
+            foreach ( $jobs as $job ) {
 
                 if ( self::shouldRunJob($job, $logger, $timestamp) ) array_push($schedules, $job);
 
@@ -62,7 +62,7 @@ class Scheduler {
 
         } catch (DatabaseException $de) {
 
-            $logger->error("Cannot load job list due to database error",array(
+            $logger->error("Cannot load job list due to database error", array(
                 "ERROR" => $de->getMessage(),
                 "ERRID" => $de->getCode()
             ));
@@ -71,7 +71,7 @@ class Scheduler {
 
         } catch (Exception $e) {
             
-            $logger->error("Cannot load job list due to generic error",array(
+            $logger->error("Cannot load job list due to generic error", array(
                 "ERROR" => $e->getMessage(),
                 "ERRID" => $e->getCode()
             ));
@@ -82,7 +82,7 @@ class Scheduler {
 
         $logger->info("\n".sizeof($schedules)." job(s) in current queue");
 
-        return array( $schedules, empty($planned) ? null : min($planned) );
+        return array($schedules, empty($planned) ? null : min($planned));
 
     }
 
@@ -104,7 +104,7 @@ class Scheduler {
 
         }
         
-        try{
+        try {
 
             $db = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
@@ -117,12 +117,12 @@ class Scheduler {
 
             $db->tablePrefix(EXTENDER_DATABASE_PREFIX)->autoClean();
 
-            foreach ($completed_processes as $process) {
+            foreach ( $completed_processes as $process ) {
 
                 $db->table(EXTENDER_DATABASE_TABLE_JOBS)
                     ->keys("lastrun")
                     ->values($process[3])
-                    ->where('id','=',$process[6])
+                    ->where('id', '=', $process[6])
                     ->update();
 
             }
@@ -169,10 +169,10 @@ class Scheduler {
 
             $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
-                ->keys(array("id","task", "description",
+                ->keys(array("id", "task", "description",
                     "min", "hour", "dayofmonth", "month",
-                    "dayofweek", "year", "params","firstrun", "lastrun"))
-                ->where("name","=",$name)
+                    "dayofweek", "year", "params", "firstrun", "lastrun"))
+                ->where("name", "=", $name)
                 ->get();
 
         } catch (DatabaseException $e) {
@@ -185,7 +185,7 @@ class Scheduler {
 
         $data = $result->getData();
 
-        $expression = implode(" ",array($data[0]['min'],$data[0]['hour'],$data[0]['dayofmonth'],$data[0]['month'],$data[0]['dayofweek'],$data[0]['year']));
+        $expression = implode(" ", array($data[0]['min'], $data[0]['hour'], $data[0]['dayofmonth'], $data[0]['month'], $data[0]['dayofweek'], $data[0]['year']));
 
         return array(
             "id" => $data[0]["id"],
@@ -214,7 +214,7 @@ class Scheduler {
      * @throws  \Comodojo\Exception\DatabaseException
      * @throws  \Exception
      */
-    final public static function addSchedule($expression, $name, $task, $description=null, $params=array()) {
+    final public static function addSchedule($expression, $name, $task, $description = null, $params = array()) {
 
         if ( empty($name) ) throw new Exception("Invalid job name");
 
@@ -222,9 +222,9 @@ class Scheduler {
 
         try {
             
-            list( $next_calculated_run, $parsed_expression ) = self::validateExpression($expression);
+            list($next_calculated_run, $parsed_expression) = self::validateExpression($expression);
 
-            $firstrun = (int)date("U", strtotime($next_calculated_run));
+            $firstrun = (int) date("U", strtotime($next_calculated_run));
 
             list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
 
@@ -243,7 +243,7 @@ class Scheduler {
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys(array("name", "task", "description",
                     "min", "hour", "dayofmonth", "month", 
-                    "dayofweek", "year", "params","firstrun"))
+                    "dayofweek", "year", "params", "firstrun"))
                 ->values(array($name, $task, $description,
                     $min, $hour, $dayofmonth, $month,
                     $dayofweek, $year, $parameters, $firstrun))
@@ -293,7 +293,7 @@ class Scheduler {
 
             $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
-                ->where("name","=",$name)
+                ->where("name", "=", $name)
                 ->delete();
 
         } catch (DatabaseException $de) {
@@ -327,7 +327,7 @@ class Scheduler {
 
         if ( empty($lastrun) ) throw new Exception("Empty job run datetime");
         
-        try{
+        try {
 
             $db = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
@@ -338,7 +338,7 @@ class Scheduler {
                 EXTENDER_DATABASE_PASS
             );
 
-            $db->tablePrefix(EXTENDER_DATABASE_PREFIX)->table(EXTENDER_DATABASE_TABLE_JOBS)->keys("lastrun")->values($lastrun)->where('name','=',$name)->update();
+            $db->tablePrefix(EXTENDER_DATABASE_PREFIX)->table(EXTENDER_DATABASE_TABLE_JOBS)->keys("lastrun")->values($lastrun)->where('name', '=', $name)->update();
 
         }
         catch (DatabaseException $de) {
@@ -385,7 +385,7 @@ class Scheduler {
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys("enabled")
                 ->values(array(true))
-                ->where("name","=",$name)
+                ->where("name", "=", $name)
                 ->update();
 
         } catch (DatabaseException $de) {
@@ -430,7 +430,7 @@ class Scheduler {
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
                 ->keys("enabled")
                 ->values(array(false))
-                ->where("name","=",$name)
+                ->where("name", "=", $name)
                 ->update();
 
         } catch (DatabaseException $de) {
@@ -481,7 +481,7 @@ class Scheduler {
 
         }
 
-        return array( $s, $e_array );
+        return array($s, $e_array);
 
     }
 
@@ -497,7 +497,7 @@ class Scheduler {
 
         if ( $jobs !== false ) return $jobs;
 
-        try{
+        try {
 
             $db = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
@@ -510,10 +510,10 @@ class Scheduler {
 
             $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_JOBS)
-                ->keys(array("id","name","task","description",
-                    "min","hour","dayofmonth","month","dayofweek","year",
-                    "params","lastrun","firstrun"))
-                ->where("enabled","=",true)
+                ->keys(array("id", "name", "task", "description",
+                    "min", "hour", "dayofmonth", "month", "dayofweek", "year",
+                    "params", "lastrun", "firstrun"))
+                ->where("enabled", "=", true)
                 ->get();
 
         }
@@ -547,17 +547,17 @@ class Scheduler {
      */
     private static function shouldRunJob($job, $logger, $timestamp) {
 
-        $expression = implode(" ",array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
+        $expression = implode(" ", array($job['min'], $job['hour'], $job['dayofmonth'], $job['month'], $job['dayofweek'], $job['year'])); 
 
         if ( empty($job['lastrun']) ) {
 
-            $next_calculated_run = (int)$job['firstrun'];
+            $next_calculated_run = (int) $job['firstrun'];
 
         } else {
 
             $last_date = date_create();
 
-            date_timestamp_set($last_date, (int)$job['lastrun']);    
+            date_timestamp_set($last_date, (int) $job['lastrun']);    
 
             try {
 
@@ -568,7 +568,7 @@ class Scheduler {
             }
             catch (Exception $e) {
 
-                $logger->error("Job ".$job['name']." cannot be executed due to cron parsing error",array(
+                $logger->error("Job ".$job['name']." cannot be executed due to cron parsing error", array(
                     "ERROR" => $e->getMessage(),
                     "ERRID" => $e->getCode()
                 ));
@@ -583,9 +583,9 @@ class Scheduler {
         
         $logger->debug("Job ".$job['name'].($torun ? " will be" : " will not be")." executed", array(
             "EXPRESSION"  => $expression,
-            "FIRSTRUNDATE"=> date('c',$job['firstrun']),
-            "LASTRUNDATE" => date('c',$job['lastrun']),
-            "NEXTRUN"     => date('c',$next_calculated_run)
+            "FIRSTRUNDATE"=> date('c', $job['firstrun']),
+            "LASTRUNDATE" => date('c', $job['lastrun']),
+            "NEXTRUN"     => date('c', $next_calculated_run)
         ));
 
         return $torun;
@@ -601,17 +601,17 @@ class Scheduler {
      */
     private static function shouldPlanJob($job) {
 
-        $expression = implode(" ",array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year']));
+        $expression = implode(" ", array($job['min'], $job['hour'], $job['dayofmonth'], $job['month'], $job['dayofweek'], $job['year']));
 
         if ( empty($job['lastrun']) ) {
 
-            $next_calculated_run = (int)$job['firstrun'];
+            $next_calculated_run = (int) $job['firstrun'];
 
         } else {
 
             $last_date = date_create();
 
-            date_timestamp_set($last_date, (int)$job['lastrun']);  
+            date_timestamp_set($last_date, (int) $job['lastrun']);  
 
             try {
 
