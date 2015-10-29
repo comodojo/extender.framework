@@ -46,9 +46,9 @@ class Version {
      */
     final static public function getDescription() {
 
-        $description = ( defined("EXTENDER_CUSTOM_DESCRIPTION") AND is_string(EXTENDER_CUSTOM_DESCRIPTION) ) ? EXTENDER_CUSTOM_DESCRIPTION : self::$description;
+        $description = (defined("EXTENDER_CUSTOM_DESCRIPTION") AND is_string(EXTENDER_CUSTOM_DESCRIPTION)) ? EXTENDER_CUSTOM_DESCRIPTION : self::$description;
 
-        $ascii = ( defined("EXTENDER_CUSTOM_ASCII") AND is_readable(EXTENDER_CUSTOM_ASCII) ) ? file_get_contents(EXTENDER_CUSTOM_ASCII) : self::ascii();
+        $ascii = (defined("EXTENDER_CUSTOM_ASCII") AND is_readable(EXTENDER_CUSTOM_ASCII)) ? file_get_contents(EXTENDER_CUSTOM_ASCII) : self::ascii();
 
         return $ascii."\n".$description."\n";
 
@@ -61,7 +61,7 @@ class Version {
      */
     final static public function getVersion() {
 
-        return ( defined("EXTENDER_CUSTOM_VERSION") AND is_string(EXTENDER_CUSTOM_VERSION) ) ? EXTENDER_CUSTOM_VERSION : self::$version;
+        return (defined("EXTENDER_CUSTOM_VERSION") AND is_string(EXTENDER_CUSTOM_VERSION)) ? EXTENDER_CUSTOM_VERSION : self::$version;
 
     }
 

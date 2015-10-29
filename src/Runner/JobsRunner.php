@@ -120,7 +120,7 @@ class JobsRunner {
     /**
      * Runner constructor
      *
-     * @param   Comodojo\Extender\Debug   $logger                             Logger instance
+     * @param   \Comodojo\Extender\Debug   $logger                             Logger instance
      * @param   bool                      $multithread                        Enable/disable multithread mode
      * @param   int                       $max_result_bytes_in_multithread    Max result bytes
      * @param   int                       $max_childs_runtime                 Max child runtime
@@ -140,7 +140,7 @@ class JobsRunner {
     /**
      * Add job to current queue
      *
-     * @param   Comodojo\Extender\Job\Job  $job    An instance of \Comodojo\Extender\Job\Job
+     * @param   \Comodojo\Extender\Job\Job  $job    An instance of \Comodojo\Extender\Job\Job
      *
      * @return  string  A job unique identifier
      */
@@ -164,7 +164,7 @@ class JobsRunner {
 
         } catch (Exception $e) {
 
-            $this->logger->error('Error including job',array(
+            $this->logger->error('Error including job', array(
                 "JOBUID"=> $uid,
                 "ERROR" => $e->getMessage(),
                 "ERRID" => $e->getCode()
@@ -211,7 +211,7 @@ class JobsRunner {
 
             // exec chunks, one at time
 
-            foreach ($this->queued_chunks as $chunk) {
+            foreach ( $this->queued_chunks as $chunk ) {
                 
                 $this->queued_processes = $this->queued_processes - sizeof($chunk);
 
@@ -251,13 +251,14 @@ class JobsRunner {
      * Terminate all running processes
      *
      * @param   int     Parent process pid
+     * @param integer $parent_pid
      */
     final public function killAll($parent_pid) {
 
-        foreach ($this->running_processes as $pid => $process) {
+        foreach ( $this->running_processes as $pid => $process ) {
 
             // if ( $pid !== $parent_pid) posix_kill($pid, SIGTERM);
-            if ( $pid !== $parent_pid) self::kill($pid);
+            if ( $pid !== $parent_pid ) self::kill($pid);
 
         }
 
@@ -270,7 +271,7 @@ class JobsRunner {
      */
     private function forker($jobs) {
 
-        foreach ($jobs as $jobUid => $job) {
+        foreach ( $jobs as $jobUid => $job ) {
             
             if ( $this->multithread AND sizeof($jobs) > 1 ) {
 
@@ -304,18 +305,18 @@ class JobsRunner {
 
         $exec_time = microtime(true);
 
-        while( !empty($this->running_processes) ) {
+        while ( !empty($this->running_processes) ) {
 
-            foreach($this->running_processes as $pid => $job) {
+            foreach ( $this->running_processes as $pid => $job ) {
 
                 //$job[0] is name
                 //$job[1] is uid
                 //$job[2] is start timestamp
                 //$job[3] is job id
 
-                if( !self::isRunning($pid) ) {
+                if ( !self::isRunning($pid) ) {
 
-                    list($reader,$writer) = $this->ipc_array[$job[1]];
+                    list($reader, $writer) = $this->ipc_array[$job[1]];
 
                     socket_close($writer);
                     
@@ -325,11 +326,11 @@ class JobsRunner {
 
                         $this->logger->error("socket_read() failed. Reason: ".socket_strerror(socket_last_error($reader)));
 
-                        array_push($this->completed_processes,Array(
+                        array_push($this->completed_processes, Array(
                             null,
-                            $job[0],//$job_name,
+                            $job[0], //$job_name,
                             false,
-                            $job[2],//$start_timestamp,
+                            $job[2], //$start_timestamp,
                             null,
                             "socket_read() failed. Reason: ".socket_strerror(socket_last_error($reader)),
                             $job[3]
@@ -343,11 +344,11 @@ class JobsRunner {
 
                         socket_close($reader);
                         
-                        array_push($this->completed_processes,Array(
+                        array_push($this->completed_processes, Array(
                             $pid,
-                            $job[0],//$job_name,
+                            $job[0], //$job_name,
                             $result["success"],
-                            $job[2],//$start_timestamp,
+                            $job[2], //$start_timestamp,
                             $result["timestamp"],
                             $result["result"],
                             $job[3]
@@ -365,7 +366,7 @@ class JobsRunner {
 
                     $current_time = microtime(true);
 
-                    if ($current_time > $exec_time + $this->max_childs_runtime) {
+                    if ( $current_time > $exec_time + $this->max_childs_runtime ) {
 
                         $this->logger->warning("Killing pid ".$pid." due to maximum exec time reached (>".$this->max_childs_runtime.")", array(
                             "START_TIME"    => $exec_time,
@@ -379,16 +380,16 @@ class JobsRunner {
 
                         else $this->logger->warning("Pid ".$pid." could not be killed");
 
-                        list($reader,$writer) = $this->ipc_array[$job[1]];
+                        list($reader, $writer) = $this->ipc_array[$job[1]];
 
                         socket_close($writer);
                         socket_close($reader);
                         
-                        array_push($this->completed_processes,Array(
+                        array_push($this->completed_processes, Array(
                             $pid,
-                            $job[0],//$job_name,
+                            $job[0], //$job_name,
                             false,
-                            $job[2],//$start_timestamp,
+                            $job[2], //$start_timestamp,
                             $current_time,
                             "Job ".$job[0]." killed due to maximum exec time reached (>".$this->max_childs_runtime.")",
                             $job[3]
@@ -444,8 +445,7 @@ class JobsRunner {
 
             $result = $thetask->start();
         
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
         
             return array($pid, $name, false, $start_timestamp, null, $e->getMessage(), $id);
         
@@ -512,15 +512,15 @@ class JobsRunner {
 
         }
 
-        list($reader,$writer) = $this->ipc_array[$jobUid];
+        list($reader, $writer) = $this->ipc_array[$jobUid];
 
         $pid = pcntl_fork();
 
-        if( $pid == -1 ) {
+        if ( $pid == -1 ) {
 
             $this->logger->error("Could not fok job, aborting");
 
-            array_push($this->completed_processes,Array(
+            array_push($this->completed_processes, Array(
                 null,
                 $name,
                 false,
@@ -530,7 +530,7 @@ class JobsRunner {
                 $id
             ));
 
-        } elseif ($pid) {
+        } elseif ( $pid ) {
 
             //PARENT will take actions on processes later
 
@@ -542,7 +542,7 @@ class JobsRunner {
 
             $thetask = new $task_class($parameters, null, $name, $start_timestamp, true, $id);
 
-            try{
+            try {
 
                 $result = $thetask->start();
 
@@ -552,8 +552,7 @@ class JobsRunner {
                     "timestamp" =>  $result["timestamp"]
                 ));
 
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
 
                 $return = serialize(Array(
                     "success"   =>  false,

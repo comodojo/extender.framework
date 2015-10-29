@@ -70,9 +70,7 @@ class TasksTable {
 
             return true;
 
-        }
-
-        else return false;
+        } else return false;
 
     }
 
@@ -124,7 +122,7 @@ class TasksTable {
      *
      * @return  array
      */
-    final public function getTasks($sort=false) {
+    final public function getTasks($sort = false) {
         
         if ( $sort === true ) ksort($this->tasks);
 

@@ -114,7 +114,7 @@ abstract class Task {
      * 
      * @return  Object  $this 
      */
-    final public function __construct($parameters, $pid=null, $name=null, $timestamp=null, $multithread=null, $jobid=null) {
+    final public function __construct($parameters, $pid = null, $name = null, $timestamp = null, $multithread = null, $jobid = null) {
         
         // Setup task
 
@@ -132,7 +132,7 @@ abstract class Task {
 
         // Setup database (worklog!)
 
-        try{
+        try {
 
             $this->dbh = new EnhancedDatabase(
                 EXTENDER_DATABASE_MODEL,
@@ -221,7 +221,7 @@ abstract class Task {
      */
     final public function start() {
 
-        try{
+        try {
 
             $job_run_info = $this->execTask();
 
@@ -245,7 +245,7 @@ abstract class Task {
      */
     private function execTask() {
 
-        try{
+        try {
 
             // open worklog
 
@@ -293,12 +293,12 @@ abstract class Task {
      */
     protected function createWorklog() {
         
-        try{
+        try {
 
             $w_result = $this->dbh
                 ->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
-                ->keys(array("pid","name","jobid","task","status","start"))
+                ->keys(array("pid", "name", "jobid", "task", "status", "start"))
                 ->values(array($this->pid, $this->name, $this->jobid, $this->class, 'STARTED', $this->start_timestamp))
                 ->store();
 
@@ -318,13 +318,13 @@ abstract class Task {
      */
     protected function closeWorklog($success) {
         
-        try{
+        try {
 
             $w_result = $this->dbh->tablePrefix(EXTENDER_DATABASE_PREFIX)
                 ->table(EXTENDER_DATABASE_TABLE_WORKLOGS)
                 ->keys(array("status", "success", "result", "end"))
                 ->values(array("FINISHED", $success, $this->result, $this->end_timestamp))
-                ->where( "id", "=", $this->worklog_id )
+                ->where("id", "=", $this->worklog_id)
                 ->update();
 
         }
