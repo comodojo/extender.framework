@@ -39,6 +39,8 @@ class Scheduler {
      * @param   float                      $timestamp
      *
      * @return  array
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
      */
     final public static function getSchedules($logger, $timestamp) {
 
@@ -89,6 +91,8 @@ class Scheduler {
      *
      * @param   Object  $logger
      * @param   array   $completed_processes
+     *
+     * @throws  \Comodojo\Exception\DatabaseException
      */
     final public static function updateSchedules($logger, $completed_processes) {
 
@@ -115,12 +119,15 @@ class Scheduler {
 
             foreach ($completed_processes as $process) {
 
-                $db->table(EXTENDER_DATABASE_TABLE_JOBS)->keys("lastrun")->values($process[3])->where('id','=',$process[6])->update();
+                $db->table(EXTENDER_DATABASE_TABLE_JOBS)
+                    ->keys("lastrun")
+                    ->values($process[3])
+                    ->where('id','=',$process[6])
+                    ->update();
 
             }
 
-        }
-        catch (DatabaseException $de) {
+        } catch (DatabaseException $de) {
 
             unset($db);
 
@@ -137,10 +144,182 @@ class Scheduler {
     }
 
     /**
+     * Get a schedule by name
+     *
+     * @param   string  $name
+     *
+     * @return  array|null
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
+     */
+    final public static function getSchedule($name) {
+
+        if ( empty($name) ) throw new Exception("Invalid job name");
+
+        try {
+
+            $db = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
+
+            $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+                ->table(EXTENDER_DATABASE_TABLE_JOBS)
+                ->keys(array("id","task", "description",
+                    "min", "hour", "dayofmonth", "month",
+                    "dayofweek", "year", "params","firstrun", "lastrun"))
+                ->where("name","=",$name)
+                ->get();
+
+        } catch (DatabaseException $e) {
+
+            throw $e;
+
+        }
+
+        if ( $result->getLength() == 0 ) return null;
+
+        $data = $result->getData();
+
+        $expression = implode(" ",array($data[0]['min'],$data[0]['hour'],$data[0]['dayofmonth'],$data[0]['month'],$data[0]['dayofweek'],$data[0]['year']));
+
+        return array(
+            "id" => $data[0]["id"],
+            "name" => $name,
+            "task" => $data[0]["task"],
+            "description" => $data[0]["description"],
+            "expression" => $expression,
+            "params" => unserialize($data[0]["params"]),
+            "firstrun" => $data[0]["firstrun"],
+            "lastrun" => $data[0]["lastrun"],
+            "nextrun" => self::shouldPlanJob($data[0])
+        );
+
+    }
+
+    /**
+     * Add a schedule
+     *
+     * @param   string  $expression
+     * @param   string  $name
+     * @param   string  $task
+     * @param   string  $description
+     * @param   array   $params
+     *
+     * @return  array
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
+     */
+    final public static function addSchedule($expression, $name, $task, $description=null, $params=array()) {
+
+        if ( empty($name) ) throw new Exception("Invalid job name");
+
+        if ( empty($task) ) throw new Exception("A job feels alone without a task");
+
+        try {
+            
+            list( $next_calculated_run, $parsed_expression ) = self::validateExpression($expression);
+
+            $firstrun = (int)date("U", strtotime($next_calculated_run));
+
+            list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
+
+            $parameters = serialize($params);
+
+            $db = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
+
+            $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+                ->table(EXTENDER_DATABASE_TABLE_JOBS)
+                ->keys(array("name", "task", "description",
+                    "min", "hour", "dayofmonth", "month", 
+                    "dayofweek", "year", "params","firstrun"))
+                ->values(array($name, $task, $description,
+                    $min, $hour, $dayofmonth, $month,
+                    $dayofweek, $year, $parameters, $firstrun))
+                ->store();
+
+        } catch (DatabaseException $e) {
+            
+            throw $de;
+
+        } catch (Exception $e) {
+            
+            throw $e;
+
+        }
+
+        Cache::purge();
+        
+        Planner::release();
+
+        return array($result->getInsertId(), $next_calculated_run);
+
+    }
+
+    /**
+     * Remove a schedule
+     *
+     * @param   string  $name
+     *
+     * @return  bool
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
+     */
+    final public static function removeSchedule($name) {
+        
+        if ( empty($name) ) throw new Exception("Invalid or empty job name");
+
+        try {
+            
+            $db = new EnhancedDatabase(
+                EXTENDER_DATABASE_MODEL,
+                EXTENDER_DATABASE_HOST,
+                EXTENDER_DATABASE_PORT,
+                EXTENDER_DATABASE_NAME,
+                EXTENDER_DATABASE_USER,
+                EXTENDER_DATABASE_PASS
+            );
+
+            $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
+                ->table(EXTENDER_DATABASE_TABLE_JOBS)
+                ->where("name","=",$name)
+                ->delete();
+
+        } catch (DatabaseException $de) {
+            
+            throw $de;
+
+        }
+
+        if ( $result->getAffectedRows() == 0 ) return false;
+
+        Cache::purge();
+        
+        Planner::release();
+
+        return true;
+
+    }
+
+    /**
      * Update single schedule (last run)
      *
      * @param   string  $name
      * @param   float   $lastrun
+     *
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
      */
     final public static function updateSchedule($name, $lastrun) {
 
@@ -179,114 +358,13 @@ class Scheduler {
     }
 
     /**
-     * Add a schedule
-     *
-     * @param   string  $expression
-     * @param   string  $name
-     * @param   string  $task
-     * @param   string  $description
-     * @param   array   $params
-     *
-     * @return  array
-     */
-    final public static function addSchedule($expression, $name, $task, $description=null, $params=array()) {
-
-        if ( empty($name) ) throw new Exception("Invalid job name");
-
-        if ( empty($task) ) throw new Exception("A job feels alone without a task");
-
-        try {
-            
-            list( $next_calculated_run, $parsed_expression ) = self::validateExpression($expression);
-
-            $firstrun = (int)date("U", strtotime($next_calculated_run));
-
-            list($min, $hour, $dayofmonth, $month, $dayofweek, $year) = $parsed_expression;
-
-            $parameters = serialize($params);
-
-            $db = new EnhancedDatabase(
-                EXTENDER_DATABASE_MODEL,
-                EXTENDER_DATABASE_HOST,
-                EXTENDER_DATABASE_PORT,
-                EXTENDER_DATABASE_NAME,
-                EXTENDER_DATABASE_USER,
-                EXTENDER_DATABASE_PASS
-            );
-
-            $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
-                ->table(EXTENDER_DATABASE_TABLE_JOBS)
-                ->keys(array("name", "task", "description",
-                    "min", "hour", "dayofmonth", "month", 
-                    "dayofweek", "year", "params","firstrun"))
-                ->values(array($name, $task, $description,
-                    $min, $hour, $dayofmonth, $month,
-                    $dayofweek, $year, $parameters, $firstrun))
-                ->store();
-
-        } catch (Exception $e) {
-            
-            throw $e;
-
-        }
-
-        Cache::purge();
-        
-        Planner::release();
-
-        return array($result->getInsertId(), $next_calculated_run);
-
-    }
-
-    /**
-     * Remove a schedule
-     *
-     * @param   string  $name
-     *
-     * @return  bool
-     */
-    final public static function removeSchedule($name) {
-        
-        if ( empty($name) ) throw new Exception("Invalid or empty job name");
-
-        try {
-            
-            $db = new EnhancedDatabase(
-                EXTENDER_DATABASE_MODEL,
-                EXTENDER_DATABASE_HOST,
-                EXTENDER_DATABASE_PORT,
-                EXTENDER_DATABASE_NAME,
-                EXTENDER_DATABASE_USER,
-                EXTENDER_DATABASE_PASS
-            );
-
-            $result = $db->tablePrefix(EXTENDER_DATABASE_PREFIX)
-                ->table(EXTENDER_DATABASE_TABLE_JOBS)
-                ->where("name","=",$name)
-                ->delete();
-
-        } catch (Exception $e) {
-            
-            throw $e;
-
-        }
-
-        if ( $result->getAffectedRows() == 0 ) return false;
-
-        Cache::purge();
-        
-        Planner::release();
-
-        return true;
-
-    }
-
-    /**
      * Enable a schedule
      *
      * @param   string  $name
      *
      * @return  bool
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
      */
     final public static function enableSchedule($name) {
 
@@ -310,9 +388,9 @@ class Scheduler {
                 ->where("name","=",$name)
                 ->update();
 
-        } catch (Exception $e) {
+        } catch (DatabaseException $de) {
             
-            throw $e;
+            throw $de;
 
         }
 
@@ -330,6 +408,8 @@ class Scheduler {
      * @param   string  $name
      *
      * @return  bool
+     * @throws  \Comodojo\Exception\DatabaseException
+     * @throws  \Exception
      */
     final public static function disableSchedule($name) {
 
@@ -353,9 +433,9 @@ class Scheduler {
                 ->where("name","=",$name)
                 ->update();
 
-        } catch (Exception $e) {
+        } catch (DatabaseException $de) {
             
-            throw $e;
+            throw $de;
 
         }
 
@@ -374,6 +454,7 @@ class Scheduler {
      * @param   string  $expression
      *
      * @return  array   Next run timestamp at first position, expression parts at second
+     * @throws  \Exception
      */
     final public static function validateExpression($expression) {
 
@@ -408,6 +489,7 @@ class Scheduler {
      * Get planned jobs
      *
      * @return  array
+     * @throws  \Comodojo\Exception\DatabaseException
      */
     private static function getJobs() {
         
@@ -435,11 +517,11 @@ class Scheduler {
                 ->get();
 
         }
-        catch (Exception $e) {
+        catch (DatabaseException $de) {
 
             unset($db);
 
-            throw $e;
+            throw $de;
 
         }
         
@@ -461,10 +543,11 @@ class Scheduler {
      * @param   float   $timestamp
      *
      * @return  bool
+     * @throws  \Exception
      */
     private static function shouldRunJob($job, $logger, $timestamp) {
 
-        $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
+        $expression = implode(" ",array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year'])); 
 
         if ( empty($job['lastrun']) ) {
 
@@ -518,7 +601,7 @@ class Scheduler {
      */
     private static function shouldPlanJob($job) {
 
-        $expression = implode(" ",Array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year']));
+        $expression = implode(" ",array($job['min'],$job['hour'],$job['dayofmonth'],$job['month'],$job['dayofweek'],$job['year']));
 
         if ( empty($job['lastrun']) ) {
 
