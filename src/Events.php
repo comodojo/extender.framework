@@ -1,5 +1,6 @@
 <?php namespace Comodojo\Extender;
 
+use \Spyc;
 use \Exception;
 
 /**
@@ -51,7 +52,7 @@ class Events {
     /**
      * Logger, injected by extender
      *
-     * @var \Comodojo\Extender\Debug
+     * @var \Monolog\Logger
      */
     private $logger = null;
 
@@ -61,10 +62,10 @@ class Events {
      * It does nothing special: called at boot time, only notify that events
      * are ready.
      * 
-     * @param   \Comodojo\Extender\Debug    $logger
+     * @param   \Monolog\Logger    $logger
      *
      */
-    final public function __construct($logger) {
+    final public function __construct(\Monolog\Logger $logger) {
 
         $this->logger = $logger;
 
@@ -85,17 +86,25 @@ class Events {
      */
     final public function add($event, $callback, $method = null) {
 
-        if ( is_null($method) ) {
+        if ( empty($event) || empty($callback) ) {
+
+            $this->logger->warning('Unable to add hook', array(
+                'CALLBACK' => $callback,
+                'METHOD' => $method,
+                'EVENT' => $event
+            ));
+
+        } else if ( is_null($method) ) {
 
             if ( isset($this->hooks[$event]) ) array_push($this->hooks[$event], $callback);
 
-            else $this->hooks[$event] = Array($callback);
+            else $this->hooks[$event] = array($callback);
 
         } else {
 
-            if ( isset($this->hooks[$event]) ) array_push($this->hooks[$event], Array($callback, $method));
+            if ( isset($this->hooks[$event]) ) array_push($this->hooks[$event], array($callback, $method));
 
-            else $this->hooks[$event] = Array(Array($callback, $method));
+            else $this->hooks[$event] = array(array($callback, $method));
 
         }
 
@@ -276,6 +285,26 @@ class Events {
         }
 
         return $data;
+
+    }
+
+    public static function loadEvents(\Monolog\Logger $logger) {
+
+        $table = new Events($logger);
+
+        if ( is_readable(EXTENDER_PLUGINS_CONFIG) ) {
+
+            $events = Spyc::YAMLLoad(EXTENDER_PLUGINS_CONFIG);
+
+            foreach ($events as $event) {
+                
+                $table->add($event["event"], $event["callback"], isset($event["method"]) ? $event["method"] : null);
+
+            }
+
+        }
+
+        return $table;
 
     }
 

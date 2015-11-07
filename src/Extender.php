@@ -7,7 +7,7 @@ use \Comodojo\Extender\Scheduler\Schedule;
 use \Comodojo\Extender\Runner\JobsRunner;
 use \Comodojo\Extender\Runner\JobsResult;
 use \Comodojo\Extender\Job\Job;
-use \Comodojo\Extender\Debug;
+use \Comodojo\Extender\Log\LogWrapper;
 use \Comodojo\Extender\Events;
 use \Comodojo\Extender\TasksTable;
 use \Exception;
@@ -201,9 +201,7 @@ class Extender {
 
         }
 
-        $this->logger = new Debug($this->verbose_mode, $this->color);
-
-        $this->events = new Events($this->logger);
+        $this->logger = LogWrapper::create($this->verbose_mode);
 
         // do checks
 
@@ -233,7 +231,9 @@ class Extender {
 
         }
 
-        $this->tasks = new TasksTable();
+        $this->tasks = TasksTable::loadTasks($this->logger);
+
+        $this->events = Events::loadEvents($this->logger);
 
         // setup extender parameters
 
@@ -451,63 +451,6 @@ class Extender {
     final public function tasks() {
 
         return $this->tasks;
-
-    }
-
-    /**
-     * Add hook for an event
-     *
-     * @param   string  $event      The event name
-     * @param   mixed   $callback   The callback (or class if $method is specified)
-     * @param   string  $method     (optional) Method for $callback
-     *
-     * @return  bool
-     */
-    final public function addHook($event, $callback, $method = null) {
-
-        try {
-
-            $this->events->add($event, $callback, $method);
-
-        } catch (Exception $e) {
-
-            //debug error but do not stop extender
-            $this->logger->warning('Unable to add hook', array(
-                'CALLBACK' => $callback,
-                'METHOD' => $method,
-                'EVENT' => $event
-            ));
-
-            return false;
-
-        }
-
-        return true;
-
-    }
-
-    /**
-     * Register a task to TasksTable
-     *
-     * @param   string    $name         Task name (unique)
-     * @param   string    $description  A brief description for the task
-     * @param   string    $class        (optional) Task class, if different from file name
-     *
-     * @return  bool
-     */
-    final public function addTask($name, $class, $description) {
-
-        if ( $this->tasks->addTask($name, $class, $description) === false ) {
-
-            $this->logger->warning("Skipping task due to invalid definition", array(
-                "NAME"       => $name,
-                "CLASS"      => $class,
-                "DESCRIPTION"=> $description
-            ));
-
-            return false;
-
-        } else return true;
 
     }
 

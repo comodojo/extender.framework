@@ -54,12 +54,7 @@ class Econtrol {
      */
     private $tasks = null;
 
-    /**
-     * Array of registered/declared commands
-     *
-     * @var array
-     */
-    private $commands = array();
+    private $controller = null;
 
     /**
      * econtrol constructor
@@ -86,54 +81,11 @@ class Econtrol {
 
         $this->color = new Console_Color2();
 
-        $this->tasks = new TasksTable();
+        $this->tasks = TasksTable::loadTasks($this->logger);
+
+        $this->controller = CommandsController::loadCommands($this->parser, $this->logger);
 
     }
-
-    /**
-     * Register a task
-     *
-     * @param   string    $name         Task name (unique)
-     * @param   string    $class        Task class
-     * @param   string    $description  A brief description for the task
-     *
-     * @return  bool
-     */
-    final public function addTask($name, $class, $description) {
-
-        if ( $this->tasks->addTask($name, $class, $description) === false ) {
-
-            echo $this->color->convert("\n%ySkipping task ".$name." due to invalid definition%n\n");
-
-            return false;
-
-        } else return true;
-
-    }
-
-    /**
-     * Register a command
-     *
-     * @param   string    $command      Command name
-     * @param   array     $parameters   (optional) command parameters
-     *
-     * @return  bool
-     */
-    final public function addCommand($command, $parameters = array()) {
-
-        if ( empty($command) || !is_array($parameters) ) {
-
-            echo $this->color->convert("\n%ySkipping command ".$command." due to invalid definition%n\n");
-
-            return false;
-
-        }
-
-        $this->commands[$command] = $parameters;
-
-        return true;
-
-    } 
 
     /**
      * Process command
@@ -141,8 +93,6 @@ class Econtrol {
      * @return  string
      */
     public function process() {
-
-        CommandsController::addCommands($this->parser, $this->commands);
 
         try {
 
@@ -160,7 +110,7 @@ class Econtrol {
 
             }
 
-            $return = CommandsController::executeCommand($result->command_name, $result->command->options, $result->command->args, $this->color, $this->tasks);
+            $return = $this->controller->executeCommand($result->command_name, $result->command->options, $result->command->args, $this->color, $this->tasks);
 
         } catch (Console_CommandLine_Exception $ce) {
 

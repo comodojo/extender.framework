@@ -3,6 +3,10 @@
 use \Comodojo\Exception\ShellException;
 use \Exception;
 use \Console_CommandLine;
+use \Console_CommandLine_Exception;
+use \Monolog\Logger;
+use \Comodojo\Extender\TasksTable;
+use \Comodojo\Extender\Command\CommandInterface;
 
 /**
  * The commands controller
@@ -30,17 +34,34 @@ use \Console_CommandLine;
  */
 
 class CommandsController {
-    
-    /**
-     * Add commands to the ConsoleCommandline parser
-     *
-     * @param   Console_CommandLine $parser     ConsoleCommandline parser
-     * @param   array               $commands   Provided options (if any)
-     */
-    final public static function addCommands(Console_CommandLine $parser, array $commands) {
 
-        foreach ( $commands as $command => $parameters ) {
+    private $command_classes = array();
+    
+    private $logger = null;
+
+    private $logger = null;
+
+    public function __construct(Console_CommandLine $parser, Logger $logger) {
+
+        $this->logger = $logger;
+
+        $this->parser = $parser;
+
+    }
+
+    public function addCommand($command, $parameters) {
+
+        if ( !isset($parameters["class"]) || class_exists($parameters["class"]) ) {
+
+            $this->logger->warning("Skipping command due to invalid definition", array(
+                "NAME"       => $command,
+                "PARAMETERS" => $parameters
+            ));
+
+        } else {
             
+            $this->command_classes[$command] = $parameters["class"];
+
             $params = array();
 
             if ( array_key_exists('description', $parameters) ) $params['description'] = $parameters['description'];
@@ -83,13 +104,23 @@ class CommandsController {
      *
      * @return  string
      */
-    final public static function executeCommand($command, $options, $args, $color, \Comodojo\Extender\TasksTable $tasks) {
+    public function executeCommand($command_name, $options, $args, $color, TasksTable $tasks) {
 
-        $command_class = "\\Comodojo\\Extender\\Command\\".$command;
+        if ( array_key_exists($command_name, $this->command_classes) ) {
+
+            $command_class = $this->command_classes[$command_name];
+
+        } else {
+
+            throw new ShellException("Command ".$command_name." not defined");
+
+        }
 
         try {
             
             $command = new $command_class();
+
+            if ( ($command instanceof CommandInterface) === false ) throw new ShellException("Command ".$command_name." is not compatible with econtrol");
 
             $command->setOptions($options);
 
@@ -112,6 +143,26 @@ class CommandsController {
         }
 
         return $return;
+
+    }
+
+    public static function loadCommands(Console_CommandLine $parser, Logger $logger) {
+
+        $controller = new CommandsController($parser, $logger);
+
+        if ( is_readable(EXTENDER_COMMANDS_CONFIG) ) {
+
+            $commands = Spyc::YAMLLoad(EXTENDER_COMMANDS_CONFIG);
+
+            foreach ($commands as $command => $parameters) {
+                
+                $controller->addCommand($command, $parameters);
+
+            }
+
+        }
+
+        return $controller;
 
     }
 

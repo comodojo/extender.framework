@@ -1,5 +1,7 @@
 <?php namespace Comodojo\Extender;
 
+use \Spyc;
+
 /**
  * Tasks table
  *
@@ -32,6 +34,14 @@ class TasksTable {
      */
     private $tasks = array();
 
+    private $logger = null;
+
+    public function __construct(\Monolog\Logger $logger) {
+
+        $this->logger = $logger;
+
+    }
+
     /**
      * Register a task
      *
@@ -43,15 +53,24 @@ class TasksTable {
      */
     final public function addTask($name, $class, $description) {
 
-        if ( empty($name) || empty($class) ) return false;
+        if ( empty($name) || empty($class) ) {
 
-        $this->tasks[$name] = array(
-            "description" => $description,
-            "class"       => $class
+            $this->logger->warning("Skipping task due to invalid definition", array(
+                "NAME"       => $name,
+                "CLASS"      => $class,
+                "DESCRIPTION"=> $description
+            ));
 
-        );
+        } else {
 
-        return true;
+            $this->tasks[$name] = array(
+                "description" => $description,
+                "class"       => $class
+            );
+
+        }
+
+        return $this;
 
     }
 
@@ -127,6 +146,26 @@ class TasksTable {
         if ( $sort === true ) ksort($this->tasks);
 
         return $this->tasks;
+
+    }
+
+    public static function loadTasks(\Monolog\Logger $logger) {
+
+        $table = new TasksTable($logger);
+
+        if ( is_readable(EXTENDER_TASKS_CONFIG) ) {
+
+            $tasks = Spyc::YAMLLoad(EXTENDER_TASKS_CONFIG);
+
+            foreach ($tasks as $task) {
+                
+                $table->addTask($task["name"], $task["class"], $task["description"]);
+
+            }
+
+        }
+
+        return $table;
 
     }
 
