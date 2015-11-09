@@ -38,8 +38,13 @@ define("EXTENDER_DATABASE_PREFIX", "extender_");
 define("EXTENDER_DATABASE_TABLE_JOBS", "jobs");
 define("EXTENDER_DATABASE_TABLE_WORKLOGS", "worklogs");
 
+// custom config files
+define("EXTENDER_TASKS_CONFIG", EXTENDER_REAL_PATH."tasks.yaml");
+define("EXTENDER_COMMANDS_CONFIG", EXTENDER_REAL_PATH."commands.yaml");
+define("EXTENDER_PLUGINS_CONFIG", EXTENDER_REAL_PATH."plugins.yaml");
+
 // override exit codes
-define("EXTENDER_PHPUNIT_TEST", true);
+define("COMODOJO_PHPUNIT_TEST", true);
 
 // create database
 try {

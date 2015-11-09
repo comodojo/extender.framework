@@ -3,8 +3,9 @@
 use \Console_CommandLine;
 use \Console_CommandLine_Exception;
 use \Comodojo\Exception\ShellException;
-use \Comodojo\Extender\Shell\CommandsController;
+use \Comodojo\Extender\Shell\Controller;
 use \Comodojo\Extender\TasksTable;
+use \Comodojo\Extender\Log\EcontrolLogger;
 use \Console_Color2;
 use \Exception;
 
@@ -48,13 +49,32 @@ class Econtrol {
     private $color = null;
 
     /**
-     * Array of registered/declared tasks
+     * Local taskstable
      *
-     * @var array
+     * @var \comodojo\Extender\TasksTable
      */
     private $tasks = null;
 
+    /**
+     * Commands controller
+     *
+     * @var \Comodojo\Extender\Shell\Controller
+     */
     private $controller = null;
+
+    /**
+     * Commands controller
+     *
+     * @var \Monolog\Logger;
+     */
+    private $logger = null;
+
+    /**
+     * Output of console parser
+     *
+     * @var array
+     */
+    private $command = null;
 
     /**
      * econtrol constructor
@@ -74,17 +94,75 @@ class Econtrol {
 
         if ( defined('EXTENDER_TIMEZONE') ) date_default_timezone_set(EXTENDER_TIMEZONE);
 
+        $this->color = new Console_Color2();
+
         $this->parser = new Console_CommandLine(array(
             'description' => Version::getDescription(),
             'version'     => Version::getVersion()
         ));
 
-        $this->color = new Console_Color2();
+        $this->parser->addOption(
+            'verbose',
+            array(
+                'short_name'  => '-v',
+                'long_name'   => '--verbose',
+                'description' => 'turn on verbose output',
+                'action'      => 'StoreTrue'
+            )
+        );
 
-        $this->tasks = TasksTable::loadTasks($this->logger);
+        try {
 
-        $this->controller = CommandsController::loadCommands($this->parser, $this->logger);
+            $check_constants = Checks::constants();
 
+            if ( $check_constants !== true ) throw new ShellException($check_constants);
+
+            $this->command = $this->parser->parse();
+
+            $this->logger = EcontrolLogger::create($this->command->options["verbose"]);
+
+            $this->tasks = TasksTable::loadTasks($this->logger);
+
+            $this->controller = Controller::loadCommands($this->parser, $this->logger);
+
+        } catch (Console_CommandLine_Exception $ce) {
+
+            $this->parser->displayError($this->color->convert("\n\n%y".$ce->getMessage()."%n\n"));
+
+            self::end(1);
+
+        } catch (ShellException $se) {
+
+            $this->parser->displayError($this->color->convert("\n\n%R".$se->getMessage()."%n\n"));
+
+            self::end(1);
+
+        } catch (Exception $e) {
+
+            $this->parser->displayError($this->color->convert("\n\n%r".$e->getMessage()."%n\n"));
+
+            self::end(1);
+
+        }
+
+    }
+
+    final public function tasks() {
+
+        return $this->tasks;
+
+    }
+
+    final public function controller() {
+
+        return $this->controller;
+        
+    }
+
+    final public function logger() {
+
+        return $this->logger;
+        
     }
 
     /**
@@ -96,13 +174,7 @@ class Econtrol {
 
         try {
 
-            $check_constants = Checks::constants();
-
-            if ( $check_constants !== true ) throw new ShellException($check_constants);
-
-            $result = $this->parser->parse();
-            
-            if ( empty($result->command_name) ) {
+            if ( empty($this->command->command_name) ) {
 
                 $this->parser->displayUsage();
 
@@ -110,13 +182,14 @@ class Econtrol {
 
             }
 
-            $return = $this->controller->executeCommand($result->command_name, $result->command->options, $result->command->args, $this->color, $this->tasks);
-
-        } catch (Console_CommandLine_Exception $ce) {
-
-            $this->parser->displayError($this->color->convert("\n\n%y".$ce->getMessage()."%n\n"));
-
-            self::end(1);
+            $return = $this->controller->execute(
+                $this->command->command_name,
+                $this->command->command->options,
+                $this->command->command->args,
+                $this->color,
+                $this->logger,
+                $this->tasks
+            );
 
         } catch (ShellException $se) {
 
@@ -143,7 +216,7 @@ class Econtrol {
      */
     private static function end($returnCode) {
 
-        if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {
+        if ( defined('COMODOJO_PHPUNIT_TEST') && @constant('COMODOJO_PHPUNIT_TEST') === true ) {
 
             if ( $returnCode === 1 ) throw new Exception("PHPUnit Test Exception");
             

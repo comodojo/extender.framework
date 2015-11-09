@@ -1,6 +1,7 @@
 <?php
 
 use \Comodojo\Extender\Scheduler\Scheduler;
+use \Comodojo\Extender\Log\ExtenderLogger;
 
 class SchedulerTest extends \PHPUnit_Framework_TestCase {
 
@@ -8,7 +9,7 @@ class SchedulerTest extends \PHPUnit_Framework_TestCase {
 
         $this->color = new \Console_Color2();
 
-        $this->debug = new \Comodojo\Extender\Debug(false, $this->color);
+        $this->debug = ExtenderLogger::create(false);
 
     }
 

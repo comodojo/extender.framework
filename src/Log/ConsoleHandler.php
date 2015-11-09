@@ -9,7 +9,7 @@ class ConsoleHandler extends AbstractProcessingHandler {
     private $color = null;
 
     private static $colors = array(
-        100 => '%k',
+        100 => '%8',
         200 => '%g',
         250 => '%U',
         300 => '%Y',
@@ -43,7 +43,7 @@ class ConsoleHandler extends AbstractProcessingHandler {
 
     private function toConsole($time, $level, $message, $context) {
 
-        print "(".$time.")".$this->color->convert(static::$colors[$level]."\n".$message."%n\n");
+        print $this->color->convert(static::$colors[$level].$message."%n\n");
 
         if ( !empty($context) ) print $this->color->convert(static::$colors[$level].var_export($context, true)."%n\n");
 

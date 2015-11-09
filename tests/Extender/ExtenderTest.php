@@ -84,9 +84,9 @@ class ExtenderTest extends \PHPUnit_Framework_TestCase {
 
     	$this->assertInstanceOf('\Console_Color2', $result);
 
-    	$result = $this->extender->debugger();
+    	$result = $this->extender->logger();
 
-    	$this->assertInstanceOf('\Comodojo\Extender\Debug', $result);
+    	$this->assertInstanceOf('\Monolog\Logger', $result);
 
     	$result = $this->extender->runner();
 
@@ -100,11 +100,11 @@ class ExtenderTest extends \PHPUnit_Framework_TestCase {
 
     public function testStartupConfiguration() {
 
-    	$result = $this->extender->addHook('extender', function($extender) { return true; });
+    	$result = $this->extender->events()->add('extender', function($extender) { return true; });
 
     	$this->assertTrue($result);
 
-    	$result = $this->extender->addTask('testTask', '\test\class', 'test task');
+    	$result = $this->extender->tasks()->add('testTask', '\test\class', 'test task');
 
     	$this->assertTrue($result);
 

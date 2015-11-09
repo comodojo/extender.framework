@@ -7,7 +7,7 @@ use \Comodojo\Extender\Scheduler\Schedule;
 use \Comodojo\Extender\Runner\JobsRunner;
 use \Comodojo\Extender\Runner\JobsResult;
 use \Comodojo\Extender\Job\Job;
-use \Comodojo\Extender\Log\LogWrapper;
+use \Comodojo\Extender\Log\ExtenderLogger;
 use \Comodojo\Extender\Events;
 use \Comodojo\Extender\TasksTable;
 use \Exception;
@@ -201,7 +201,7 @@ class Extender {
 
         }
 
-        $this->logger = LogWrapper::create($this->verbose_mode);
+        $this->logger = ExtenderLogger::create($this->verbose_mode);
 
         // do checks
 
@@ -422,11 +422,11 @@ class Extender {
     }
 
     /**
-     * Get internal debugger/logger
+     * Get internal logger
      *
-     * @return  \Comodojo\Extender\Debug
+     * @return  \Monolog\Logger
      */
-    final public function debugger() {
+    final public function logger() {
 
         return $this->logger;
 
@@ -548,7 +548,7 @@ class Extender {
 
             foreach ( $scheduled->getSchedules() as $schedule ) {
 
-                if ( $this->tasks->isTaskRegistered($schedule['task']) ) {
+                if ( $this->tasks->isRegistered($schedule['task']) ) {
 
                     $job = new Job();
 
@@ -881,7 +881,7 @@ class Extender {
      */
     private static function end($returnCode) {
 
-        if ( defined('EXTENDER_PHPUNIT_TEST') && @constant('EXTENDER_PHPUNIT_TEST') === true ) {
+        if ( defined('COMODOJO_PHPUNIT_TEST') && @constant('COMODOJO_PHPUNIT_TEST') === true ) {
 
             if ( $returnCode === 1 ) throw new Exception("PHPUnit Test Exception");
             

@@ -51,7 +51,7 @@ class TasksTable {
      *
      * @return  bool
      */
-    final public function addTask($name, $class, $description) {
+    final public function add($name, $class, $description) {
 
         if ( empty($name) || empty($class) ) {
 
@@ -61,16 +61,16 @@ class TasksTable {
                 "DESCRIPTION"=> $description
             ));
 
-        } else {
-
-            $this->tasks[$name] = array(
-                "description" => $description,
-                "class"       => $class
-            );
+            return false;
 
         }
 
-        return $this;
+        $this->tasks[$name] = array(
+            "description" => $description,
+            "class"       => $class
+        );
+
+        return true;
 
     }
 
@@ -81,7 +81,7 @@ class TasksTable {
      *
      * @return  bool
      */
-    final public function removeTask($name) {
+    final public function remove($name) {
 
         if ( $this->registered($name) ) {
 
@@ -100,7 +100,7 @@ class TasksTable {
      *
      * @return  string
      */
-    final public function isTaskRegistered($task) {
+    final public function isRegistered($task) {
 
         return $this->registered($task);
 
@@ -157,9 +157,11 @@ class TasksTable {
 
             $tasks = Spyc::YAMLLoad(EXTENDER_TASKS_CONFIG);
 
-            foreach ($tasks as $task) {
+            foreach ($tasks as $task => $parameters) {
+
+                $description = empty($parameters["data"]["description"]) ? null : $parameters["data"]["description"];
                 
-                $table->addTask($task["name"], $task["class"], $task["description"]);
+                $table->addTask($task, $parameters["data"]["class"], $description);
 
             }
 

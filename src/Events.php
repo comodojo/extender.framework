@@ -94,6 +94,8 @@ class Events {
                 'EVENT' => $event
             ));
 
+            return false;
+
         } else if ( is_null($method) ) {
 
             if ( isset($this->hooks[$event]) ) array_push($this->hooks[$event], $callback);
@@ -108,7 +110,7 @@ class Events {
 
         }
 
-        return $this;
+        return true;
 
     }
 
@@ -298,7 +300,9 @@ class Events {
 
             foreach ($events as $event) {
                 
-                $table->add($event["event"], $event["callback"], isset($event["method"]) ? $event["method"] : null);
+                $method = empty($event["data"]["method"]) ? null : $event["data"]["method"];
+
+                $table->add($event["data"]["event"], $event["data"]["callback"], $method);
 
             }
 

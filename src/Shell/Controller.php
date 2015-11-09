@@ -33,7 +33,7 @@ use \Comodojo\Extender\Command\CommandInterface;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class CommandsController {
+class Controller {
 
     private $command_classes = array();
     
@@ -49,7 +49,7 @@ class CommandsController {
 
     }
 
-    public function addCommand($command, $parameters) {
+    public function add($command, $parameters) {
 
         if ( !isset($parameters["class"]) || class_exists($parameters["class"]) ) {
 
@@ -104,7 +104,7 @@ class CommandsController {
      *
      * @return  string
      */
-    public function executeCommand($command_name, $options, $args, $color, TasksTable $tasks) {
+    public function execute($command_name, $options, $args, $color, $logger, TasksTable $tasks) {
 
         if ( array_key_exists($command_name, $this->command_classes) ) {
 
@@ -130,6 +130,8 @@ class CommandsController {
 
             $command->setTasks($tasks);
 
+            $command->setLogger($logger);
+
             $return = $command->execute();
 
         } catch (ShellException $se) {
@@ -146,9 +148,9 @@ class CommandsController {
 
     }
 
-    public static function loadCommands(Console_CommandLine $parser, Logger $logger) {
+    public static function load(Console_CommandLine $parser, Logger $logger) {
 
-        $controller = new CommandsController($parser, $logger);
+        $controller = new Controller($parser, $logger);
 
         if ( is_readable(EXTENDER_COMMANDS_CONFIG) ) {
 
@@ -156,7 +158,7 @@ class CommandsController {
 
             foreach ($commands as $command => $parameters) {
                 
-                $controller->addCommand($command, $parameters);
+                $controller->add($command, $parameters["data"]);
 
             }
 

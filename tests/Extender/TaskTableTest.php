@@ -1,5 +1,7 @@
 <?php
 
+use \Comodojo\Extender\Log\ExtenderLogger;
+
 class TaskTableTest extends \PHPUnit_Framework_TestCase {
 
     protected $task = null;
@@ -11,8 +13,10 @@ class TaskTableTest extends \PHPUnit_Framework_TestCase {
     private $description = "TestTask description";
 
     protected function setUp() {
+
+        $debug = ExtenderLogger::create(false);
         
-        $this->task = new \Comodojo\Extender\TasksTable();
+        $this->task = new \Comodojo\Extender\TasksTable($debug);
     
     }
 
@@ -27,7 +31,7 @@ class TaskTableTest extends \PHPUnit_Framework_TestCase {
      */
     public function testAddTask() {
 
-        $result = $this->task->addTask($this->name, $this->class, $this->description);
+        $result = $this->task->add($this->name, $this->class, $this->description);
 
         $this->assertTrue($result);
 
@@ -35,11 +39,11 @@ class TaskTableTest extends \PHPUnit_Framework_TestCase {
 
     public function testRemoveTask() {
 
-        $result = $this->task->removeTask($this->name);
+        $result = $this->task->remove($this->name);
 
         $this->assertTrue($result);
 
-        $result = $this->task->removeTask($this->name);        
+        $result = $this->task->remove($this->name);        
 
         $this->assertFalse($result);
 
@@ -47,7 +51,7 @@ class TaskTableTest extends \PHPUnit_Framework_TestCase {
 
     public function testIsTaskRegistered() {
 
-        $result = $this->task->isTaskRegistered($this->name);
+        $result = $this->task->isRegistered($this->name);
 
         $this->assertTrue($result);
 
