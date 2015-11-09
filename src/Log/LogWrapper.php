@@ -27,8 +27,6 @@ use \Monolog\Logger;
 
 abstract class LogWrapper {
 
-    abstract public static function create($verbose, $force_level);
-
     /**
      * Map provided log level to level code
      *

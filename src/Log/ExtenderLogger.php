@@ -14,7 +14,7 @@ class ExtenderLogger extends LogWrapper {
 
         $name = defined('EXTENDER_LOG_NAME') ? EXTENDER_LOG_NAME : 'extender-default';
 
-        $level = self::getLevel(defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'DEBUG');
+        $level = empty($force_level) ? self::getLevel(defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'DEBUG') : self::getLevel($force_level);
 
         $target = defined('EXTENDER_LOG_TARGET') ? EXTENDER_LOG_TARGET : null;
 
