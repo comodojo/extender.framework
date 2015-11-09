@@ -121,9 +121,9 @@ class Econtrol {
 
             $this->logger = EcontrolLogger::create($this->command->options["verbose"]);
 
-            $this->tasks = TasksTable::loadTasks($this->logger);
+            $this->tasks = TasksTable::load($this->logger);
 
-            $this->controller = Controller::loadCommands($this->parser, $this->logger);
+            $this->controller = Controller::load($this->parser, $this->logger);
 
         } catch (Console_CommandLine_Exception $ce) {
 

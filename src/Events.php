@@ -290,7 +290,7 @@ class Events {
 
     }
 
-    public static function loadEvents(\Monolog\Logger $logger) {
+    public static function load(\Monolog\Logger $logger) {
 
         $table = new Events($logger);
 

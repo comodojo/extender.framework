@@ -231,9 +231,9 @@ class Extender {
 
         }
 
-        $this->tasks = TasksTable::loadTasks($this->logger);
+        $this->tasks = TasksTable::load($this->logger);
 
-        $this->events = Events::loadEvents($this->logger);
+        $this->events = Events::load($this->logger);
 
         // setup extender parameters
 

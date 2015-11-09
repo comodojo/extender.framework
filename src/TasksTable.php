@@ -149,7 +149,7 @@ class TasksTable {
 
     }
 
-    public static function loadTasks(\Monolog\Logger $logger) {
+    public static function load(\Monolog\Logger $logger) {
 
         $table = new TasksTable($logger);
 

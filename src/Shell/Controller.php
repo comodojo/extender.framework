@@ -39,7 +39,7 @@ class Controller {
     
     private $logger = null;
 
-    private $logger = null;
+    private $parser = null;
 
     public function __construct(Console_CommandLine $parser, Logger $logger) {
 
