@@ -1,5 +1,9 @@
 <?php namespace Comodojo\Extender\Command;
 
+use \Monolog\Logger;
+use \Console_Color2;
+use \Comodojo\Extender\TasksTable;
+
 /**
  * The CommandInterface, base interface that any command should implement
  *
@@ -50,7 +54,7 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setColor($color);
+    public function setColor(Console_Color2 $color);
 
     /**
      * Set registered tasks
@@ -59,7 +63,16 @@ interface CommandInterface {
      *
      * @return  Object  $this
      */
-    public function setTasks($tasks);
+    public function setTasks(TaskTable $tasks);
+
+    /**
+     * Set logger
+     *
+     * @param   \Monolog\Logger   $logger
+     *
+     * @return  \Comodojo\Extender\Command\AbstractCommand
+     */
+    public function setLogger(Logger $logger);
 
     /**
      * Get an option

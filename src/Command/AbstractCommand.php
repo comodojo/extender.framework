@@ -1,8 +1,9 @@
 <?php namespace Comodojo\Extender\Command;
 
 use \Monolog\Logger;
-use \Console_Color2
+use \Console_Color2;
 use \Comodojo\Extender\TasksTable;
+
 /**
  * Common superclass for extender default commands
  *

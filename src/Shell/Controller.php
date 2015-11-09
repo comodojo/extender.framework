@@ -7,6 +7,7 @@ use \Console_CommandLine_Exception;
 use \Monolog\Logger;
 use \Comodojo\Extender\TasksTable;
 use \Comodojo\Extender\Command\CommandInterface;
+use \Spyc;
 
 /**
  * The commands controller
@@ -50,7 +51,7 @@ class Controller {
     }
 
     public function add($command, $parameters) {
-
+var_export($parameters["class"]);
         if ( !isset($parameters["class"]) || class_exists($parameters["class"]) ) {
 
             $this->logger->warning("Skipping command due to invalid definition", array(
@@ -67,7 +68,7 @@ class Controller {
             if ( array_key_exists('description', $parameters) ) $params['description'] = $parameters['description'];
             if ( array_key_exists('aliases', $parameters) && is_array($parameters['aliases']) ) $params['aliases'] = $parameters['aliases'];
 
-            $command = $parser->addCommand($command, $params);
+            $command = $this->parser->addCommand($command, $params);
 
             if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
 
