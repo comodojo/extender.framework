@@ -51,46 +51,65 @@ class Controller {
     }
 
     public function add($command, $parameters) {
-var_export($parameters["class"]);
-        if ( !isset($parameters["class"]) || class_exists($parameters["class"]) ) {
 
-            $this->logger->warning("Skipping command due to invalid definition", array(
+        if ( empty($parameters["class"]) ) {
+
+            $this->logger->error("Skipping command ".$command.": invalid command definition", array(
                 "NAME"       => $command,
                 "PARAMETERS" => $parameters
             ));
 
-        } else {
-            
-            $this->command_classes[$command] = $parameters["class"];
+            return false;
 
-            $params = array();
+        }
 
-            if ( array_key_exists('description', $parameters) ) $params['description'] = $parameters['description'];
-            if ( array_key_exists('aliases', $parameters) && is_array($parameters['aliases']) ) $params['aliases'] = $parameters['aliases'];
+        //echo $parameters["class"]."\n";
 
-            $command = $this->parser->addCommand($command, $params);
+        //$class = str_replace('\\\\', '\\', $parameters["class"]);
 
-            if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
+        $class = $parameters["class"];
 
-                foreach ( $parameters['options'] as $option => $option_parameters ) {
-                    
-                    $command->addOption($option, $option_parameters);
+        if ( !class_exists($class) ) {
 
-                }
+            $this->logger->error("Skipping command ".$command.": missing class", array(
+                "NAME" => $command,
+                "CLASS" => $class
+            ));
 
-            }
+            return false;
 
-            if ( array_key_exists('arguments', $parameters) && is_array($parameters['arguments']) ) {
+        } 
 
-                foreach ( $parameters['arguments'] as $argument => $argument_parameters ) {
-                    
-                    $command->addArgument($argument, $argument_parameters);
+        $this->command_classes[$command] = $class;
 
-                }
+        $params = array();
+
+        if ( array_key_exists('description', $parameters) ) $params['description'] = $parameters['description'];
+        if ( array_key_exists('aliases', $parameters) && is_array($parameters['aliases']) ) $params['aliases'] = $parameters['aliases'];
+
+        $command = $this->parser->addCommand($command, $params);
+
+        if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
+
+            foreach ( $parameters['options'] as $option => $option_parameters ) {
+                
+                $command->addOption($option, $option_parameters);
 
             }
 
         }
+
+        if ( array_key_exists('arguments', $parameters) && is_array($parameters['arguments']) ) {
+
+            foreach ( $parameters['arguments'] as $argument => $argument_parameters ) {
+                
+                $command->addArgument($argument, $argument_parameters);
+
+            }
+
+        }
+
+        return true;
 
     }
 

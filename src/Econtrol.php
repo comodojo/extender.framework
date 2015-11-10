@@ -117,9 +117,9 @@ class Econtrol {
 
             if ( $check_constants !== true ) throw new ShellException($check_constants);
 
-            $this->command = $this->parser->parse();
+            $verbose = array_key_exists('v', getopt("v")) ? true : false;
 
-            $this->logger = EcontrolLogger::create($this->command->options["verbose"]);
+            $this->logger = EcontrolLogger::create($verbose);
 
             $this->tasks = TasksTable::load($this->logger);
 
@@ -173,6 +173,8 @@ class Econtrol {
     public function process() {
 
         try {
+
+            $this->command = $this->parser->parse();
 
             if ( empty($this->command->command_name) ) {
 

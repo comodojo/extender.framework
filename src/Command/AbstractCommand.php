@@ -1,9 +1,5 @@
 <?php namespace Comodojo\Extender\Command;
 
-use \Monolog\Logger;
-use \Console_Color2;
-use \Comodojo\Extender\TasksTable;
-
 /**
  * Common superclass for extender default commands
  *
@@ -60,7 +56,7 @@ abstract class AbstractCommand implements CommandInterface {
     /**
      * Registered tasks
      *
-     * @var \Comodojo\Extender\Task\TasksTable
+     * @var \Comodojo\Extender\TasksTable
      */
     protected $tasks = null;
 
@@ -97,11 +93,11 @@ abstract class AbstractCommand implements CommandInterface {
     /**
      * Inject Console_Color2 instance
      *
-     * @param   Object  $color     The Console_Color2 instance
+     * @param   \Console_Color2
      *
      * @return  \Comodojo\Extender\Command\AbstractCommand
      */
-    public function setColor(Console_Color2 $color) {
+    public function setColor(\Console_Color2 $color) {
 
         $this->color = $color;
 
@@ -112,11 +108,11 @@ abstract class AbstractCommand implements CommandInterface {
     /**
      * Set registered tasks
      *
-     * @param   \Comodojo\Extender\TasksTable   $tasks     TaskTable
+     * @param   \Comodojo\Extender\TasksTable
      *
      * @return  \Comodojo\Extender\Command\AbstractCommand
      */
-    public function setTasks(TaskTable $tasks) {
+    public function setTasks(\Comodojo\Extender\TasksTable $tasks) {
 
         $this->tasks = $tasks;
 
@@ -127,11 +123,11 @@ abstract class AbstractCommand implements CommandInterface {
     /**
      * Set logger
      *
-     * @param   \Monolog\Logger   $logger
+     * @param   \Monolog\Logger
      *
      * @return  \Comodojo\Extender\Command\AbstractCommand
      */
-    public function setLogger(Logger $logger) {
+    public function setLogger(\Monolog\Logger $logger) {
 
         $this->logger = $logger;
 
