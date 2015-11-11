@@ -6,19 +6,17 @@ use \Comodojo\Extender\Log\ConsoleHandler;
 
 class EcontrolLogger extends LogWrapper {
 
-    public static function create($verbose = false, $force_level = false) {
-
-        $level = empty($force_level) ? self::getLevel('DEBUG') : self::getLevel($force_level);
+    public static function create($level = false) {
 
         $logger = new Logger("econtrol-default");
 
-        if ( $verbose ) {
+        if ( empty($level) ) {
 
-            $logger->pushHandler(new ConsoleHandler($level));
+            $logger->pushHandler(new NullHandler(self::getLevel("ERROR")));
 
         } else {
 
-            $logger->pushHandler(new NullHandler($level));
+            $logger->pushHandler(new ConsoleHandler(self::getLevel($level)));
 
         }
 

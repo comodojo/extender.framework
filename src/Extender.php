@@ -128,7 +128,7 @@ class Extender {
     /**
      * Logger instance
      *
-     * @var \Comodojo\Extender\Debug
+     * @var \Monolog\Logger
      */
     private $logger = null;
 

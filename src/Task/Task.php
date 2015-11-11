@@ -3,6 +3,7 @@
 use \Comodojo\Exception\TaskException;
 use \Comodojo\Exception\DatabaseException;
 use \Comodojo\Database\EnhancedDatabase;
+use \Monolog\Logger;
 use \Exception;
 
 /**
@@ -53,6 +54,8 @@ abstract class Task {
      * @var string
      */
     private $class = null;
+
+    protected $logger = null;
 
     /**
      * Start timestamp
@@ -114,14 +117,17 @@ abstract class Task {
      * 
      * @return  Object  $this 
      */
-    final public function __construct($parameters, $pid = null, $name = null, $timestamp = null, $multithread = null, $jobid = null) {
+    final public function __construct($parameters, Logger $logger,
+        $pid = null, $name = null, $timestamp = null, 
+        $multithread = null, $jobid = null
+    ) {
         
         // Setup task
 
         if ( !empty($parameters) ) $this->parameters = $parameters;
         
         if ( !is_null($name) ) $this->name = $name;
-        
+
         $this->pid = is_null($pid) ? getmypid() : $pid;
 
         $this->start_timestamp = is_null($timestamp) ? microtime(true) : $timestamp;

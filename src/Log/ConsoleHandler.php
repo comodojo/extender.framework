@@ -43,7 +43,7 @@ class ConsoleHandler extends AbstractProcessingHandler {
 
     private function toConsole($time, $level, $message, $context) {
 
-        print $this->color->convert(static::$colors[$level].$message."%n\n");
+        print $this->color->convert(static::$colors[$level].$message."%n");
 
         if ( !empty($context) ) print $this->color->convert(static::$colors[$level].var_export($context, true)."%n\n");
 

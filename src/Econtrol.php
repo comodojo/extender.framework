@@ -111,13 +111,39 @@ class Econtrol {
             )
         );
 
+        $this->parser->addOption(
+            'moreverbose',
+            array(
+                'short_name'  => '-V',
+                'long_name'   => '--moreverbose',
+                'description' => 'turn on debug output',
+                'action'      => 'StoreTrue'
+            )
+        );
+
         try {
 
             $check_constants = Checks::constants();
 
             if ( $check_constants !== true ) throw new ShellException($check_constants);
 
-            $verbose = array_key_exists('v', getopt("v")) ? true : false;
+            if ( array_key_exists('V', getopt("V")) ) {
+
+                $verbose = 'DEBUG';
+
+                echo $this->color->convert("\n%r(> Debug mode on <)%n\n");
+
+            } else if ( array_key_exists('v', getopt("v")) ) {
+
+                $verbose = 'INFO';
+
+                echo $this->color->convert("\n%y(> Verbose mode on <)%n\n");
+
+            } else {
+
+                $verbose = false;
+
+            }
 
             $this->logger = EcontrolLogger::create($verbose);
 

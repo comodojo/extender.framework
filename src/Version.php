@@ -30,7 +30,7 @@ class Version {
      *
      * @var     string
      */
-    private static $description = "Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler in PHP";
+    private static $description = "Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler";
 
     /**
      * Extender current version
@@ -83,7 +83,7 @@ class Version {
         $ascii .= " / _ \  | |/_/ / __/ / _ \  / __ \ / __  / / _ \  / ___/         \r\n";
         $ascii .= "/  __/ _>  <  / /_  /  __/ / / / // /_/ / /  __/ / /             \r\n";
         $ascii .= "\___/ /_/|_|  \__/  \___/ /_/ /_/ \__,_/  \___/ /_/              \r\n";
-        $ascii .= "--------------------------------------------------------         \r\n\n";
+        $ascii .= "--------------------------------------------------------         \r\n";
         
         return $ascii;
 

@@ -8,7 +8,7 @@ use \Comodojo\Extender\Log\ConsoleHandler;
 
 class ExtenderLogger extends LogWrapper {
 
-    public static function create($verbose = false, $force_level = false) {
+    public static function create($verbose = false) {
 
         $enabled = defined('EXTENDER_LOG_ENABLED') ? filter_var(EXTENDER_LOG_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
