@@ -161,7 +161,7 @@ class TasksTable {
 
                 $description = empty($parameters["data"]["description"]) ? null : $parameters["data"]["description"];
                 
-                $table->addTask($task, $parameters["data"]["class"], $description);
+                $table->add($task, $parameters["data"]["class"], $description);
 
             }
 
