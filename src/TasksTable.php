@@ -30,12 +30,22 @@ class TasksTable {
     /**
      * Tasks database (a simple array!).
      *
-     * @var     array
+     * @var array
      */
     private $tasks = array();
 
+    /**
+     * Current logger
+     *
+     * @var /Monolog/logger
+     */
     private $logger = null;
 
+    /**
+     * Class constructor
+     *
+     * @param /Monolog/Logger $logger
+     */
     public function __construct(\Monolog\Logger $logger) {
 
         $this->logger = $logger;
@@ -98,7 +108,7 @@ class TasksTable {
      *
      * @param   string    $task    Task name (unique)
      *
-     * @return  string
+     * @return  bool
      */
     final public function isRegistered($task) {
 
@@ -111,7 +121,7 @@ class TasksTable {
      *
      * @param   string    $task    Task name (unique)
      *
-     * @return  string
+     * @return  string|null
      */
     final public function getDescription($task) {
 
@@ -126,13 +136,19 @@ class TasksTable {
      *
      * @param   string    $task    Task name (unique)
      *
-     * @return  string
+     * @return  string|null
      */
     final public function getClass($task) {
 
-        if ( $this->registered($task) ) return $this->tasks[$task]["class"];
+        if ( $this->registered($task) ) {
+            
+            return str_replace('\\\\', '\\', $this->tasks[$task]["class"]);
 
-        else return null;
+        } else {
+            
+            return null;
+            
+        }
 
     }
 
@@ -149,11 +165,18 @@ class TasksTable {
 
     }
 
+    /**
+     * Create a TaskTable and load tasks from EXTENDER_TASKS_CONFIG
+     *
+     * @param \Monolog\Logger $logger
+     * 
+     * @return array
+     */
     public static function load(\Monolog\Logger $logger) {
 
         $table = new TasksTable($logger);
 
-        if ( is_readable(EXTENDER_TASKS_CONFIG) ) {
+        if ( defined("EXTENDER_TASKS_CONFIG") && is_readable(EXTENDER_TASKS_CONFIG) ) {
 
             $tasks = Spyc::YAMLLoad(EXTENDER_TASKS_CONFIG);
 

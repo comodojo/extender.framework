@@ -79,10 +79,10 @@ class Events {
      * ($method).
      *
      * @param   string  $event      Event name
-     * @param   string  $callback   Callback (or callback class)
+     * @param   mixed   $callback   Callback (or callback class)
      * @param   string  $method     (optional) callback method
      *
-     * @return  Object  $this
+     * @return  bool
      */
     final public function add($event, $callback, $method = null) {
 
@@ -290,11 +290,18 @@ class Events {
 
     }
 
+    /**
+     * Create a Events controller and load plugins from EXTENDER_PLUGINS_CONFIG
+     *
+     * @param \Monolog\Logger $logger
+     * 
+     * @return array
+     */
     public static function load(\Monolog\Logger $logger) {
 
         $table = new Events($logger);
 
-        if ( is_readable(EXTENDER_PLUGINS_CONFIG) ) {
+        if ( defined("EXTENDER_PLUGINS_CONFIG") && is_readable(EXTENDER_PLUGINS_CONFIG) ) {
 
             $events = Spyc::YAMLLoad(EXTENDER_PLUGINS_CONFIG);
 

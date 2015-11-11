@@ -36,12 +36,33 @@ use \Spyc;
 
 class Controller {
 
+    /**
+     * Array of commands' classes
+     *
+     * @var array
+     */
     private $command_classes = array();
     
+    /**
+     * Current logger
+     *
+     * @var \Monolog\logger
+     */
     private $logger = null;
 
+    /**
+     * Current Parser
+     *
+     * @var \Console_CommandLine
+     */
     private $parser = null;
 
+    /**
+     * Class constructor
+     *
+     * @param \Console_CommandLine  $parser
+     * @param \Monolog\logger       $logger
+     */
     public function __construct(Console_CommandLine $parser, Logger $logger) {
 
         $this->logger = $logger;
@@ -50,6 +71,12 @@ class Controller {
 
     }
 
+    /**
+     * Class constructor
+     *
+     * @param \Console_CommandLine  $parser
+     * @param \Monolog\logger       $logger
+     */
     public function add($command, $parameters) {
 
         if ( empty($parameters["class"]) ) {
@@ -63,11 +90,8 @@ class Controller {
 
         }
 
-        //echo $parameters["class"]."\n";
-
-        //$class = str_replace('\\\\', '\\', $parameters["class"]);
-
-        $class = $parameters["class"];
+        // replace double backslashes from classname (if any!)
+        $class = str_replace('\\\\', '\\', $parameters["class"]);
 
         if ( !class_exists($class) ) {
 

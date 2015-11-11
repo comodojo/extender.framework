@@ -55,6 +55,11 @@ abstract class Task {
      */
     private $class = null;
 
+    /**
+     * Logger, injected by extender
+     *
+     * @var \Monolog\Logger
+     */
     protected $logger = null;
 
     /**
@@ -109,11 +114,12 @@ abstract class Task {
     /**
      * Task constructor.
      * 
-     * @param   array   $parameters     Array of parameters (if any)
-     * @param   int     $pid            Task PID (if any)
-     * @param   string  $name           Task Name
-     * @param   int     $timestamp      Start timestamp (if null will be retrieved directly)
-     * @param   bool    $multithread    Multithread switch
+     * @param   array           $parameters     Array of parameters (if any)
+     * @param   \Monolog\Logger $logger
+     * @param   int             $pid            Task PID (if any)
+     * @param   string          $name           Task Name
+     * @param   int             $timestamp      Start timestamp (if null will be retrieved directly)
+     * @param   bool            $multithread    Multithread switch
      * 
      * @return  Object  $this 
      */

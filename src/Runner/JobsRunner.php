@@ -3,6 +3,7 @@
 use \Exception;
 use \Comodojo\Extender\Checks;
 use \Comodojo\Extender\Queue;
+use \Monolog\Logger;
 
 /**
  * Jobs runner
@@ -125,7 +126,7 @@ class JobsRunner {
      * @param   int                       $max_result_bytes_in_multithread    Max result bytes
      * @param   int                       $max_childs_runtime                 Max child runtime
      */
-    final public function __construct($logger, $multithread, $max_result_bytes_in_multithread, $max_childs_runtime) {
+    final public function __construct(Logger $logger, $multithread, $max_result_bytes_in_multithread, $max_childs_runtime) {
 
         $this->logger = $logger;
 
@@ -428,6 +429,9 @@ class JobsRunner {
         $parameters = $job['parameters'];
 
         $task = $job['task'];
+
+// replace double backslashes from classname (if any!)
+        $class = str_replace('\\\\', '\\', $parameters["class"]);
 
         $task_class = $job['class'];
 

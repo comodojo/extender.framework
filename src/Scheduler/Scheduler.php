@@ -35,8 +35,8 @@ class Scheduler {
     /**
      * Get planned schedules
      *
-     * @param   \Comodojo\Extender\Debug   $logger
-     * @param   float                      $timestamp
+     * @param   \Monolog\Logger   $logger
+     * @param   float             $timestamp
      *
      * @return  array
      * @throws  \Comodojo\Exception\DatabaseException
