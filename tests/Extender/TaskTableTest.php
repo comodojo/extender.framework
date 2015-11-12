@@ -1,6 +1,7 @@
 <?php
 
 use \Comodojo\Extender\Log\ExtenderLogger;
+use \Comodojo\Extender\TasksTable;
 
 class TaskTableTest extends \PHPUnit_Framework_TestCase {
 
@@ -16,13 +17,13 @@ class TaskTableTest extends \PHPUnit_Framework_TestCase {
 
         $debug = ExtenderLogger::create(false);
         
-        $this->task = new \Comodojo\Extender\TasksTable($debug);
+        $this->task = TasksTable::load($debug);
     
     }
 
     protected function tearDown() {
 
-        unset($this->job);
+        unset($this->task);
 
     }
 

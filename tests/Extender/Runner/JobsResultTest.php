@@ -3,11 +3,11 @@
 class JobsResultTest extends \PHPUnit_Framework_TestCase {
 
     private $processes = array(
-        array(100,'test',true,1445032806,1445032808,'Success',10),
-        array(101,'tes2',false,1445032806,1445032808,'Failure',null)
+        array(100,'test',true,1445032806,1445032808,'Success',10,1),
+        array(101,'tes2',false,1445032806,1445032808,'Failure',null,2)
     );
 
-    private $struct = array('pid','name','success','start','end','result','id');
+    private $struct = array('pid','name','success','start','end','result','id','wid');
 
     protected function setUp() {
         
