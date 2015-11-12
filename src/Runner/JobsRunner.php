@@ -4,6 +4,7 @@ use \Exception;
 use \Comodojo\Extender\Checks;
 use \Comodojo\Extender\Queue;
 use \Monolog\Logger;
+use \Comodojo\Exception\TaskException;
 
 /**
  * Jobs runner
@@ -40,7 +41,7 @@ class JobsRunner {
     /**
      * Logger instance
      *
-     * @var     Object
+     * @var \Monolog\Logger
      */
     private $logger = null;
 
@@ -334,7 +335,8 @@ class JobsRunner {
                             $job[2], //$start_timestamp,
                             null,
                             "socket_read() failed. Reason: ".socket_strerror(socket_last_error($reader)),
-                            $job[3]
+                            $job[3],
+                            null
                         ));
 
                         $status = 'ERROR';
@@ -352,13 +354,16 @@ class JobsRunner {
                             $job[2], //$start_timestamp,
                             $result["timestamp"],
                             $result["result"],
-                            $job[3]
+                            $job[3],
+                            $result["worklogid"]
                         ));
 
-                        $status = $result["success"] ? 'SUCCESS' : 'ERROR';
+                        $status = $result["success"] ? 'success' : 'failure';
 
                     }
                     
+                    $this->logger->notice("Job ".$job[0]."(".$job[3].") ends with ".$status);
+
                     unset($this->running_processes[$pid]);
 
                     $this->logger->info("Removed pid ".$pid." from the running queue, job terminated with ".$status);
@@ -393,10 +398,15 @@ class JobsRunner {
                             $job[2], //$start_timestamp,
                             $current_time,
                             "Job ".$job[0]." killed due to maximum exec time reached (>".$this->max_childs_runtime.")",
-                            $job[3]
+                            $job[3],
+                            null
                         ));
 
+                        $this->logger->notice("Job ".$job[0]."(".$job[3].") ends with error");
+
                         unset($this->running_processes[$pid]);
+
+                        $this->logger->info("Removed pid ".$pid." from the running queue, job terminated with error");
 
                     }
 
@@ -422,6 +432,8 @@ class JobsRunner {
         // get job start timestamp
         $start_timestamp = microtime(true);
 
+        $this->logger->notice("Starting job ".$job['name']."(".$job['id'].")");
+
         $name = $job['name'];
 
         $id = $job['id'];
@@ -429,9 +441,6 @@ class JobsRunner {
         $parameters = $job['parameters'];
 
         $task = $job['task'];
-
-// replace double backslashes from classname (if any!)
-        $class = str_replace('\\\\', '\\', $parameters["class"]);
 
         $task_class = $job['class'];
 
@@ -449,13 +458,23 @@ class JobsRunner {
 
             $result = $thetask->start();
         
-        } catch (Exception $e) {
+        } catch (TaskException $te) {
+
+            $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with error");
         
-            return array($pid, $name, false, $start_timestamp, null, $e->getMessage(), $id);
+            return array($pid, $name, false, $start_timestamp, $te->getEndTimestamp(), $te->getMessage(), $id, $te->getWorklogId());
+        
+        } catch (Exception $e) {
+
+            $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with error");
+        
+            return array($pid, $name, false, $start_timestamp, null, $e->getMessage(), $id, null);
         
         }
 
-        return array($pid, $name, $result["success"], $start_timestamp, $result["timestamp"], $result["result"], $id);
+        $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with ".($result["success"] ? "success" : "failure"));
+
+        return array($pid, $name, $result["success"], $start_timestamp, $result["timestamp"], $result["result"], $id, $result["worklogid"]);
 
     }
 
@@ -472,6 +491,8 @@ class JobsRunner {
 
         // get job start timestamp
         $start_timestamp = microtime(true);
+
+        $this->logger->notice("Starting job ".$job['name']."(".$job['id'].")");
 
         $name = $job['name'];
 
@@ -503,7 +524,8 @@ class JobsRunner {
                 $start_timestamp,
                 microtime(true),
                 'No IPC communication, exiting - '.socket_strerror(socket_last_error()),
-                $id
+                $id,
+                null
             ));
 
             return array(
@@ -531,7 +553,8 @@ class JobsRunner {
                 $start_timestamp,
                 microtime(true),
                 'Could not fok job',
-                $id
+                $id,
+                null
             ));
 
         } elseif ( $pid ) {
@@ -551,30 +574,35 @@ class JobsRunner {
                 $result = $thetask->start();
 
                 $return = serialize(array(
-                    "success"   =>  $result["success"],
-                    "result"    =>  $result["result"],
-                    "timestamp" =>  $result["timestamp"]
+                    "success"   => $result["success"],
+                    "result"    => $result["result"],
+                    "timestamp" => $result["timestamp"],
+                    "worklogid" => $result["worklogid"]
                 ));
+
+                $exit = 0;
+
+            } catch (TaskException $te) {
+
+                $return = serialize(Array(
+                    "success"   => false,
+                    "result"    => $te->getMessage(),
+                    "timestamp" => $te->getEndTimestamp(),
+                    "worklogid" => $te->getWorklogId()
+                ));
+
+                $exit = 1;
 
             } catch (Exception $e) {
 
                 $return = serialize(Array(
-                    "success"   =>  false,
-                    "result"    =>  $e->getMessage(),
-                    "timestamp" =>  microtime(true)
+                    "success"   => false,
+                    "result"    => $e->getMessage(),
+                    "timestamp" => microtime(true),
+                    "worklogid" => null
                 ));
                 
-                if ( socket_write($writer, $return, strlen($return)) === false ) {
-
-                    $this->logger->error("socket_write() failed ", array(
-                        "ERROR" => socket_strerror(socket_last_error($writer))
-                    ));
-
-                }
-
-                socket_close($writer);
-                
-                exit(1);
+                $exit = 1;
 
             }
 
@@ -588,7 +616,7 @@ class JobsRunner {
 
             socket_close($writer);
 
-            exit(0);
+            exit($exit);
 
         }
 

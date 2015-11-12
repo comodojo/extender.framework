@@ -101,6 +101,7 @@ class Econtrol {
             'version'     => Version::getVersion()
         ));
 
+        // add verbose option
         $this->parser->addOption(
             'verbose',
             array(
@@ -111,11 +112,12 @@ class Econtrol {
             )
         );
 
+        // add debug option
         $this->parser->addOption(
-            'moreverbose',
+            'debug',
             array(
                 'short_name'  => '-V',
-                'long_name'   => '--moreverbose',
+                'long_name'   => '--debug',
                 'description' => 'turn on debug output',
                 'action'      => 'StoreTrue'
             )
@@ -135,7 +137,7 @@ class Econtrol {
 
             } else if ( array_key_exists('v', getopt("v")) ) {
 
-                $verbose = 'INFO';
+                $verbose = 'NOTICE';
 
                 echo $this->color->convert("\n%y(> Verbose mode on <)%n\n");
 
@@ -173,18 +175,33 @@ class Econtrol {
 
     }
 
+    /**
+     * Access the taskstable
+     *
+     * @var \comodojo\Extender\TasksTable
+     */
     final public function tasks() {
 
         return $this->tasks;
 
     }
 
+    /**
+     * Access the commands' controller
+     *
+     * @var \Comodojo\Extender\Shell\Controller
+     */
     final public function controller() {
 
         return $this->controller;
         
     }
 
+    /**
+     * Access the logger
+     *
+     * @return \Monolog\Logger;
+     */
     final public function logger() {
 
         return $this->logger;

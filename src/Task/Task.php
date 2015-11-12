@@ -240,7 +240,7 @@ abstract class Task {
         }
         catch (Exception $e) {
 
-            throw new TaskException($e->getMessage(), $e->getCode());
+            throw new TaskException($e->getMessage(), $e->getCode(), $e, $this->worklog_id);
             
         }
 

@@ -38,13 +38,13 @@ class ExtenderLogger extends LogWrapper {
      *
      * @return \Monolog\Logger
      */
-    public static function create($verbose = false) {
+    public static function create($verbose = false, $debug = false) {
 
         $enabled = defined('EXTENDER_LOG_ENABLED') ? filter_var(EXTENDER_LOG_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
-        $name = defined('EXTENDER_LOG_NAME') ? EXTENDER_LOG_NAME : 'extender-default';
+        $name = defined('EXTENDER_LOG_NAME') ? EXTENDER_LOG_NAME : 'extender';
 
-        $level = empty($force_level) ? self::getLevel(defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'DEBUG') : self::getLevel($force_level);
+        $level = self::getLevel(defined('EXTENDER_LOG_LEVEL') ? EXTENDER_LOG_LEVEL : 'ERROR');
 
         $target = defined('EXTENDER_LOG_TARGET') ? EXTENDER_LOG_TARGET : null;
 
@@ -64,9 +64,13 @@ class ExtenderLogger extends LogWrapper {
 
         }
 
-        if ( $verbose ) {
+        if ( $debug ) {
 
-            $logger->pushHandler(new ConsoleHandler($level));
+            $logger->pushHandler(new ConsoleHandler(self::getLevel("DEBUG")));
+
+        } else if ( $verbose ) {
+
+            $logger->pushHandler(new ConsoleHandler(self::getLevel("NOTICE")));
 
         } else {
 

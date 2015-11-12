@@ -38,7 +38,7 @@ class EcontrolLogger extends LogWrapper {
      */
     public static function create($level = false) {
 
-        $logger = new Logger("econtrol-default");
+        $logger = new Logger("econtrol");
 
         if ( empty($level) ) {
 

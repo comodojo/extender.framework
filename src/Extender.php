@@ -68,6 +68,13 @@ class Extender {
     private $verbose_mode = false;
 
     /**
+     * Debug mode, if requested via command line arg -V
+     *
+     * @var bool
+     */
+    private $debug_mode = false;
+
+    /**
      * Summary mode, if requested via command line arg -s
      *
      * @var bool
@@ -191,7 +198,7 @@ class Extender {
 
         // get command line options (vsdh)
 
-        list($this->verbose_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
+        list($this->verbose_mode, $this->debug_mode, $this->summary_mode, $this->daemon_mode, $help_mode) = self::getCommandlineOptions();
 
         if ( $help_mode ) {
 
@@ -201,7 +208,7 @@ class Extender {
 
         }
 
-        $this->logger = ExtenderLogger::create($this->verbose_mode);
+        $this->logger = ExtenderLogger::create($this->verbose_mode, $this->debug_mode);
 
         // do checks
 
@@ -804,7 +811,9 @@ class Extender {
 
         echo "\n------------------";
 
-        echo "\n".$color->convert("%g -v %n").": verbose mode, extender will print debug information (use it with daemon mode for testing purpose only!)";
+        echo "\n".$color->convert("%g -v %n").": verbose mode";
+
+        echo "\n".$color->convert("%g -V %n").": debug mode";
 
         echo "\n".$color->convert("%g -s %n").": show summary of executed jobs (if any)";
 
@@ -818,10 +827,11 @@ class Extender {
 
     private static function getCommandlineOptions() {
 
-        $options = getopt("svdh");
+        $options = getopt("svdVh");
 
         return array(
             array_key_exists('v', $options) ? true : false,
+            array_key_exists('V', $options) ? true : false,
             array_key_exists('s', $options) ? true : false,
             array_key_exists('d', $options) ? true : false,
             array_key_exists('h', $options) ? true : false
@@ -841,6 +851,7 @@ class Extender {
         $tbl->setHeaders(array(
             'Pid',
             'Name',
+            'Log Id',
             'Success',
             'Result (truncated)',
             'Time elapsed'
@@ -858,11 +869,14 @@ class Extender {
 
             $result = strlen($result) >= 80 ? substr($result, 0, 80)."..." : $result;
 
-            $elapsed = $completed_process[2] ? ($completed_process[4] - $completed_process[3]) : "--";
+            $elapsed = empty($completed_process[4]) ? "--" : ($completed_process[4] - $completed_process[3]);
+
+            $worklog_id = $completed_process[7];
 
             $tbl->addRow(array(
                 $pid,
                 $name,
+                $worklog_id,
                 $success,
                 $result,
                 $elapsed
