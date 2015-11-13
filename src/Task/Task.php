@@ -142,6 +142,8 @@ abstract class Task {
 
         $this->jobid = is_numeric($jobid) ? $jobid : null;
 
+        $this->logger = $logger;
+
         // Setup database (worklog!)
 
         try {
