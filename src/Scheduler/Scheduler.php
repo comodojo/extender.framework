@@ -249,7 +249,7 @@ class Scheduler {
                     $dayofweek, $year, $parameters, $firstrun))
                 ->store();
 
-        } catch (DatabaseException $e) {
+        } catch (DatabaseException $de) {
             
             throw $de;
 
