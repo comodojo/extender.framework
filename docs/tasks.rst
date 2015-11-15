@@ -38,11 +38,11 @@ A simple *HelloWorld* task could be defined as::
 Registering a task
 ******************
 
-Once added, a task should be registered into extender using the `$extender->addTask()` method **before** the `$extender->extend()` or `$extender->process()`.
+Once added, a task should be registered into extender using the `$extender->tasks()add()` method.
 
 The syntax of this method is::
 
-    $extender->addTask([name], [class], [description])
+    $extender->tasks()->add([name], [class], [description])
 
 Where:
 
@@ -56,7 +56,7 @@ Where:
 
 So, the syntax to call our `HelloWorldTask` will be something like::
 
-    $extender->addTask("helloworld", "\\Comodojo\\Extender\\Task\\HelloWorldTask", "Greetings from extender");
+    $extender->tasks()->add("helloworld", "\\Comodojo\\Extender\\Task\\HelloWorldTask", "Greetings from extender");
 
 .. note:: The `extender.project`_ has a specific configuration file to register tasks called *extender-tasks-config.php*.
 
@@ -112,7 +112,7 @@ That's all, our task is ready to be executed::
     +-----------------------------+---------------------------------------------+
     | Name                        | Description                                 |
     +-----------------------------+---------------------------------------------+
-    | HelloWord                   | Greetings from extender                     |
+    | HelloWorld                  | Greetings from extender                     |
     +-----------------------------+---------------------------------------------+
     
 

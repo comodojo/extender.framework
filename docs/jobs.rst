@@ -16,10 +16,11 @@ Job's format
 
 A job is technically composed by following values:
 
-    [expression] [name] [task] [description] [:parameters]
+    [name] [expression] [task] [description] [:parameters]
     
 Where:
 
+- *name* is the job name
 - *expression* is a cron-compatible expression composed by::
 
     *    *    *    *    *    *
@@ -32,7 +33,6 @@ Where:
     |    +-------------------- hour (0 - 23)
     +------------------------- min (0 - 59)
 
-- *name* is the job name
 - *descritpion* is a brief description of the job
 - *parameters* are params provided to related task to customize its behaviour
 
@@ -46,17 +46,21 @@ Add and remove a job
 
 To add a job::
 
-    ./econtrol.php add "10 * * * * *" HelloWorldJob HelloWorld "Hourly greetings" -e
+    ./econtrol.php [options] jobs [options] add [name] [expression] [task] [description] [parameters]
+
+For example::
+
+    ./econtrol.php jobs add HelloWorldJob "10 * * * * *" HelloWorld "Hourly greetings" -e
     
 This will add a hourly (h:10) job and will enable it (-e option).
 
 Optional parameters can be addedd (if job know how to handle it) using `key=value` format (comma separated)::
 
-    ./econtrol.php add "15 * * * * *" HelloWorldJob2 HelloWorld "Hourly greetings (w params)" "to=Slartibartfast,where=Magrathea"
+    ./econtrol.php jobs add HelloWorldJob2 "15 * * * * *" HelloWorld "Hourly greetings (w params)" "to=Slartibartfast,where=Magrathea"
     
 To delete a job:
 
-    ./econtrol.php del HelloWorld
+    ./econtrol.php jobs remove HelloWorld
     
 List jobs
 """""""""
@@ -122,19 +126,19 @@ Enable or disable a job
 
 To enable a job::
 
-    ./econtrol.php enable HelloWorldJob
+    ./econtrol.php jobs enable HelloWorldJob
 
 To disable it::
     
-    ./econtrol.php disable HelloWorldJob
+    ./econtrol.php jobs disable HelloWorldJob
     
 Import and export jobs
 """"""""""""""""""""""
 
 Jobs can be exported and imported in a convenient json format with::
 
-    ./econtrol.php export my-job-list.json
+    ./econtrol.php configuration backup my-job-list.json
 
-    ./econtrol.php import my-job-list.json
+    ./econtrol.php configuration restore my-job-list.json
     
 The `import` command has a [-c] option to clean jobs table before importing from file.

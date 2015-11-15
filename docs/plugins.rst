@@ -24,7 +24,7 @@ This short piece of code:
 
 To enable this plugin, just hook it at *extender* event (see next section for more information about events)::
 
-	$extender->addHook("extender", "\My\Plugins\TestPlugin", "OnExtenderReady");
+	$extender->events()->add("extender", "\My\Plugins\TestPlugin", "OnExtenderReady");
 
 How extender emits events 
 *************************

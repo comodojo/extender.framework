@@ -20,7 +20,9 @@ It does not accept any argument in input, but has some options that modify scrip
 
 1. `-h` - print help and exit
 
-2. `-v` - enable verbose mode (log to standard output), useful for debugging
+2. `-v` - enable verbose mode
+
+3. `-V` - enable debug mode
 
 3. `-s` - show a brief summary of executed jobs
 
@@ -48,35 +50,23 @@ When launched, econtrol shows something like::
     \___/ /_/|_|  \__/  \___/ /_/ /_/ \__,_/  \___/ /_/              
     --------------------------------------------------------         
     
-    
     Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler
-    in PHP
-    
-    
+
+
     Usage:
       ./econtrol.php [options]
       ./econtrol.php [options] <command> [options] [args]
-    
+
     Options:
+      -v, --verbose  turn on verbose output
+      -V, --debug    turn on debug output
       -h, --help     show this help message and exit
-      -v, --version  show the program version and exit
-    
+      --version      show the program version and exit
+
     Commands:
-      check     Perform multiple checks on system configuration
-      install   Perform first installation task (aliases: inst, in)
-      tasks     List available tasks (aliases: task, tk)
-      execute   Execute a tasks without invoking extender (aliases: exe, exec)
-      jobs      List scheduled jobs (alias: job)
-      add       Add a job to scheduler
-      del       Delete a job
-      enable    Enable a job (alias: ena)
-      disable   Disable a job (alias: dis)
-      worklogs  Display worklogs table (aliases: wrks, wkls)
-      worklog   Display detailed information about a worklog (aliases: wrk,
-                wkl)
-      status    Get extender status (if in daemon mode) (alias: st)
-      pause     Pause extender (if running and in daemon mode) (alias: pau)
-      resume    Resume extender (if paused and in daemon mode) (alias: st)
-      export    Export whole job list to file (alias: exp)
-      import    Import job list from file (alias: imp)
-      
+      configuration  Backup and restore configuration (aliases: conf, config)
+      execute        Execute a tasks (aliases: exe, exec)
+      jobs           Manage jobs (alias: job)
+      logs           Show logs (alias: log)
+      system         System actions (alias: sys)
+      tasks          Show tasks (alias: task)

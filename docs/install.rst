@@ -11,7 +11,7 @@ Comodojo extender could be installed via `composer`_, using dedicated `extender.
 Requirements
 ************
 
-To work properly, extender requires a cli-enabled PHP installation >=5.3.0 and a database; by default, extender auto-create a new SQLite3 database, but this behaviour can be changed easly.
+To work properly, extender requires a cli-enabled PHP installation >=5.3.9 and a database; by default, extender auto-create a new SQLite3 database, but this behaviour can be changed easly.
 
 Basic installation
 ******************
@@ -27,7 +27,7 @@ Database setup
 
 Extender relies on `comodojo/database` library for database handling. Before running extender for the first time, you need to create tables for jobs definition and worklog archive.
 
-The `econtrol.php install` command does all the job, but first you need to define database type in `extender-config.php` configuration file. At the time of writing, extender is reported to work with SQLite and MySQL, but may work with others databases supported by `comodojo/database` lib.
+The `econtrol.php system install` command does all the job, but first you need to define database type in `extender-config.php` configuration file. At the time of writing, extender is reported to work with SQLite and MySQL, but may work with others databases supported by `comodojo/database` lib.
 
 Out of the bundle, framework will create a new SQLite database and required tables; this is the default comfiguration::
 
@@ -49,7 +49,7 @@ Out of the bundle, framework will create a new SQLite database and required tabl
 
 	define("EXTENDER_DATABASE_TABLE_WORKLOGS", "worklogs");
 
-Using MySQL is strongly suggested if you plan to run more than 100 tasks @ day (worklog table will contain more than 30000 rows after a month).
+Using MySQL is strongly suggested if you plan to run more than 100 tasks @ day (worklog table will contain more than 3000 rows after a month).
 
 In any case, a cleanup task that delete old worklogs could be a good choise (see [example tasks](#example-tasks) at the end of this document for a working example).
 
@@ -58,15 +58,15 @@ Finalize installation
 
 After composer finishes its work, econtrol should be invoked to to finalize installation::
 
-    ./econtrol.php install
+    ./econtrol.php system install
     
 This command will create database tables as in configuration file. It is also possible to check configuration/environment using::
 
-    ./econtrol.php check
+    ./econtrol.php system check
 
 Extender is now ready to operate::
 
-    $ ./econtrol.php check
+    $ ./econtrol.php system check
 
     Extender checks:
     ----------------
@@ -79,7 +79,7 @@ Extender is now ready to operate::
     Extender parameters:
     --------------------
     
-    Framework path: /var/extender/configs/../
+    Framework path: /var/extender/
     Multiprocess enabled: 1
     Idle time (daemon mode): 1
     Max result bytes per task: 2048

@@ -11,7 +11,7 @@ It supports multiprocessing via `PHP Process Control extensions`_ and is designe
 
 Extender is structured on top of following main concepts:
 
-- A task is a self-contained PHP script that does some work and returns a brief string as result. A task should extend the `Task` class in `\Comodojo\Extender\Task` namespace.
+- A task is a self-contained PHP script that does some work and returns a brief string as result. A task should extend the `\Comodojo\Extender\Task` class.
 
 - A job is a scheduled activity that refers to one task and may provide parameters to it.
 
