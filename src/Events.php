@@ -309,7 +309,7 @@ class Events {
                 
                 $method = empty($event["data"]["method"]) ? null : $event["data"]["method"];
 
-                $table->add($event["data"]["event"], $event["data"]["callback"], $method);
+                $table->add($event["data"]["event"], $event["data"]["class"], $method);
 
             }
 
