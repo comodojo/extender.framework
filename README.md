@@ -15,11 +15,11 @@ First, install [composer](https://getcomposer.org/). Then:
 
 - install extender from [project package](https://github.com/comodojo/extender.project):
 
-        `` composer create-project comodojo/extender.project extender ``
+        composer create-project comodojo/extender.project extender
 
 - install extender as a standalone library:
 
-        `` composer require comodojo/extender.framework ``
+        composer require comodojo/extender.framework
 
 ## Documentation
 

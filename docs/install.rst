@@ -6,7 +6,7 @@ Installing extender
 .. _extender.project: https://github.com/comodojo/extender.project
 .. _composer: https://getcomposer.org/
 
-Comodojo extender could be installed via `composer`_, using dedicated `extender.project`_ package.
+Comodojo extender could be installed via `composer`_, directly using `extender.project`_ package or as a standalone library.
 
 Requirements
 ************
@@ -16,11 +16,19 @@ To work properly, extender requires a cli-enabled PHP installation >=5.3.9 and a
 Basic installation
 ******************
 
-First install `composer`_, then create a new extender/project using this command::
+First install `composer`_, then:
 
-	php composer.phar create-project comodojo/extender.project extender
+- install extender from `extender.project`_ package (this will install a new instance of extender and required dependencies in "extender" folder):
 
-This will install a new instance of extender and required dependencies in "extender" folder. 
+.. code:: bash
+
+    composer create-project comodojo/extender.project extender
+
+- install extender as a standalone library:
+
+.. code:: bash
+
+    composer require comodojo/extender.framework
 
 Database setup
 **************
@@ -59,7 +67,7 @@ Finalize installation
 After composer finishes its work, econtrol should be invoked to to finalize installation::
 
     ./econtrol.php system install
-    
+
 This command will create database tables as in configuration file. It is also possible to check configuration/environment using::
 
     ./econtrol.php system check
@@ -70,15 +78,15 @@ Extender is now ready to operate::
 
     Extender checks:
     ----------------
-    
+
     Extender minimum parameters configured: PASSED
     Multiprocess support available: YES
     Daemon support (signaling): YES
     Extender database available and configured: YES
-    
+
     Extender parameters:
     --------------------
-    
+
     Framework path: /var/extender/
     Multiprocess enabled: 1
     Idle time (daemon mode): 1
@@ -87,4 +95,3 @@ Extender is now ready to operate::
     Max child runtime: 600
     Parent niceness: default
     Childs niceness: default
-
