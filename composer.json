@@ -1,6 +1,6 @@
 {
     "name": "comodojo/extender.framework",
-    "description": "Database driven, multiprocess, (pseudo) cron tasks scheduler in PHP",
+    "description": "Database driven, multiprocess, (pseudo) cron tasks scheduler",
     "license": "GPL-3.0+",
     "keywords": [
         "comodojo",
@@ -8,7 +8,9 @@
         "framework",
         "scheduler",
         "cron",
-        "multiprocess"
+        "multiprocess",
+        "task",
+        "cronjobs"
     ],
     "homepage": "https://extender.comodojo.org",
      "support": {

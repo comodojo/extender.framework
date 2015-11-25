@@ -3,9 +3,9 @@
 class ExtenderTest extends \PHPUnit_Framework_TestCase {
 
 	protected function setUp() {
-        
+
         $this->extender = new \Comodojo\Extender\Extender();
-    
+
     }
 
     protected function tearDown() {
@@ -72,7 +72,7 @@ class ExtenderTest extends \PHPUnit_Framework_TestCase {
 
     	$result = $this->extender->getVersion();
 
-    	$this->assertEquals('1.0.0-beta', $result);
+    	$this->assertStringStartsWith('1.', $result);
 
     	// components
 
@@ -117,5 +117,5 @@ class ExtenderTest extends \PHPUnit_Framework_TestCase {
     	$this->assertNull($result);
 
     }
-    
+
 }
