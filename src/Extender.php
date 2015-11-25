@@ -20,7 +20,7 @@ use \Exception;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -86,7 +86,7 @@ class Extender {
      *
      * @var bool
      */
-    private $daemon_mode = false;   
+    private $daemon_mode = false;
 
     /**
      * Timestamp, relative, of current extend() cycle
@@ -154,7 +154,7 @@ class Extender {
     private $tasks = null;
 
     // checks and locks are static!
-    
+
     // local archives
 
     /**
@@ -163,7 +163,7 @@ class Extender {
      * @var int
      */
     private $failed_processes = 0;
-    
+
     /**
      * Completed processes
      *
@@ -275,7 +275,7 @@ class Extender {
         Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
 
         Queue::dump(0, 0);
-        
+
         // we are ready to go!
 
     }
@@ -379,9 +379,9 @@ class Extender {
      * @return  int
      */
     final public function getCompletedProcesses() {
-        
+
         return $this->completed_processes;
-        
+
     }
 
     /**
@@ -390,20 +390,20 @@ class Extender {
      * @return int
      */
     final public function getFailedProcesses() {
-        
+
         return $this->failed_processes;
-        
+
     }
-    
+
     /**
      * Get current version
      *
      * @return  string
      */
     final public function getVersion() {
-        
+
         return Version::getVersion();
-        
+
     }
 
     /**
@@ -449,7 +449,7 @@ class Extender {
         return $this->runner;
 
     }
-    
+
     /**
      * Get the tasks' table
      *
@@ -467,173 +467,23 @@ class Extender {
      */
     public function extend() {
 
-        // fire extender ready event
+        if ( $this->getDaemonMode() ) {
 
-        $this->events->fire("extender", "VOID", $this);
+        $this->logger->notice("Executing extender in daemon mode");
 
-        // dispatch signals (if multithread active)
+        while (true) {
 
-        if ( $this->getMultithreadMode() ) pcntl_signal_dispatch();
+            $this->cycle();
 
-        // if extender is paused (SIGINT), skip to extend
-
-        if ( $this->paused ) return;
-
-        // fix relative timestamp
-
-        $this->timestamp = microtime(true);
-
-        // fire tasktable event
-
-        $this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
-
-        // get the next planned activity interval 
-
-        $plans = Planner::get();
-
-        if ( !is_null($plans) AND $this->timestamp < $plans ) {
-
-            // nothing to do right now, still waiting if in daemon mode
-
-            $this->logger->info("Next planned job: ".date('c', $plans));
-
-            $this->logger->notice("Extender completed\n");
-
-            if ( $this->getDaemonMode() === false ) {
-
-                $this->shutdown(true);
-
-                self::end(0);
-
-            }
-
-            return;
+            sleep(EXTENDER_IDLE_TIME);
 
         }
 
-        // if no plan is retrieved, try to retrieve it from scheduler
+        } else {
 
-        try {
+            $this->logger->notice("Executing extender in single mode");
 
-            // get schedules and dispatch schedule event
-
-            list($schedules, $planned) = Scheduler::getSchedules($this->logger, $this->timestamp);
-
-            // write next planned activity interval
-
-            if ( !is_null($planned) AND $planned != 0 ) Planner::set($planned);
-
-            $scheduled = new Schedule();
-        
-            $scheduled->setSchedules($schedules);
-
-            // expose the current shcedule via events
-
-            $scheduled = $this->events->fire("extender.schedule", "SCHEDULE", $scheduled);
-
-            // if no jobs in queue, exit gracefully
-
-            if ( $scheduled->howMany() == 0 ) {
-
-                $this->logger->info("No jobs to process right now, exiting");
-
-                $this->logger->notice("Extender completed\n");
-
-                if ( $this->getDaemonMode() === false ) {
-
-                    $this->shutdown(true);
-
-                    self::end(0);
-
-                }
-
-                return;
-
-            }
-
-            // compose jobs
-
-            foreach ( $scheduled->getSchedules() as $schedule ) {
-
-                if ( $this->tasks->isRegistered($schedule['task']) ) {
-
-                    $job = new Job();
-
-                    $job->setName($schedule['name'])
-                        ->setId($schedule['id'])
-                        ->setParameters(unserialize($schedule['params']))
-                        ->setTask($schedule['task'])
-                        ->setClass($this->tasks->getClass($schedule['task']));
-
-                    $this->runner->addJob($job);
-
-                } else {
-
-                    $this->logger->warning("Skipping job due to unknown task", array(
-                        "ID"     => $schedule['id'],
-                        "NAME"   => $schedule['name'],
-                        "TASK"   => $schedule['task']
-                    ));
-
-                }
-
-            }
-
-            // lauch runner
-
-            $result = $this->runner->run();
-
-            // free runner for next cycle
-
-            $this->runner->free();
-
-            // compose results
-
-            $results = new JobsResult($result);
-
-            // update schedules
-
-            Scheduler::updateSchedules($this->logger, $result);
-
-            // increment counters
-
-            foreach ( $result as $r ) {
-                
-                if ( $r[2] ) $this->completed_processes++;
-
-                else $this->failed_processes++;
-
-            }
-
-        } catch (Exception $e) {
-
-            $this->logger->error($e->getMessage());
-
-            if ( $this->getDaemonMode() === false ) {
-
-                self::end(1);
-
-            }
-            
-        }
-
-        // fire result event
-
-        $this->events->fire("extender.result", "VOID", $results);
-
-        $this->logger->notice("Extender completed\n");
-
-        // show summary (if -s)
-
-        if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
-
-        Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
-
-        if ( $this->getDaemonMode() === false ) {
-
-            $this->shutdown(true);
-
-            self::end(0);
+            $this->cycle();
 
         }
 
@@ -686,7 +536,7 @@ class Extender {
         // register pluggable signals
 
         foreach ( $pluggable_signals as $signal ) {
-            
+
             pcntl_signal($signal, array($this, 'genericSignalHandler'));
 
         }
@@ -733,7 +583,7 @@ class Extender {
 
     /**
      * The sigTerm handler.
-     * 
+     *
      * It kills everything and then exit with status 1
      */
     final public function sigTermHandler() {
@@ -752,7 +602,7 @@ class Extender {
 
     /**
      * The sigStop handler.
-     * 
+     *
      * It just pauses extender execution
      */
     final public function sigStopHandler() {
@@ -769,7 +619,7 @@ class Extender {
 
     /**
      * The sigCont handler.
-     * 
+     *
      * It just resume extender execution
      */
     final public function sigContHandler() {
@@ -786,7 +636,7 @@ class Extender {
 
     /**
      * The generig signal handler.
-     * 
+     *
      * It can be used to handle custom signals
      */
     final public function genericSignalHandler($signal) {
@@ -798,6 +648,180 @@ class Extender {
             $this->events->fire("extender.signal.".$signal, "VOID", $this);
 
         }
+
+    }
+
+    private function cycle() {
+
+      // fire extender ready event
+
+      $this->events->fire("extender", "VOID", $this);
+
+      // dispatch signals (if multithread active)
+
+      if ( $this->getMultithreadMode() ) pcntl_signal_dispatch();
+
+      // if extender is paused (SIGINT), skip to extend
+
+      if ( $this->paused ) return;
+
+      // fix relative timestamp
+
+      $this->timestamp = microtime(true);
+
+      // fire tasktable event
+
+      $this->tasks = $this->events->fire("extender.tasks", "TASKSTABLE", $this->tasks);
+
+      // get the next planned activity interval
+
+      $plans = Planner::get();
+
+      if ( !is_null($plans) AND $this->timestamp < $plans ) {
+
+          // nothing to do right now, still waiting if in daemon mode
+
+          $this->logger->info("Next planned job: ".date('c', $plans));
+
+          $this->logger->notice("Extender completed\n");
+
+          if ( $this->getDaemonMode() === false ) {
+
+              $this->shutdown(true);
+
+              self::end(0);
+
+          }
+
+          return;
+
+      }
+
+      // if no plan is retrieved, try to retrieve it from scheduler
+
+      try {
+
+          // get schedules and dispatch schedule event
+
+          list($schedules, $planned) = Scheduler::getSchedules($this->logger, $this->timestamp);
+
+          // write next planned activity interval
+
+          if ( !is_null($planned) AND $planned != 0 ) Planner::set($planned);
+
+          $scheduled = new Schedule();
+
+          $scheduled->setSchedules($schedules);
+
+          // expose the current shcedule via events
+
+          $scheduled = $this->events->fire("extender.schedule", "SCHEDULE", $scheduled);
+
+          // if no jobs in queue, exit gracefully
+
+          if ( $scheduled->howMany() == 0 ) {
+
+              $this->logger->info("No jobs to process right now, exiting");
+
+              $this->logger->notice("Extender completed\n");
+
+              if ( $this->getDaemonMode() === false ) {
+
+                  $this->shutdown(true);
+
+                  self::end(0);
+
+              }
+
+              return;
+
+          }
+
+          // compose jobs
+
+          foreach ( $scheduled->getSchedules() as $schedule ) {
+
+              if ( $this->tasks->isRegistered($schedule['task']) ) {
+
+                  $job = new Job();
+
+                  $job->setName($schedule['name'])
+                      ->setId($schedule['id'])
+                      ->setParameters(unserialize($schedule['params']))
+                      ->setTask($schedule['task'])
+                      ->setClass($this->tasks->getClass($schedule['task']));
+
+                  $this->runner->addJob($job);
+
+              } else {
+
+                  $this->logger->warning("Skipping job due to unknown task", array(
+                      "ID"     => $schedule['id'],
+                      "NAME"   => $schedule['name'],
+                      "TASK"   => $schedule['task']
+                  ));
+
+              }
+
+          }
+
+          // lauch runner
+
+          $result = $this->runner->run();
+
+          // free runner for next cycle
+
+          $this->runner->free();
+
+          // compose results
+
+          $results = new JobsResult($result);
+
+          // update schedules
+
+          Scheduler::updateSchedules($this->logger, $result);
+
+          // increment counters
+
+          foreach ( $result as $r ) {
+
+              if ( $r[2] ) $this->completed_processes++;
+
+              else $this->failed_processes++;
+
+          }
+
+      } catch (Exception $e) {
+
+          $this->logger->error($e->getMessage());
+
+          if ( $this->getDaemonMode() === false ) {
+
+              self::end(1);
+
+          }
+
+      }
+
+      // fire result event
+
+      $this->events->fire("extender.result", "VOID", $results);
+
+      $this->logger->notice("Extender completed\n");
+
+      // show summary (if -s)
+
+      if ( $this->summary_mode ) self::showSummary($this->timestamp, $result, $this->color);
+
+      Status::dump($this->timestamp_absolute, $this->parent_pid, $this->completed_processes, $this->failed_processes, $this->paused);
+
+      if ( $this->getDaemonMode() === false ) {
+
+          $this->shutdown(true);
+
+          self::end(0);
+
+      }
 
     }
 
@@ -856,7 +880,7 @@ class Extender {
             'Result (truncated)',
             'Time elapsed'
         ));
-        
+
         foreach ( $completed_processes as $key => $completed_process ) {
 
             $pid = $completed_process[0];
@@ -885,9 +909,9 @@ class Extender {
         }
 
         $footer_string = "\n\nTotal script runtime: ".(microtime(true) - $timestamp)." seconds\r\n\n";
-        
+
         print $header_string.$tbl->getTable().$footer_string;
-        
+
     }
 
     /**
@@ -898,7 +922,7 @@ class Extender {
         if ( defined('COMODOJO_PHPUNIT_TEST') && @constant('COMODOJO_PHPUNIT_TEST') === true ) {
 
             if ( $returnCode === 1 ) throw new Exception("PHPUnit Test Exception");
-            
+
             else return $returnCode;
 
         } else {
