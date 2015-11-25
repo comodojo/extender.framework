@@ -5,9 +5,21 @@ Comodojo extender
 
 Daemonizable, database driven, multiprocess, (pseudo) cron task scheduler in PHP.
 
-![alt tag](https://extender.comodojo.org/wp-content/uploads/sites/4/2014/10/Schermata-2014-10-08-alle-19.12.02.png)
+It supports multiprocessing via [PHP Process Control extensions](http://php.net/manual/en/refs.fileprocess.process.php) and is designed to work with different databases.
 
 For more information, visit [extender.comodojo.org](https://extender.comodojo.org).
+
+## Installation
+
+First, install [composer](https://getcomposer.org/). Then:
+
+- install extender from [project package](https://github.com/comodojo/extender.project):
+
+        `` composer create-project comodojo/extender.project extender ``
+
+- install extender as a standalone library:
+
+        `` composer require comodojo/extender.framework ``
 
 ## Documentation
 

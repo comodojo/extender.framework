@@ -83,7 +83,7 @@ This will produce something like::
 
 **Extensive** format::
 
-    ./econtrol.php jobs -e
+    ./econtrol.php jobs -x
     
 This will produce something like::
 

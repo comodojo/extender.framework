@@ -83,6 +83,7 @@ Extender is now ready to operate::
     Multiprocess enabled: 1
     Idle time (daemon mode): 1
     Max result bytes per task: 2048
+    Max childs: 0
     Max child runtime: 600
     Parent niceness: default
     Childs niceness: default

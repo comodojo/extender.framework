@@ -8,7 +8,7 @@
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -24,7 +24,7 @@
  */
 
 class Version {
-    
+
     /**
      * Extender brief description
      *
@@ -37,7 +37,7 @@ class Version {
      *
      * @var     string
      */
-    private static $version = "1.0.0-beta";
+    private static $version = "1.0.0";
 
     /**
      * Get extender framework description
@@ -84,7 +84,7 @@ class Version {
         $ascii .= "/  __/ _>  <  / /_  /  __/ / / / // /_/ / /  __/ / /             \r\n";
         $ascii .= "\___/ /_/|_|  \__/  \___/ /_/ /_/ \__,_/  \___/ /_/              \r\n";
         $ascii .= "--------------------------------------------------------         \r\n";
-        
+
         return $ascii;
 
     }

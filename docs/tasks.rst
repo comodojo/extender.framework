@@ -115,4 +115,16 @@ That's all, our task is ready to be executed::
     | HelloWorld                  | Greetings from extender                     |
     +-----------------------------+---------------------------------------------+
     
+Or, the extensive version::
 
+	$ ./econtrol.php tasks -x
+    
+    Available tasks:
+	---------------
+
+	+-------------+---------------------------------------+
+	| Name        | HelloWorldTask                        |
+	| Class       | Comodojo\Extender\Task\HelloWorldTask |
+	+-------------+---------------------------------------+
+	| Description | Greetings from extender               |
+	+-------------+---------------------------------------+
