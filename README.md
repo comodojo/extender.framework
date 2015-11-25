@@ -23,7 +23,7 @@ First, install [composer](https://getcomposer.org/). Then:
 
 ## Documentation
 
-- [Docs](http://docs.comodojo.org/extender/)
+- [Docs](https://docs.comodojo.org/projects/extenderframework/)
 - [API](https://api.comodojo.org/extender/)
 
 ## Contributing
