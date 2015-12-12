@@ -24,9 +24,6 @@ define("EXTENDER_LOG_TARGET", "extender.log");
 define("EXTENDER_LOG_LEVEL", "ERROR");
 define("EXTENDER_LOG_FOLDER", EXTENDER_REAL_PATH."logs/");
 define("EXTENDER_DATABASE_FOLDER", EXTENDER_REAL_PATH."database/");
-define("EXTENDER_TASK_FOLDER", EXTENDER_REAL_PATH."tasks/");
-define("EXTENDER_PLUGIN_FOLDER", EXTENDER_REAL_PATH."plugins/");
-define("EXTENDER_COMMAND_FOLDER", EXTENDER_REAL_PATH."commands/");
 define("EXTENDER_CACHE_FOLDER", EXTENDER_REAL_PATH."cache/");
 define("EXTENDER_DATABASE_MODEL", "SQLITE_PDO");
 define("EXTENDER_DATABASE_HOST", "localhost");
@@ -101,7 +98,7 @@ try {
     unset($db);
 
     throw new ShellException("Database error: ".$de->getMessage());
-    
+
 }
 
 unset($db);
