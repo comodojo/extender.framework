@@ -17,7 +17,7 @@ General properties
 
 EXTENDER_TIMEZONE
 """""""""""""""""
-Local timezone, to not rely on the system's timezone settings (optional if correctly configured in php.ini).::
+Local timezone (optional): set the date.timezone only if not correctly configured in php.ini.::
 
 	define("EXTENDER_TIMEZONE", "Europe/Rome");
 
@@ -25,59 +25,74 @@ Local timezone, to not rely on the system's timezone settings (optional if corre
 
 EXTENDER_REAL_PATH
 """"""""""""""""""
-
 Extender real path.::
 
 	define("EXTENDER_REAL_PATH", realpath(dirname(__FILE__))."/../");
 
+EXTENDER_TASKS_CONFIG
+"""""""""""""""""""""
+The tasks-config file (optional).::
+
+    define("EXTENDER_TASKS_CONFIG", EXTENDER_REAL_PATH."configs/extender-tasks.yaml");
+
+EXTENDER_COMMANDS_CONFIG
+""""""""""""""""""""""""
+The commands-config file (optional).::
+
+    define("EXTENDER_COMMANDS_CONFIG", EXTENDER_REAL_PATH."configs/extender-commands.yaml");
+
+EXTENDER_PLUGINS_CONFIG
+"""""""""""""""""""""""
+The plugins-config file (optional).::
+
+    define("EXTENDER_PLUGINS_CONFIG", EXTENDER_REAL_PATH."configs/extender-plugins.yaml");
+
+Performance properties
+**********************
+
 EXTENDER_MULTITHREAD_ENABLED
 """"""""""""""""""""""""""""
-Enable/disable multithread mode; this feaure REQUIRE `PHP Process Control extensions`_.::
+Enable/disable multithread mode (optional, default false); this feaure REQUIRE `PHP Process Control extensions`_.::
 
 	define("EXTENDER_MULTITHREAD_ENABLED", true);
 
 EXTENDER_IDLE_TIME
 """"""""""""""""""
-Idle time, in seconds; in other words, how long extender should be idle between each extend() cycle.::
+Idle time, in seconds (optional, default 1); in other words, how long extender should be idle between each extend() cycle.::
 
 	define("EXTENDER_IDLE_TIME", 1);
 
 EXTENDER_MAX_RESULT_BYTES
 """""""""""""""""""""""""
-Max bytes extender should read from completed child processes, if multithread is enabled.::
+Max bytes extender should read from completed child processes, if multithread is enabled (optional, default 2048).::
 
 	define("EXTENDER_MAX_RESULT_BYTES", 2048);
 
 EXTENDER_MAX_CHILDS
 """""""""""""""""""
-Max child process to fork, 0 to no limit.::
+Max child process to fork, 0 to no limit (optional, default 0).::
 
 	define("EXTENDER_MAX_CHILDS", 0);
 
 EXTENDER_MAX_CHILDS_RUNTIME
 """""""""""""""""""""""""""
-Child process max runtime, in seconds (default 10min).::
+Child process max runtime, in seconds (optional, default 10min).::
 
 	define("EXTENDER_MAX_CHILDS_RUNTIME", 600);
 
 EXTENDER_PARENT_NICENESS
 """"""""""""""""""""""""
-Parent process niceness (if in multithread mode).::
+Parent process niceness, if in multithread mode (optional, default 0).::
 
 	define("EXTENDER_PARENT_NICENESS", 0);
-
-.. note:: This parameter is not defined by default.
 
 .. note:: Values < 0 may require a privileged user.
 
 EXTENDER_CHILD_NICENESS
 """""""""""""""""""""""
-
-Child processes niceness (if in multithread mode).::
+Child processes niceness, if in multithread mode (optional, default 0).::
 
 	define("EXTENDER_CHILD_NICENESS", 0);
-
-.. note:: This parameter is not defined by default.
 
 .. note:: Values < 0 may require a privileged user.
 
@@ -86,19 +101,19 @@ Logging
 
 EXTENDER_LOG_ENABLED
 """"""""""""""""""""
-Enable/disable logger.::
+Enable/disable logger (optional, default false).::
 
 	define("EXTENDER_LOG_ENABLED", false);
 
 EXTENDER_LOG_NAME
 """""""""""""""""
-Logger name.::
+Logger name (optional, default 'extender').::
 
 	define("EXTENDER_LOG_NAME", "extender");
 
 EXTENDER_LOG_TARGET
 """""""""""""""""""
-Log target. If null, logger will log to standard output (alternative to -v option); if string, it will be the filename to log to.::
+Log target (optional, default null). If null, logger will log to standard output (alternative to -v option); if string, it will be the filename to log to.::
 
 	define("EXTENDER_LOG_TARGET", "extender.log");
 
@@ -106,10 +121,10 @@ Log target. If null, logger will log to standard output (alternative to -v optio
 
 EXTENDER_LOG_LEVEL
 """"""""""""""""""
-Log level, as in `psr-3`_.::
+Log level, as in `psr-3`_ (optional, default ERROR).::
 
 	define("EXTENDER_LOG_LEVEL", "ERROR");
-	
+
 Folders
 *******
 
@@ -124,24 +139,6 @@ EXTENDER_DATABASE_FOLDER
 Database folder (if sqlite3).::
 
 	define("EXTENDER_DATABASE_FOLDER", EXTENDER_REAL_PATH."database/");
-
-EXTENDER_TASK_FOLDER
-""""""""""""""""""""
-Tasks folder.::
-
-	define("EXTENDER_TASK_FOLDER", EXTENDER_REAL_PATH."tasks/");
-
-EXTENDER_PLUGIN_FOLDER
-""""""""""""""""""""""
-Plugins folder.::
-
-	define("EXTENDER_PLUGIN_FOLDER", EXTENDER_REAL_PATH."plugins/");
-
-EXTENDER_COMMAND_FOLDER
-"""""""""""""""""""""""
-Commands folder.::
-
-	define("EXTENDER_COMMAND_FOLDER", EXTENDER_REAL_PATH."commands/");
 
 EXTENDER_CACHE_FOLDER
 """""""""""""""""""""
@@ -158,6 +155,8 @@ Database model. Currently, extender is tested on MySQL and SQLite3 databases, bu
 
 	define("EXTENDER_DATABASE_MODEL", "SQLITE_PDO");
 
+
+.. note:: This parameter is not defined by default.
 .. note:: safe choices are MYSQLI, MYSQL_PDO or SQLITE_PDO (default)
 
 EXTENDER_DATABASE_HOST
@@ -215,23 +214,19 @@ Customizing framework
 
 EXTENDER_CUSTOM_DESCRIPTION
 """""""""""""""""""""""""""
-Custom description to show in command line.::
-	
-	define("EXTENDER_CUSTOM_DESCRIPTION", "My personalized version of extender");
+Custom description to show in command line (optional).::
 
-.. note:: This parameter is not defined by default.
+	define("EXTENDER_CUSTOM_DESCRIPTION", "My personalized version of extender");
 
 EXTENDER_CUSTOM_ASCII
 """""""""""""""""""""
-Custom fancy logo to show in command line.::
-	
-	define("EXTENDER_CUSTOM_ASCII", "assets/logo.ascii");
+Custom fancy logo to show in command line (optional).::
 
-.. note:: This parameter is not defined by default.
+	define("EXTENDER_CUSTOM_ASCII", "assets/logo.ascii");
 
 EXTENDER_CUSTOM_VERSION
 """""""""""""""""""""""
-Custom version to show in command line.::
+Custom version to show in command line (optional).::
 
 	define("EXTENDER_CUSTOM_VERSION", "1.2.3");
 
