@@ -11,7 +11,7 @@ use Comodojo\Database\EnhancedDatabase;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -27,7 +27,7 @@ use Comodojo\Database\EnhancedDatabase;
  */
 
 class Checks {
-    
+
     /**
      * Check for required configuration constants
      *
@@ -45,9 +45,8 @@ class Checks {
         if ( !defined("EXTENDER_DATABASE_PREFIX") ) return "Invalid database table prefix. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_PREFIX.";
         if ( !defined("EXTENDER_DATABASE_TABLE_JOBS") ) return "Invalid database jobs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_JOBS.";
         if ( !defined("EXTENDER_DATABASE_TABLE_WORKLOGS") ) return "Invalid database worklogs' table. \n\n Please check your extender configuration and define constant: EXTENDER_DATABASE_TABLE_WORKLOGS.";
-        if ( !defined("EXTENDER_TASK_FOLDER") ) return "Invalid tasks folder. \n\n Please check your extender configuration and define constant: EXTENDER_TASK_FOLDER.";
         if ( !defined("EXTENDER_CACHE_FOLDER") ) return "Invalid cache folder. \n\n Please check your extender configuration and define constant: EXTENDER_CACHE_FOLDER.";
-        
+
         return true;
 
     }

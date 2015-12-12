@@ -190,7 +190,11 @@ class Extender {
 
         // setup default timezone (in daemon mode, timezone warning may break extender)
 
-        date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
+        if ( empty(ini_get('date.timezone')) ) {
+
+            date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
+
+        }
 
         $this->timestamp_absolute = microtime(true);
 
@@ -246,7 +250,7 @@ class Extender {
 
         $this->max_result_bytes_in_multithread = defined('EXTENDER_MAX_RESULT_BYTES') ? filter_var(EXTENDER_MAX_RESULT_BYTES, FILTER_VALIDATE_INT) : 2048;
 
-        $this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 300;
+        $this->max_childs_runtime = defined('EXTENDER_MAX_CHILDS_RUNTIME') ? filter_var(EXTENDER_MAX_CHILDS_RUNTIME, FILTER_VALIDATE_INT) : 600;
 
         $this->multithread_mode = defined('EXTENDER_MULTITHREAD_ENABLED') ? filter_var(EXTENDER_MULTITHREAD_ENABLED, FILTER_VALIDATE_BOOLEAN) : false;
 
@@ -469,15 +473,22 @@ class Extender {
 
         if ( $this->getDaemonMode() ) {
 
-        $this->logger->notice("Executing extender in daemon mode");
+            $this->logger->notice("Executing extender in daemon mode");
 
-        while (true) {
+            $idle_time = defined("EXTENDER_IDLE_TIME") ? filter_var(EXTENDER_IDLE_TIME, FILTER_VALIDATE_INT, array(
+                'options' => array(
+                    'default' => 1,
+                    'min_range' => 1
+                )
+            )) : 1;
 
-            $this->cycle();
+            while (true) {
 
-            sleep(EXTENDER_IDLE_TIME);
+                $this->cycle();
 
-        }
+                sleep($idle_time);
+
+            }
 
         } else {
 
