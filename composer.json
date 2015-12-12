@@ -25,29 +25,23 @@
     ],
     "autoload": {
         "psr-4": {
-            "Comodojo\\Extender\\Command\\": "src/Command",
-            "Comodojo\\Extender\\Job\\": "src/Job",
-            "Comodojo\\Extender\\Runner\\": "src/Runner",
-            "Comodojo\\Extender\\Scheduler\\": "src/Scheduler",
-            "Comodojo\\Extender\\Shell\\": "src/Shell",
-            "Comodojo\\Extender\\Task\\": "src/Task",
             "Comodojo\\Extender\\": "src"
          }
     },
     "require": {
         "php": ">=5.3.9",
-        "pear/console_commandline": "dev-trunk",
+        "pear/console_commandline": "^1.2",
         "pear/pear_exception": "*",
         "pear/console_table": "1.2.*",
         "pear/console_color2": "dev-master",
-        "comodojo/database": "~1.0",
-        "mtdowling/cron-expression": "1.0.*",
-        "monolog/monolog": "~1.0",
+        "comodojo/database": "^1.0",
+        "mtdowling/cron-expression": "^1.0",
+        "monolog/monolog": "^1.0",
         "comodojo/exceptions": "@stable",
         "mustangostang/spyc": "0.5.*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.0",
-        "scrutinizer/ocular": "~1.1"
+        "phpunit/phpunit": "^5.0",
+        "scrutinizer/ocular": "^1.0"
     }
 }
