@@ -47,8 +47,8 @@ The plugins-config file (optional).::
 
     define("EXTENDER_PLUGINS_CONFIG", EXTENDER_REAL_PATH."configs/extender-plugins.yaml");
 
-Performance properties
-**********************
+Performance
+***********
 
 EXTENDER_MULTITHREAD_ENABLED
 """"""""""""""""""""""""""""
