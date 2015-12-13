@@ -190,7 +190,9 @@ class Extender {
 
         // setup default timezone (in daemon mode, timezone warning may break extender)
 
-        if ( empty(ini_get('date.timezone')) ) {
+        $default_timezone = ini_get('date.timezone');
+
+        if ( empty($default_timezone) ) {
 
             date_default_timezone_set(defined('EXTENDER_TIMEZONE') ? EXTENDER_TIMEZONE : 'Europe/Rome');
 
