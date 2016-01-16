@@ -95,6 +95,7 @@ So, the composer.json of *mybundle* package will be something like::
         "extra": {
             "extender-command-register": {
                 "helloworld": {
+                    "class": "My\\Command\\Helloworld",
                     "description": "Greetings from comodojo extender",
                     "aliases": ["hw"],
                     "options": {
