@@ -19,7 +19,7 @@ use \Spyc;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -42,7 +42,7 @@ class Controller {
      * @var array
      */
     private $command_classes = array();
-    
+
     /**
      * Current logger
      *
@@ -102,7 +102,7 @@ class Controller {
 
             return false;
 
-        } 
+        }
 
         $this->command_classes[$command] = $class;
 
@@ -116,7 +116,7 @@ class Controller {
         if ( array_key_exists('options', $parameters) && is_array($parameters['options']) ) {
 
             foreach ( $parameters['options'] as $option => $option_parameters ) {
-                
+
                 $command->addOption($option, $option_parameters);
 
             }
@@ -126,7 +126,7 @@ class Controller {
         if ( array_key_exists('arguments', $parameters) && is_array($parameters['arguments']) ) {
 
             foreach ( $parameters['arguments'] as $argument => $argument_parameters ) {
-                
+
                 $command->addArgument($argument, $argument_parameters);
 
             }
@@ -161,7 +161,7 @@ class Controller {
         }
 
         try {
-            
+
             $command = new $command_class();
 
             if ( ($command instanceof CommandInterface) === false ) throw new ShellException("Command ".$command_name." is not compatible with econtrol");
@@ -179,11 +179,11 @@ class Controller {
             $return = $command->execute();
 
         } catch (ShellException $se) {
-            
+
             throw $se;
 
         } catch (Exception $e) {
-            
+
             throw $e;
 
         }
@@ -196,12 +196,12 @@ class Controller {
 
         $controller = new Controller($parser, $logger);
 
-        if ( is_readable(EXTENDER_COMMANDS_CONFIG) ) {
+        if ( defined("EXTENDER_COMMANDS_CONFIG") && is_readable(EXTENDER_COMMANDS_CONFIG) ) {
 
             $commands = Spyc::YAMLLoad(EXTENDER_COMMANDS_CONFIG);
 
             foreach ($commands as $command => $parameters) {
-                
+
                 $controller->add($command, $parameters["data"]);
 
             }
