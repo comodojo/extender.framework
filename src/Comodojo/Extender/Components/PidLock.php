@@ -32,7 +32,19 @@ class PidLock {
      *
      * @var string
      */
-    protected $lockfile = "extender.pid";
+    private $lockfile = "extender.pid";
+    
+    private $pid;
+    
+    public function __construct($pid, $lockfile = null) {
+        
+        if ( $lockfile !== null ) $this->lockfile = $lockfile;
+        
+        if ( empty($pid) ) throw new Exception("Invalid pid reference");
+        
+        $this->pid = $pid;
+        
+    }
 
     /**
      * Register pid into lock file
@@ -41,9 +53,7 @@ class PidLock {
      *
      * @return  bool
      */
-    public function lock($pid) {
-
-        if ( empty($pid) ) throw new Exception("Invalid pid reference");
+    public function lock() {
 
         $lock = file_put_contents($this->lockfile, $pid);
 
