@@ -27,21 +27,23 @@ use \Comodojo\Extender\Base\Process;
 class SignalEvent extends AbstractEvent {
 
     private $signal;
-    
+
     public $process;
 
-    public function __construct($signal, Process $daemon) {
+    public function __construct($signal, Process $process) {
 
-        parent::__construct("extender.signal.$name");
+        parent::__construct("extender.signal.$signal");
+
+        $this->signal = $signal;
 
         $this->process = $process;
 
     }
-    
+
     public function getSignal() {
-        
+
         return $this->signal;
-        
+
     }
 
 }

@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Base;
 
 use \Comodojo\Extender\Components\Niceness;
+use \Comodojo\Dispatcher\Components\DataAccess;
 use \Comodojo\Extender\Events\SignalEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \League\Event\Emitter;
@@ -32,19 +33,7 @@ use \Exception;
 
 abstract class Process {
 
-    protected $pid;
-
-    protected $configuration;
-    
-    protected $logger;
-
-    protected $events;
-    
-    protected $running;
-    
-    protected $niceness;
-    
-    protected $timestamp;
+    use DataAccess;
 
     /**
      * @todo exit condition if not in command line
@@ -55,22 +44,23 @@ abstract class Process {
         Emitter $events,
         $niceness = null)
     {
-        
+
         // get current PID and timestamp
-        
+
         $this->pid = $this->getPid();
         $this->timestamp = microtime(true);
-        
+        $this->running = true;
+
         // init main components
 
         $this->configuration = $configuration;
-        
+
         $this->logger = $logger;
 
         $this->events = $events;
-        
+
         // adjust process niceness
-        
+
         $this->niceness = new Niceness($this->logger);
 
         $this->niceness->set($niceness);
@@ -78,14 +68,8 @@ abstract class Process {
         $this->registerSignals();
 
     }
-    
-    public function isRunning() {
-        
-        return $this->running;
-        
-    }
-    
-    abstract protected function shutdown();
+
+    abstract public function shutdown();
 
     /**
      * Register signals
@@ -107,7 +91,7 @@ abstract class Process {
 
         pcntl_signal(SIGTERM, array($this, 'sigTermHandler'));
 
-        pcntl_signal(SIGINT, array($this, 'sigTermHandler'));
+        pcntl_signal(SIGINT, array($this, 'sigIntHandler'));
 
         pcntl_signal(SIGTSTP, array($this, 'sigStopHandler'));
 
@@ -126,18 +110,37 @@ abstract class Process {
         register_shutdown_function(array($this, 'shutdown'));
 
     }
-    
+
     /**
      * The sigTerm handler.
      *
      * It kills everything and then exit with status 1
      */
-    protected function sigTermHandler($signal) {
+    public function sigIntHandler($signal) {
 
         if ( $this->pid == $this->getPid() ) {
 
-            $this->logger->info("Received TERM signal, shutting down daemon gracefully");
-            
+            $this->logger->info("Received TERM signal, shutting down process gracefully");
+
+            $this->events->emit( new SignalEvent($signal, $this) );
+
+            $this->end(0);
+
+        }
+
+    }
+
+    /**
+     * The sigTerm handler.
+     *
+     * It kills everything and then exit with status 1
+     */
+    public function sigTermHandler($signal) {
+
+        if ( $this->pid == $this->getPid() ) {
+
+            $this->logger->info("Received TERM signal, shutting down process");
+
             $this->events->emit( new SignalEvent($signal, $this) );
 
             $this->end(1);
@@ -151,12 +154,12 @@ abstract class Process {
      *
      * It just pauses extender execution
      */
-    protected function sigStopHandler() {
+    public function sigStopHandler($signal) {
 
         if ( $this->pid == $this->getPid() ) {
 
             $this->logger->info("Received STOP signal, pausing process");
-            
+
             $this->events->emit( new SignalEvent($signal, $this) );
 
             $this->running = false;
@@ -170,9 +173,9 @@ abstract class Process {
      *
      * It just resume extender execution
      */
-    protected function sigContHandler() {
+    public function sigContHandler($signal) {
 
-        if ( $this->parent_pid == $this->getPid() ) {
+        if ( $this->pid == $this->getPid() ) {
 
             $this->logger->info("Received CONT signal, resuming process");
 
@@ -183,15 +186,15 @@ abstract class Process {
         }
 
     }
-    
+
     /**
      * The generig signal handler.
      *
      * It can be used to handle custom signals
      */
-    protected function genericSignalHandler($signal) {
+    public function genericSignalHandler($signal) {
 
-        if ( $this->parent_pid == $this->getPid() ) {
+        if ( $this->pid == $this->getPid() ) {
 
             $this->logger->info("Received $signal signal, firing associated event(s)");
 
@@ -221,9 +224,9 @@ abstract class Process {
     }
 
     private function getPid() {
-        
+
         return posix_getpid();
-        
+
     }
-    
+
 }

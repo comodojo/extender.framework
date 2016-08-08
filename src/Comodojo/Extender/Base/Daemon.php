@@ -33,10 +33,6 @@ use \Exception;
 
 abstract class Daemon extends Process {
 
-    private $pidlock;
-    
-    private $looptime;
-
     /**
      * @todo exit condition if not in command line
      */
@@ -47,15 +43,17 @@ abstract class Daemon extends Process {
         $looptime = 1,
         $niceness = null)
     {
-        
+
         parent::__construct($configuration, $logger, $events, $niceness);
-        
+
+        $this->stop = false;
+
         $this->looptime = self::getLoopTime($looptime);
-        
+
         $lockfile = $this->configuration->get('pid-file');
-        
+
         $this->pidlock = new PidLock($this->pid, $lockfile);
-        
+
         $this->pidlock->lock();
 
     }
@@ -63,16 +61,20 @@ abstract class Daemon extends Process {
     abstract public function loop();
 
     public function start() {
-        
+
         if ( $this->daemon ) {
 
             $this->logger->notice("Running process (pid: ".$this->pid.") in daemon mode");
 
             while (true) {
 
+                pcntl_signal_dispatch();
+
+                if ( $this->stop ) break;
+
                 if ( $this->running ) $this->loop();
 
-                sleep($looptime);
+                sleep($this->looptime);
 
             }
 
@@ -80,30 +82,42 @@ abstract class Daemon extends Process {
 
             $this->logger->notice("Running process (pid: ".$this->pid.")");
 
+            pcntl_signal_dispatch();
+
             $this->loop();
 
         }
-        
+
+        $this->end(0);
+
     }
-    
+
+    public function stop() {
+
+        $this->logger->notice("Stopping process (pid: ".$this->pid.")");
+
+        $this->stop = true;
+
+    }
+
     public function pause() {
-        
+
         $this->logger->notice("Pausing process (pid: ".$this->pid.")");
-        
+
         $this->running = false;
-        
+
         return $this;
-        
+
     }
-    
+
     public function resume() {
-        
+
         $this->logger->notice("Resuming process (pid: ".$this->pid.")");
-        
+
         $this->running = true;
-        
+
         return $this;
-        
+
     }
 
     public function shutdown() {
@@ -113,14 +127,14 @@ abstract class Daemon extends Process {
     }
 
     public static function getLoopTime($looptime) {
-        
+
         return filter_var($looptime, FILTER_VALIDATE_INT, array(
             'options' => array(
                 'default' => 1,
                 'min_range' => 1
             )
         ));
-        
+
     }
 
 }
