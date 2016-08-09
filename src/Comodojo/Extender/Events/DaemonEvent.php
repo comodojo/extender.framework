@@ -1,12 +1,11 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Events;
 
-use \Exception;
+use \Comodojo\Extender\Base\Daemon;
 
 /**
- * Lock file manager (static methods)
- *
- * @package     Comodojo extender
+ * @package     Comodojo Dispatcher
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -25,36 +24,31 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class PidLock extends AbstractLocker {
+class DaemonEvent extends AbstractEvent {
 
-    /**
-     * Lock file name
-     *
-     * @var string
-     */
-    private $lockfile = "extender.pid";
+    private $event;
+    
+    private $daemon;
 
-    private $pid;
+    public function __construct($event, Daemon $daemon) {
 
-    public function __construct($pid, $lockfile = null) {
+        parent::__construct("extender.daemon.$event");
 
-        if ( $lockfile !== null ) $this->lockfile = $lockfile;
-
-        if ( empty($pid) ) throw new Exception("Invalid pid reference");
-
-        $this->pid = $pid;
+        $this->event = $event;
+        
+        $this->daemon = $daemon;
 
     }
 
-    public function lock() {
+    public function getEvent() {
 
-        return self::writeLock($this->lockfile, $this->pid);
+        return $this->signal;
 
     }
+    
+    public function getDaemon() {
 
-    public function release() {
-
-        return self::releaseLock($this->lockfile);
+        return $this->daemon;
 
     }
 

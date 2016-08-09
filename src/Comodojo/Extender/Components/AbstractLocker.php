@@ -25,37 +25,38 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class PidLock extends AbstractLocker {
+abstract class AbstractLocker {
+    
+    abstract public function lock();
+    
+    abstract public function release();
+    
+    protected static function writeLock($file, $data) {
+        
+        $lock = file_put_contents($file, $data);
 
-    /**
-     * Lock file name
-     *
-     * @var string
-     */
-    private $lockfile = "extender.pid";
+        if ( $lock === false ) throw new Exception("Cannot write lock file");
 
-    private $pid;
-
-    public function __construct($pid, $lockfile = null) {
-
-        if ( $lockfile !== null ) $this->lockfile = $lockfile;
-
-        if ( empty($pid) ) throw new Exception("Invalid pid reference");
-
-        $this->pid = $pid;
-
+        return $lock;
+        
     }
+    
+    protected static function readLock($file) {
+        
+        $data = file_get_contents($file, $data);
 
-    public function lock() {
+        if ( $data === false ) throw new Exception("Cannot read lock file");
 
-        return self::writeLock($this->lockfile, $this->pid);
-
+        return $data;
+        
     }
+    
+    protected static function releaseLock($file) {
+        
+        $lock = file_exists($file) ? unlink($file) : true;
 
-    public function release() {
-
-        return self::releaseLock($this->lockfile);
-
+        return $lock;
+        
     }
 
 }

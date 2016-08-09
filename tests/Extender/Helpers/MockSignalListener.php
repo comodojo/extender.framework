@@ -6,10 +6,12 @@ use \League\Event\EventInterface;
 class MockSignalListener extends AbstractListener {
 
     public function handle(EventInterface $event) {
+        
+        $process = $event->getProcess();
 
-        $signals = array_merge($event->process->signals, array($event->getSignal()));
+        $signals = array_merge($process->signals, array($event->getSignal()));
 
-        $event->process->signals = $signals;
+        $process->signals = $signals;
 
     }
 

@@ -28,7 +28,7 @@ class SignalEvent extends AbstractEvent {
 
     private $signal;
 
-    public $process;
+    private $process;
 
     public function __construct($signal, Process $process) {
 
@@ -43,6 +43,12 @@ class SignalEvent extends AbstractEvent {
     public function getSignal() {
 
         return $this->signal;
+
+    }
+    
+    public function getProcess() {
+
+        return $this->process;
 
     }
 

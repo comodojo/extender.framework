@@ -48,8 +48,8 @@ abstract class Process {
         // get current PID and timestamp
 
         $this->pid = $this->getPid();
+        
         $this->timestamp = microtime(true);
-        $this->running = true;
 
         // init main components
 
@@ -80,7 +80,8 @@ abstract class Process {
         $pluggable_signals = array(
             SIGHUP, SIGCHLD, SIGUSR1, SIGUSR2, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
             SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTTIN, SIGTTOU, SIGURG,
-            SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF, SIGWINCH, SIGIO, SIGSYS, SIGBABY
+            SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF, SIGWINCH, SIGIO, SIGSYS, SIGBABY,
+            SIGTSTP, SIGCONT
         );
 
         if ( defined('SIGPOLL') )   $pluggable_signals[] = SIGPOLL;
@@ -93,9 +94,9 @@ abstract class Process {
 
         pcntl_signal(SIGINT, array($this, 'sigIntHandler'));
 
-        pcntl_signal(SIGTSTP, array($this, 'sigStopHandler'));
+        // pcntl_signal(SIGTSTP, array($this, 'sigStopHandler'));
 
-        pcntl_signal(SIGCONT, array($this, 'sigContHandler'));
+        // pcntl_signal(SIGCONT, array($this, 'sigContHandler'));
 
         // register pluggable signals
 
@@ -144,44 +145,6 @@ abstract class Process {
             $this->events->emit( new SignalEvent($signal, $this) );
 
             $this->end(1);
-
-        }
-
-    }
-
-    /**
-     * The sigStop handler.
-     *
-     * It just pauses extender execution
-     */
-    public function sigStopHandler($signal) {
-
-        if ( $this->pid == $this->getPid() ) {
-
-            $this->logger->info("Received STOP signal, pausing process");
-
-            $this->events->emit( new SignalEvent($signal, $this) );
-
-            $this->running = false;
-
-        }
-
-    }
-
-    /**
-     * The sigCont handler.
-     *
-     * It just resume extender execution
-     */
-    public function sigContHandler($signal) {
-
-        if ( $this->pid == $this->getPid() ) {
-
-            $this->logger->info("Received CONT signal, resuming process");
-
-            $this->events->emit( new SignalEvent($signal, $this) );
-
-            $this->running = true;
 
         }
 

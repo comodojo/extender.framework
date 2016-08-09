@@ -25,36 +25,48 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class PidLock extends AbstractLocker {
-
+class RunLock extends AbstractLocker {
+    
     /**
-     * Lock file name
+     * Run file name
      *
      * @var string
      */
-    private $lockfile = "extender.pid";
+    private $runfile = "extender.run";
 
-    private $pid;
+    public function __construct($runfile = null) {
 
-    public function __construct($pid, $lockfile = null) {
+        if ( $runfile !== null ) $this->runfile = $runfile;
 
-        if ( $lockfile !== null ) $this->lockfile = $lockfile;
+    }
 
-        if ( empty($pid) ) throw new Exception("Invalid pid reference");
-
-        $this->pid = $pid;
-
+    public function pause() {
+        
+        return self::writeLock($this->runfile, 'PAUSED');
+        
+    }
+    
+    public function resume() {
+        
+        return $this->lock();
+        
     }
 
     public function lock() {
 
-        return self::writeLock($this->lockfile, $this->pid);
+        return self::writeLock($this->runfile, 'RUNNING');
 
     }
 
     public function release() {
 
-        return self::releaseLock($this->lockfile);
+        return self::releaseLock($this->runfile);
+
+    }
+    
+    public function check() {
+
+        return self::readLock($this->runfile) == 'RUNNING';
 
     }
 
