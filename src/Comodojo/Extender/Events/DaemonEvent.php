@@ -27,7 +27,7 @@ use \Comodojo\Extender\Base\Daemon;
 class DaemonEvent extends AbstractEvent {
 
     private $event;
-    
+
     private $daemon;
 
     public function __construct($event, Daemon $daemon) {
@@ -35,17 +35,17 @@ class DaemonEvent extends AbstractEvent {
         parent::__construct("extender.daemon.$event");
 
         $this->event = $event;
-        
+
         $this->daemon = $daemon;
 
     }
 
     public function getEvent() {
 
-        return $this->signal;
+        return $this->event;
 
     }
-    
+
     public function getDaemon() {
 
         return $this->daemon;

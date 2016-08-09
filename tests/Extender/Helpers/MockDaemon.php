@@ -17,17 +17,13 @@ class MockDaemon extends Daemon {
 
         parent::__construct($configuration, $logger, $events, $looptime, $niceness);
 
-        $this->loopnum = 0;
-
     }
 
     public function loop() {
 
-        $this->loopnum++;
+        $this->logger->info("Now looping: ".$this->loopcount." iterations");
 
-        $this->logger->info("Now looping: ".$this->loopnum." iterations");
-
-        if ($this->loopnum == 5) $this->stop();
+        if ($this->loopcount == 5) $this->stop();
 
     }
 

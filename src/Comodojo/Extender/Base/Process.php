@@ -48,7 +48,7 @@ abstract class Process {
         // get current PID and timestamp
 
         $this->pid = $this->getPid();
-        
+
         $this->timestamp = microtime(true);
 
         // init main components

@@ -44,7 +44,6 @@ abstract class Daemon extends Process {
         Configuration $configuration,
         LoggerInterface $logger,
         Emitter $events,
-        Cache $cache,
         $looptime = 1,
         $niceness = null)
     {
@@ -52,24 +51,27 @@ abstract class Daemon extends Process {
         parent::__construct($configuration, $logger, $events, $niceness);
 
         $this->looptime = self::getLoopTime($looptime);
-        
+
         $this->loopcount = 0;
+        $this->loopactive = true;
 
         $lockfile = $this->configuration->get('pid-file');
         $runfile = $this->configuration->get('run-file');
 
         $this->pidlock = new PidLock($this->pid, $lockfile);
-        
+
         $this->runlock = new RunLock($runfile);
 
         // create lockfiles
         $this->runlock->lock();
         $this->pidlock->lock();
-        
+
         // attach signal handlers
         $this->events->subscribe('extender.signal.'.SIGTSTP, '\Comodojo\Extender\Listeners\PauseDaemon');
         $this->events->subscribe('extender.signal.'.SIGCONT, '\Comodojo\Extender\Listeners\ResumeDaemon');
-        
+        $this->events->subscribe('extender.signal.'.SIGINT, '\Comodojo\Extender\Listeners\StopDaemon');
+        $this->events->subscribe('extender.signal.'.SIGTERM, '\Comodojo\Extender\Listeners\StopDaemon');
+
         // notify that everything is ready
         $this->logger->info("Daemon ready (pid: ".$this->pid.")");
 
@@ -78,43 +80,73 @@ abstract class Daemon extends Process {
     abstract public function loop();
 
     public function start() {
-        
+
         $this->logger->notice("Starting daemon (looping each ".$this->looptime." secs, pid: ".$this->pid.")");
-        
+
         $this->events->emit( new DaemonEvent('start', $this) );
 
-        while (true) {
-            
+        while ($this->loopactive) {
+
             $start = microtime(true);
 
             pcntl_signal_dispatch();
-            
-            if ( $this->runlock->check() ) {
-                
+
+            $this->events->emit( new DaemonEvent('preloop', $this) );
+
+            if ( $this->runlock->check() && $this->loopactive) {
+
                 $this->events->emit( new DaemonEvent('loopstart', $this) );
-                
+
                 $this->loop();
-                
+
                 $this->events->emit( new DaemonEvent('loopstop', $this) );
-                
+
+                $this->loopcount++;
+
             }
-            
+
+            $this->events->emit( new DaemonEvent('postloop', $this) );
+
             $lefttime = $this->looptime - (microtime(true) - $start);
-            
-            if ( $lefttime > 0 ) usleep($lefttime * 1000);
+
+            if ( $lefttime > 0 ) usleep($lefttime * 1000000);
 
         }
 
         $this->logger->notice("Stopping daemon (pid: ".$this->pid.")");
-        
+
         $this->events->emit( new DaemonEvent('stop', $this) );
 
         $this->end(0);
 
     }
 
+    public function stop() {
+
+        $this->loopactive = false;
+
+    }
+
+    public function pause() {
+
+        return $this->runlock->pause();
+
+    }
+
+    public function resume() {
+
+        return $this->runlock->resume();
+
+    }
+
+    public function isLooping() {
+
+        $this->runlock->check();
+
+    }
+
     public function shutdown() {
-        
+
         // release lockfiles
         $this->runlock->release();
         $this->pidlock->release();

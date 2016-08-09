@@ -45,7 +45,7 @@ class SignalEvent extends AbstractEvent {
         return $this->signal;
 
     }
-    
+
     public function getProcess() {
 
         return $this->process;

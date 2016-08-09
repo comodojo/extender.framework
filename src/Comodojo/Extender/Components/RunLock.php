@@ -26,7 +26,7 @@ use \Exception;
  */
 
 class RunLock extends AbstractLocker {
-    
+
     /**
      * Run file name
      *
@@ -41,15 +41,15 @@ class RunLock extends AbstractLocker {
     }
 
     public function pause() {
-        
+
         return self::writeLock($this->runfile, 'PAUSED');
-        
+
     }
-    
+
     public function resume() {
-        
+
         return $this->lock();
-        
+
     }
 
     public function lock() {
@@ -63,7 +63,7 @@ class RunLock extends AbstractLocker {
         return self::releaseLock($this->runfile);
 
     }
-    
+
     public function check() {
 
         return self::readLock($this->runfile) == 'RUNNING';

@@ -3,11 +3,11 @@
 use \League\Event\AbstractListener;
 use \League\Event\EventInterface;
 
-class PauseDaemon extends AbstractListener {
+class ResumeDaemon extends AbstractListener {
 
     public function handle(EventInterface $event) {
-        
-        $daemon = $event->getDaemon();
+
+        $daemon = $event->getProcess();
 
         $daemon->runlock->resume();
 

@@ -26,37 +26,37 @@ use \Exception;
  */
 
 abstract class AbstractLocker {
-    
+
     abstract public function lock();
-    
+
     abstract public function release();
-    
+
     protected static function writeLock($file, $data) {
-        
+
         $lock = file_put_contents($file, $data);
 
         if ( $lock === false ) throw new Exception("Cannot write lock file");
 
         return $lock;
-        
+
     }
-    
+
     protected static function readLock($file) {
-        
-        $data = file_get_contents($file, $data);
+
+        $data = file_get_contents($file);
 
         if ( $data === false ) throw new Exception("Cannot read lock file");
 
         return $data;
-        
+
     }
-    
+
     protected static function releaseLock($file) {
-        
+
         $lock = file_exists($file) ? unlink($file) : true;
 
         return $lock;
-        
+
     }
 
 }

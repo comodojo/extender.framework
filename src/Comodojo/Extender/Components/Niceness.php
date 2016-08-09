@@ -27,55 +27,55 @@ use \Exception;
  */
 
 class Niceness {
-    
+
     private $logger;
-    
+
     private $niceness = 0;
-    
+
     public function __contruct(LoggerInterface $logger) {
-        
+
         $this->logger = $logger;
-        
-    } 
+
+    }
 
     public function get($pid = null) {
-        
+
         return is_null($pid) ? $this->niceness : pcntl_getpriority($pid);
-        
+
     }
 
     public function set($niceness = null, $pid = null) {
-        
+
         $niceness = self::getNiceness($niceness);
 
         if ( is_null($pid) ) {
-            
+
             $nice = proc_nice($niceness);
 
             if ( $nice === false ) {
-                
+
                 $this->logger->warning("Unable to set parent process niceness to $niceness");
-            
+
             } else {
-                
+
                 $this->niceness = $niceness;
-                
+
             }
-        
+
         } else {
-            
+
             $nice = pcntl_setpriority($pid, $$niceness);
 
             if ( $nice == false ) $logger->warning("Unable to set child process $pid niceness to $niceness");
-            
+
         }
-        
+
         return $nice;
-        
+
     }
-    
+
     private static function getNiceness($niceness=null) {
-        
+
         return filter_var($niceness, FILTER_VALIDATE_INT, array(
             'options' => array(
                 'default' => 0,
@@ -83,7 +83,7 @@ class Niceness {
                 'max_range' => 10
             )
         ));
-        
+
     }
 
 }

@@ -14,15 +14,20 @@ class DaemonTest extends Startup {
 
         self::$daemon = new MockDaemon(self::$configuration, self::$logger, self::$events);
 
-        self::$daemon->daemon = true;
+        self::$daemon->events->subscribe("extender.daemon.loopstop", "\Comodojo\Extender\Tests\Helpers\MockDaemonListener");
+        self::$daemon->events->subscribe("extender.daemon.postloop", "\Comodojo\Extender\Tests\Helpers\MockDaemonListener");
 
     }
 
     public function testStartDaemon() {
 
+        $this->assertNull(self::$daemon->istest);
+
         $exitcode = self::$daemon->start();
 
         $this->assertEquals(0, $exitcode);
+
+        $this->assertTrue(self::$daemon->istest);
 
     }
 
