@@ -1,9 +1,10 @@
 <?php namespace Comodojo\Extender\Base;
 
 use \Comodojo\Extender\Components\Niceness;
-use \Comodojo\Dispatcher\Components\DataAccess;
+use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
 use \Comodojo\Extender\Events\SignalEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Dispatcher\Components\Timestamp as TimestampTrait;
 use \League\Event\Emitter;
 use \Psr\Log\LoggerInterface;
 use \Exception;
@@ -33,7 +34,8 @@ use \Exception;
 
 abstract class Process {
 
-    use DataAccess;
+    use DataAccessTrait;
+    use TimestampTrait;
 
     /**
      * @todo exit condition if not in command line
@@ -49,7 +51,7 @@ abstract class Process {
 
         $this->pid = $this->getPid();
 
-        $this->timestamp = microtime(true);
+        $this->setTimestamp();
 
         // init main components
 
