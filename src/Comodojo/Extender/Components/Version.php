@@ -48,24 +48,24 @@ class Version {
      */
     static public function getFullDescription(Configuration $configuration) {
 
-        return self::getAscii($configuration)."\n"
-            .self::getVersion($configuration)."\n"
+        return "\n".self::getAscii($configuration)."\n"
+            .self::getDescription($configuration)."\n"
             ."Version: ".self::getVersion($configuration);
 
     }
-    
+
     static public function getDescription(Configuration $configuration) {
-        
+
         $description = $configuration->get('extender-custom-description');
         return !is_null($description) && is_string($description) ? $description : self::$description;
-        
+
     }
-    
+
     static public function getAscii(Configuration $configuration) {
-        
+
         $ascii = $configuration->get('extender-custom-ascii');
         return !is_null($ascii) && is_readable($ascii) ? file_get_contents($ascii) : self::ascii();
-        
+
     }
 
     /**

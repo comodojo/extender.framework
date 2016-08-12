@@ -79,6 +79,28 @@ abstract class Daemon extends Process {
 
     abstract public function loop();
 
+    public function daemonize() {
+
+        $pid = pcntl_fork();
+
+        if ( $pid == -1 ) {
+            $this->logger->error('Could not create daemon (fork error)');
+            $this->end(1);
+        }
+
+        if ( $pid ) {
+            $this->logger->error("Daemon created with pid $pid");
+            $this->end(0);
+        }
+
+        // become a session leader
+        posix_setsid();
+
+        // autostart daemon
+        $this->start();
+
+    }
+
     public function start() {
 
         $this->logger->notice("Starting daemon (looping each ".$this->looptime." secs, pid: ".$this->pid.")");
