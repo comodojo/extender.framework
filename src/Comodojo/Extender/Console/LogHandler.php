@@ -6,13 +6,13 @@ use \League\CLImate\CLImate;
 
 /**
  * Log-to-console handler
- * 
+ *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -44,14 +44,14 @@ class LogHandler extends AbstractProcessingHandler {
 
     public function __construct($level = Logger::DEBUG, $bubble = true) {
 
-        $this->outputcontroller = new League\CLImate\CLImate();
+        $this->outputcontroller = new CLImate();
 
         parent::__construct($level, $bubble);
 
     }
 
     protected function write(array $record) {
-        
+
         $level = $record['level'];
 
         $message = $record['formatted'];
@@ -65,13 +65,13 @@ class LogHandler extends AbstractProcessingHandler {
     }
 
     private function toConsole($time, $level, $message, $context) {
-        
+
         $color = static::$colors[$level];
-        
+
         $pattern = "<%s>%s</%s>";
-        
+
         $message = sprintf($pattern, $color, $message, $color);
-        
+
         $this->outputcontroller->out($message);
 
         if ( !empty($context) ) $this->outputcontroller->out(sprintf($pattern, $color, var_export($context, true), $color));

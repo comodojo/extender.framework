@@ -54,6 +54,8 @@ abstract class Daemon extends Process {
 
         $this->loopcount = 0;
         $this->loopactive = true;
+        $this->loopelapsed = 0;
+        $this->cleanup = true;
 
         $lockfile = $this->configuration->get('pid-file');
         $runfile = $this->configuration->get('run-file');
@@ -61,10 +63,6 @@ abstract class Daemon extends Process {
         $this->pidlock = new PidLock($this->pid, $lockfile);
 
         $this->runlock = new RunLock($runfile);
-
-        // create lockfiles
-        $this->runlock->lock();
-        $this->pidlock->lock();
 
         // attach signal handlers
         $this->events->subscribe('extender.signal.'.SIGTSTP, '\Comodojo\Extender\Listeners\PauseDaemon');
@@ -85,11 +83,13 @@ abstract class Daemon extends Process {
 
         if ( $pid == -1 ) {
             $this->logger->error('Could not create daemon (fork error)');
+            $this->cleanup = false;
             $this->end(1);
         }
 
         if ( $pid ) {
-            $this->logger->error("Daemon created with pid $pid");
+            $this->logger->info("Daemon created with pid $pid");
+            $this->cleanup = false;
             $this->end(0);
         }
 
@@ -102,6 +102,10 @@ abstract class Daemon extends Process {
     }
 
     public function start() {
+
+        // create lockfiles
+        $this->runlock->lock();
+        $this->pidlock->lock();
 
         $this->logger->notice("Starting daemon (looping each ".$this->looptime." secs, pid: ".$this->pid.")");
 
@@ -129,7 +133,9 @@ abstract class Daemon extends Process {
 
             $this->events->emit( new DaemonEvent('postloop', $this) );
 
-            $lefttime = $this->looptime - (microtime(true) - $start);
+            $this->loopelapsed = (microtime(true) - $start);
+
+            $lefttime = $this->looptime - $this->loopelapsed;
 
             if ( $lefttime > 0 ) usleep($lefttime * 1000000);
 
@@ -145,7 +151,9 @@ abstract class Daemon extends Process {
 
     public function stop() {
 
+        // just in case daemon will not execute the stop order
         $this->loopactive = false;
+        $this->end(0);
 
     }
 
@@ -170,8 +178,10 @@ abstract class Daemon extends Process {
     public function shutdown() {
 
         // release lockfiles
-        $this->runlock->release();
-        $this->pidlock->release();
+        if ( $this->cleanup ) {
+            $this->runlock->release();
+            $this->pidlock->release();
+        }
 
     }
 

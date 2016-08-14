@@ -2,10 +2,12 @@
 
 use \Comodojo\Extender\Base\Daemon;
 use \Comodojo\Extender\Components\DefaultConfiguration;
-use \Comodojo\Extender\Components\LogManager;
 use \Comodojo\Extender\Components\Version;
 use \Comodojo\Extender\Console\Arguments as ConsoleArgumentsTrait;
+use \Comodojo\Extender\Console\LogHandler;
+use \Comodojo\Extender\Jobs\Results;
 use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Dispatcher\Components\LogManager;
 use \Comodojo\Dispatcher\Components\EventsManager;
 use \Comodojo\Dispatcher\Components\CacheManager;
 use \Comodojo\Cache\Cache;
@@ -34,6 +36,7 @@ class Extender extends Daemon {
         // init counters
         $this->completedjobs = 0;
         $this->failedjobs = 0;
+        $this->currentjobs = new Results();
 
         // init the console
         $this->console = new CLImate();
@@ -41,16 +44,27 @@ class Extender extends Daemon {
         $this->console->arguments->add($this->console_arguments);
         $this->console->arguments->parse();
 
-        // check for help request
-        $this->helpMe($this->console->arguments->get('help'));
+        // init the logger
+        $this->logger = is_null($logger) ? LogManager::create($this->configuration, 'extender') : $logger;
+        if ( $this->console->arguments->get('verbose') === true ) {
+            $this->logger->pushHandler(new LogHandler());
+        }
 
-        // init core components
-        $this->logger = new \Monolog\Logger('test'); //is_null($logger) ? LogManager::create($this->configuration) : $logger;
+        // init event manager
         $this->events = is_null($events) ? new EventsManager($this->logger) : $events;
+
+        // init the cache abstraction layer
         $this->cache = is_null($cache) ? CacheManager::create($this->configuration, $this->logger) : $cache;
 
         // install the loop limiter
+        $this->looplimit = $this->console->arguments->get('iterations');
         $this->events->subscribe("extender.daemon.loopstop", "\Comodojo\Extender\Listeners\LoopLimit");
+
+        // install the summary report listener if requested
+        if ( $this->console->arguments->get('summary') === true ) {
+            $this->events->subscribe("extender.daemon.loopstop", "\Comodojo\Extender\Listeners\LoopSummary");
+            $this->events->subscribe("extender.daemon.stop", "\Comodojo\Extender\Listeners\StopSummary");
+        }
 
         // get daemon parameters
         $looptime = $this->configuration->get('looptime');
@@ -80,25 +94,19 @@ class Extender extends Daemon {
 
     }
 
-    private function helpMe($help) {
+    public function extend() {
 
-        if ( $help === true ) {
-
+        if ( $this->console->arguments->get('help') === true ) {
             // show help and exit
             $this->console->usage();
             $this->end(0);
-
+        } else if ( $this->console->arguments->get('daemon') === true ) {
+            // run extender as a deamon
+            $this->daemonize();
+        } else {
+            // run extender as a normal foreground process
+            $this->start();
         }
-
-    }
-
-    private function loopUntil($loopcount) {
-
-        $this->configuration->set('loop-limit', $loopcount);
-
-    }
-
-    private function statusMe($status) {
 
     }
 

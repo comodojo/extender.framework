@@ -9,14 +9,10 @@ class LoopLimit extends AbstractListener {
 
         $daemon = $event->getDaemon();
 
-        if ($event->getEvent() == "loopstop" and $daemon->loopcount == 3) {
-            $daemon->logger->info('loopcount = 3');
-            $daemon->istest = true;
-            $daemon->pause();
-        }
-
-        if ($event->getEvent() == "postloop" and !$daemon->isLooping() ) {
-            $daemon->resume();
+        if ( $daemon->looplimit === $daemon->loopcount) {
+            $daemon->logger->info('Stopping daemon due to loop limit ('.$daemon->looplimit.') reached');
+            // $daemon->stop();
+            $daemon->loopactive = false;
         }
 
     }

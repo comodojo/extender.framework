@@ -28,14 +28,14 @@ trait Arguments {
         'verbose' => [
             'prefix' => 'v',
             'longPrefix' => 'verbose',
-            'description' => 'verbose mode',
+            'description' => 'turn verbose mode on',
             'required' => false,
             'noValue' => true
         ],
-        'debug' => [
+        'daemon' => [
             'prefix' => 'd',
-            'longPrefix' => 'debug',
-            'description' => 'debug mode',
+            'longPrefix' => 'daemon',
+            'description' => 'run extender as a daemon',
             'required' => false,
             'noValue' => true
         ],

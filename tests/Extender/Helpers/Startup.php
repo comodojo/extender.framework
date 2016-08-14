@@ -32,7 +32,8 @@ class Startup extends \PHPUnit_Framework_TestCase {
 
         $config = array_merge(self::$configuration_parameters, array(
             "base-path" => realpath(dirname(__FILE__)."/../../resources/"),
-            "pid-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.pid"
+            "pid-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.pid",
+            "run-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.run"
         ));
 
         self::$configuration = new Configuration($config);
