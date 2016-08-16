@@ -1,12 +1,17 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Tasks;
+
+use \Comodojo\Dispatcher\Components\Configuration;
+use \Psr\Log\LoggerInterface;
 
 /**
- * @package     Comodojo Extender
+ * Task object
+ *
+ * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -21,26 +26,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+class Worklog {
+    
+    private $configuration;
+    private $logger;
 
-class DefaultConfiguration {
-
-    private static $configuration = array(
-        'encoding' => 'UTF-8',
-        'looptime' => 1,
-        'niceness' => 0,
-        'multithread' => true,
-        'fork-limit' => 0,
-        'child-max-result-bytes' => 2048,
-        'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
-    );
-
-    public static function get() {
-
-        $config = self::$configuration;
-
-        return $config;
+    public function __construct(
+        Configuration $configuration,
+        LoggerInterface $logger
+    ) {
+        
+        // Setup task
+        $this->configuration = $configuration;
+        $this->logger = $logger;
 
     }
-
+    
+    public function create() {
+        
+    }
+    
+    public function close() {
+        
+    }
+    
 }

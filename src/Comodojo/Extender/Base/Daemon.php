@@ -2,7 +2,6 @@
 
 use \Comodojo\Extender\Components\PidLock;
 use \Comodojo\Extender\Components\RunLock;
-use \Comodojo\Extender\Components\Niceness;
 use \Comodojo\Extender\Events\DaemonEvent;
 use \Comodojo\Extender\Listeners\PauseDaemon;
 use \Comodojo\Extender\Listeners\ResumeDaemon;

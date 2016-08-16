@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Base;
 
-use \Comodojo\Extender\Components\Niceness;
+use \Comodojo\Extender\Components\ProcessUtils;
 use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
 use \Comodojo\Extender\Events\SignalEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
@@ -63,9 +63,11 @@ abstract class Process {
 
         // adjust process niceness
 
-        $this->niceness = new Niceness($this->logger);
-
-        $this->niceness->set($niceness);
+        $this->utils = new ProcessUtils();
+        
+        if ( $this->utils->setNiceness($niceness) === false ) {
+            $this->logger->warning("Unable to set parent process niceness to $niceness");
+        }
 
         $this->registerSignals();
 

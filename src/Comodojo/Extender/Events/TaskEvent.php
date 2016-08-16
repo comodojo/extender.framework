@@ -1,8 +1,11 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Events;
+
+use \Comodojo\Extender\Tasks\TaskInterface;
 
 /**
- * @package     Comodojo Extender
+ * @package     Comodojo Dispatcher
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -21,25 +24,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+class TaskEvent extends AbstractEvent {
 
-class DefaultConfiguration {
+    private $event;
 
-    private static $configuration = array(
-        'encoding' => 'UTF-8',
-        'looptime' => 1,
-        'niceness' => 0,
-        'multithread' => true,
-        'fork-limit' => 0,
-        'child-max-result-bytes' => 2048,
-        'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
-    );
+    private $task;
 
-    public static function get() {
+    public function __construct($event, TaskInterface $task) {
 
-        $config = self::$configuration;
+        parent::__construct("extender.task.$event");
 
-        return $config;
+        $this->event = $event;
+
+        $this->task = $task;
+
+    }
+
+    public function getEvent() {
+
+        return $this->event;
+
+    }
+
+    public function getTask() {
+
+        return $this->task;
 
     }
 

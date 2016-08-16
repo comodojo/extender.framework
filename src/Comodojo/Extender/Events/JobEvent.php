@@ -1,8 +1,11 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Events;
+
+use \Comodojo\Extender\Jobs\Job;
 
 /**
- * @package     Comodojo Extender
+ * @package     Comodojo Dispatcher
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -21,25 +24,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+class JobEvent extends AbstractEvent {
 
-class DefaultConfiguration {
+    private $event;
 
-    private static $configuration = array(
-        'encoding' => 'UTF-8',
-        'looptime' => 1,
-        'niceness' => 0,
-        'multithread' => true,
-        'fork-limit' => 0,
-        'child-max-result-bytes' => 2048,
-        'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
-    );
+    private $job;
 
-    public static function get() {
+    public function __construct($event, Job $job) {
 
-        $config = self::$configuration;
+        parent::__construct("extender.job.$event");
 
-        return $config;
+        $this->event = $event;
+
+        $this->job = $job;
+
+    }
+
+    public function getEvent() {
+
+        return $this->event;
+
+    }
+
+    public function getJob() {
+
+        return $this->job;
 
     }
 

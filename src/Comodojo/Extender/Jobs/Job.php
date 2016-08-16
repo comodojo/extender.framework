@@ -1,12 +1,17 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Jobs;
+
+use \Comodojo\Extender\Components\Parameters;
+use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
 
 /**
- * @package     Comodojo Extender
+ * Job object
+ *
+ * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -21,26 +26,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+class Job {
 
-class DefaultConfiguration {
+    use DataAccessTrait;
+    
+    public function __construct($name, $id, $task, $class, $parameters=array()) {
+        
+        $this->name = $name;
+        $this->id = $id;
+        $this->task = $task;
+        $this->class = $class;
+        $this->parameters = new Parameters($parameters);
+        
+        $this->uid = self::getUid();
+        
+    }
+    
+    /**
+     * Get a job unique identifier
+     * 
+     * @return  string
+     */
+    private static function getUid() {
 
-    private static $configuration = array(
-        'encoding' => 'UTF-8',
-        'looptime' => 1,
-        'niceness' => 0,
-        'multithread' => true,
-        'fork-limit' => 0,
-        'child-max-result-bytes' => 2048,
-        'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
-    );
-
-    public static function get() {
-
-        $config = self::$configuration;
-
-        return $config;
+        return md5(uniqid(rand(), true), 0);
 
     }
-
+    
 }

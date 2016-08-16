@@ -1,12 +1,16 @@
 <?php namespace Comodojo\Extender\Components;
 
+use \Comodojo\Dispatcher\Components\Patameters as ParametersTrait;
+
 /**
- * @package     Comodojo Extender
+ * Job object
+ *
+ * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
  * @license     GPL-3.0+
  *
  * LICENSE:
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -21,26 +25,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+class Parameters {
 
-class DefaultConfiguration {
-
-    private static $configuration = array(
-        'encoding' => 'UTF-8',
-        'looptime' => 1,
-        'niceness' => 0,
-        'multithread' => true,
-        'fork-limit' => 0,
-        'child-max-result-bytes' => 2048,
-        'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
-    );
-
-    public static function get() {
-
-        $config = self::$configuration;
-
-        return $config;
-
+    use ParametersTrait;
+    
+    public function __construct($parameters = array()) {
+        
+        $this->merge($parameters);
+        
     }
-
+    
+    public function merge($properties) {
+        
+        $this->parameters = array_replace($this->parameters, $properties);
+        
+        return $this;
+        
+    }
+    
 }
