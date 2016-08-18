@@ -12,7 +12,7 @@ use \Doctrine\DBAL\Connection;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -28,21 +28,21 @@ use \Doctrine\DBAL\Connection;
  */
 
 class Worklog {
-    
+
     private $dbh;
-    
+
     private $table;
-    
+
     public function __construct(Connection $dbh, $table) {
-        
+
         $this->dbh = $dbh;
-        
+
         $this->table = $table;
 
     }
-    
+
     public function open($pid, $name, $jobid, $task, $start) {
-        
+
         $this->dbh
             ->createQueryBuilder()
             ->insert($this->table)
@@ -61,13 +61,13 @@ class Worklog {
             ->setParameter(4, $start)
             ->getQuery()
             ->execute();
-        
+
         return $this->dbh->lastInsertId();
-        
+
     }
-    
+
     public function close($wid, $success, $result, $end) {
-        
+
         $this->dbh
             ->createQueryBuilder()
             ->update($this->table)
@@ -83,7 +83,7 @@ class Worklog {
             ->setParameter(2, $end)
             ->getQuery()
             ->execute();
-        
+
     }
-    
+
 }

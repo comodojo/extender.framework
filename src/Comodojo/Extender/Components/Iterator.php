@@ -1,18 +1,13 @@
-<?php namespace Comodojo\Extender\Log;
-
-use \Monolog\Logger;
-use \Monolog\Handler\NullHandler;
-use \Comodojo\Extender\Log\ConsoleHandler;
+<?php namespace Comodojo\Extender\Components;
 
 /**
- * Create a logger instance for econtrol
- * 
- * @package     Comodojo extender
+ * @package     Comodojo Framework
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -27,30 +22,56 @@ use \Comodojo\Extender\Log\ConsoleHandler;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class EcontrolLogger extends LogWrapper {
+trait Iterator {
 
     /**
-     * Create the logger
-     *
-     * @param string $level
-     *
-     * @return \Monolog\Logger
+     * Reset the iterator
      */
-    public static function create($level = false) {
+    public function rewind() {
 
-        $logger = new Logger("econtrol");
+        reset($this->data);
 
-        if ( empty($level) ) {
+    }
 
-            $logger->pushHandler(new NullHandler(self::getLevel("ERROR")));
+    /**
+     * Get the current element
+     *
+     * @return mixed
+     */
+    public function current() {
 
-        } else {
+        return current($this->data);
 
-            $logger->pushHandler(new ConsoleHandler(self::getLevel($level)));
+    }
 
-        }
+    /**
+     * Return the current key
+     *
+     * @return string|int
+     */
+    public function key() {
 
-        return $logger;
+        return key($this->data);
+
+    }
+
+    /**
+     * Move to next element
+     */
+    public function next() {
+
+        return next($this->data);
+
+    }
+
+    /**
+     * Check if element is valid (isset)
+     *
+     * @return boolean
+     */
+    public function valid() {
+
+        return isset($this->data[$this->key()]);
 
     }
 

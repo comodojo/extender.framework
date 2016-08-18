@@ -12,7 +12,7 @@ use \Psr\Log\LoggerInterface;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -33,30 +33,30 @@ abstract class AbstractTask implements TaskInterface {
 
     /**
      * Task constructor.
-     * 
+     *
      * @param   array           $parameters     Array of parameters (if any)
      * @param   \Monolog\Logger $logger
      * @param   int             $pid            Task PID (if any)
      * @param   string          $name           Task Name
      * @param   int             $timestamp      Start timestamp (if null will be retrieved directly)
      * @param   bool            $multithread    Multithread switch
-     * 
-     * @return  Object  $this 
+     *
+     * @return  Object  $this
      */
     final public function __construct(
         LoggerInterface $logger,
         $name = 'EXTENDERTASK',
         $parameters = array()
     ) {
-        
+
         // Setup task
         $this->logger = $logger;
         $this->name = $name;
         $this->pid = getmypid();
         $this->parameters = new Parameters($parameters);
-        
+
     }
-    
+
     /**
      * The run method; SHOULD be implemented by each task
      */

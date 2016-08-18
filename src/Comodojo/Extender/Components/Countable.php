@@ -1,12 +1,9 @@
-<?php namespace Comodojo\Extender\Tasks;
-
-use \Psr\Log\LoggerInterface;
+<?php namespace Comodojo\Extender\Components;
 
 /**
- * Task object
- *
- * @package     Comodojo extender
+ * @package     Comodojo Framework
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -25,25 +22,17 @@ use \Psr\Log\LoggerInterface;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-interface TaskInterface {
+trait Countable {
 
     /**
-     * Task constructor.
+     * Return the amount of routes loaded
      *
-     * @param   array           $parameters     Array of parameters (if any)
-     * @param   \Monolog\Logger $logger
-     * @param   int             $pid            Task PID (if any)
-     * @param   string          $name           Task Name
-     * @param   int             $timestamp      Start timestamp (if null will be retrieved directly)
-     * @param   bool            $multithread    Multithread switch
-     *
-     * @return  Object  $this
+     * @return int $count
      */
-    public function __construct(LoggerInterface $logger, $name, $parameters);
+    public function count() {
 
-    /**
-     * The run method; SHOULD be implemented by each task
-     */
-    public function run();
+        return count($this->data);
+
+    }
 
 }

@@ -1,7 +1,7 @@
 <?php namespace Comodojo\Extender\Base;
 
 use \Comodojo\Extender\Components\ProcessUtils;
-use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
+use \Comodojo\Dispatcher\Components\Model as ClassModel;
 use \Comodojo\Extender\Events\SignalEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Dispatcher\Components\Timestamp as TimestampTrait;
@@ -32,9 +32,8 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-abstract class Process {
+abstract class Process extends ClassModel {
 
-    use DataAccessTrait;
     use TimestampTrait;
 
     /**
@@ -44,31 +43,27 @@ abstract class Process {
         Configuration $configuration,
         LoggerInterface $logger,
         Emitter $events,
-        $niceness = null)
-    {
+        $niceness = null
+    ){
+
+        // Setup parent Model
+        parent::_construct($configuration, $logger);
 
         // get current PID and timestamp
-
         $this->pid = $this->getPid();
-
         $this->setTimestamp();
 
-        // init main components
-
-        $this->configuration = $configuration;
-
-        $this->logger = $logger;
-
+        // init events components
         $this->events = $events;
 
         // adjust process niceness
-
         $this->utils = new ProcessUtils();
-        
+
         if ( $this->utils->setNiceness($niceness) === false ) {
             $this->logger->warning("Unable to set parent process niceness to $niceness");
         }
 
+        // register signals
         $this->registerSignals();
 
     }

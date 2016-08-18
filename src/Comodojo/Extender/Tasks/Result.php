@@ -1,12 +1,11 @@
 <?php namespace Comodojo\Extender\Tasks;
 
-use \Psr\Log\LoggerInterface;
+use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
 
 /**
- * Task object
- *
- * @package     Comodojo extender
+ * @package     Comodojo Dispatcher
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @author      Marco Castiello <marco.castiello@gmail.com>
  * @license     GPL-3.0+
  *
  * LICENSE:
@@ -25,25 +24,21 @@ use \Psr\Log\LoggerInterface;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-interface TaskInterface {
 
-    /**
-     * Task constructor.
-     *
-     * @param   array           $parameters     Array of parameters (if any)
-     * @param   \Monolog\Logger $logger
-     * @param   int             $pid            Task PID (if any)
-     * @param   string          $name           Task Name
-     * @param   int             $timestamp      Start timestamp (if null will be retrieved directly)
-     * @param   bool            $multithread    Multithread switch
-     *
-     * @return  Object  $this
-     */
-    public function __construct(LoggerInterface $logger, $name, $parameters);
+class Result {
 
-    /**
-     * The run method; SHOULD be implemented by each task
-     */
-    public function run();
+    use DataAccessTrait;
+
+    public function __construct($output) {
+
+        $this->pid = $output[0];
+        $this->name = $output[1];
+        $this->success = $output[2];
+        $this->start = $output[3];
+        $this->end = $output[4];
+        $this->result = $output[5];
+        $this->wid = $output[6];
+
+    }
 
 }
