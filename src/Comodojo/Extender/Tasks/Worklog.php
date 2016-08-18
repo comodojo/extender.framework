@@ -2,6 +2,7 @@
 
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Psr\Log\LoggerInterface;
+use \Doctrine\DBAL\Connection;
 
 /**
  * Task object
@@ -28,25 +29,60 @@ use \Psr\Log\LoggerInterface;
 
 class Worklog {
     
-    private $configuration;
-    private $logger;
-
-    public function __construct(
-        Configuration $configuration,
-        LoggerInterface $logger
-    ) {
+    private $dbh;
+    
+    private $table;
+    
+    public function __construct(Connection $dbh, $table) {
         
-        // Setup task
-        $this->configuration = $configuration;
-        $this->logger = $logger;
+        $this->dbh = $dbh;
+        
+        $this->table = $table;
 
     }
     
-    public function create() {
+    public function open($pid, $name, $jobid, $task, $start) {
+        
+        $this->dbh
+            ->createQueryBuilder()
+            ->insert($this->table)
+            ->values(array (
+                'status' => 'RUNNING',
+                'pid' => '?',
+                'name' => '?',
+                'jobid' => '?',
+                'task' => '?',
+                'start' => '?'
+            ))
+            ->setParameter(0, $pid)
+            ->setParameter(1, $name)
+            ->setParameter(2, $jobid)
+            ->setParameter(3, $task)
+            ->setParameter(4, $start)
+            ->getQuery()
+            ->execute();
+        
+        return $this->dbh->lastInsertId();
         
     }
     
-    public function close() {
+    public function close($wid, $success, $result, $end) {
+        
+        $this->dbh
+            ->createQueryBuilder()
+            ->update($this->table)
+            ->where("id = $wid")
+            ->values(array (
+                'status' => 'FINISHED',
+                'success' => '?',
+                'result' => '?',
+                'end' => '?'
+            ))
+            ->setParameter(0, $success)
+            ->setParameter(1, $result)
+            ->setParameter(2, $end)
+            ->getQuery()
+            ->execute();
         
     }
     

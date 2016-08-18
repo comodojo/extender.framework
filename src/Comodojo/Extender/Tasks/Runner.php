@@ -1,7 +1,10 @@
 <?php namespace Comodojo\Extender\Tasks;
 
 use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Dispatcher\Components\EventsManager;
 use \Psr\Log\LoggerInterface;
+use \Doctrine\DBAL\Connection;
+use \Exception;
 
 /**
  * Job runner
@@ -32,57 +35,91 @@ class Runner {
     
     protected $logger;
     
-    public function __construct(Configuration $configuration, LoggerInterface $logger) {
+    protected $dbh;
+    
+    protected $dbh;
+    
+    protected $worklog;
+    
+    protected $tasks;
+    
+    public function __construct(
+        Configuration $configuration,
+        LoggerInterface $logger,
+        TaskTable $tasks,
+        Connection $dbh = null
+    ) {
         
         // init components
         $this->configuration = $configuration;
-        
         $this->logger = $logger;
+        $this->tasks = $tasks;
+        
+        // init database
+        $this->dbh = is_null($dbh) ? Database::init($configuration) : $dbh;
+        
+        // init worklog manager
+        $this->worklog = new Worklog($dbh);
         
     }
     
-    public function run($id, $task, $class, $timestamp = null, $name = null) {
+    public function run($name, $task, $jid = null, $parameters = array()) {
         
-        $this->logger->info("Starting task $task ($id) ");
-
         try {
-
+            
+            // retrieve the task class
+            $class = $this->tasks->get($task)->class;
+        
+            $start = microtime(true);
+            
             // create a task instance
-
             $thetask = new $class(
-                $this->configuration,
                 $this->logger,
                 $name,
-                $timestamp,
-                $id,
                 $parameters
             );
 
-            // get the task pid (we are in singlethread mode)
-
+            // get the task pid
             $pid = $thetask->pid;
+            
+            $this->logger->info("Starting task $task ($class) with pid $pid");
+            
+            $wid = $this->worklog->open($pid, $name, $jid, $task, $start);
 
             // run task
-
-            $result = $thetask->start();
+            $result = $thetask->run();
+            
+            $status = true;
         
         } catch (TaskException $te) {
 
-            $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with error");
-        
-            return array($pid, $name, false, $start_timestamp, $te->getEndTimestamp(), $te->getMessage(), $id, $te->getWorklogId());
+            $status = false;
+            
+            $result = $te->getMessage();
         
         } catch (Exception $e) {
 
-            $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with error");
+            $status = false;
+            
+            $result = $e->getMessage();
         
-            return array($pid, $name, false, $start_timestamp, null, $e->getMessage(), $id, null);
-        
+        } finally {
+            
+            if ( $wid ) $this->worklog->close($wid, true, $result, microtime(true));
+            
         }
 
-        $this->logger->notice("Job ".$job['name']."(".$job['id'].") ends with ".($result["success"] ? "success" : "failure"));
-
-        return array($pid, $name, $result["success"], $start_timestamp, $result["timestamp"], $result["result"], $id, $result["worklogid"]);
+        $this->logger->notice("Task $name ($task) with pid $pid ends in ".$status ? 'success' : 'error');
+        
+        return new Result(
+            $pid,
+            $name,
+            $success,
+            $start,
+            $end,
+            $result,
+            $wid
+        );
         
     }
     

@@ -11,7 +11,6 @@ use \Comodojo\Dispatcher\Components\LogManager;
 use \Comodojo\Dispatcher\Components\EventsManager;
 use \Comodojo\Dispatcher\Components\CacheManager;
 use \Comodojo\Cache\Cache;
-use \League\Event\Emitter;
 use \League\CLImate\CLImate;
 use \Psr\Log\LoggerInterface;
 
@@ -22,7 +21,7 @@ class Extender extends Daemon {
     public function __construct(
         $configuration = array(),
         LoggerInterface $logger = null,
-        Emitter $events = null,
+        EventsManager $events = null,
         Cache $cache = null
     ) {
 
