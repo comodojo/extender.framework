@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Components;
 
-use \Comodojo\Dispatcher\Components\Patameters as ParametersTrait;
+use \Comodojo\Dispatcher\Components\Parameters as ParametersTrait;
 
 /**
  * Job object
@@ -10,7 +10,7 @@ use \Comodojo\Dispatcher\Components\Patameters as ParametersTrait;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -28,19 +28,19 @@ use \Comodojo\Dispatcher\Components\Patameters as ParametersTrait;
 class Parameters {
 
     use ParametersTrait;
-    
+
     public function __construct($parameters = array()) {
-        
+
         $this->merge($parameters);
-        
+
     }
-    
+
     public function merge($properties) {
-        
+
         $this->parameters = array_replace($this->parameters, $properties);
-        
+
         return $this;
-        
+
     }
-    
+
 }

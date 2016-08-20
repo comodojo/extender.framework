@@ -32,7 +32,10 @@ class DefaultConfiguration {
         'fork-limit' => 0,
         'child-max-result-bytes' => 2048,
         'child-max-runtime' => 600,
-        'child-lagger-timeout' => 10
+        'child-lagger-timeout' => 10,
+        'database-worklogs-table' => 'worklogs',
+        'database-jobs-table' => 'jobs',
+        'database-queue-table' => 'queue'
     );
 
     public static function get() {

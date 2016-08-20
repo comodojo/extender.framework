@@ -31,15 +31,15 @@ use \Exception;
 class Database {
 
     public static function init(Configuration $configuration) {
-        
+
         $dbspecs = $configuration->get('database');
-        
+
         if ( empty($dbspecs) || !is_array($dbspecs) ) throw new Exception("Empty database connection parameters");
-        
+
         $config = new DoctrineConfiguration();
-        
+
         return DriverManager::getConnection($dbspecs, $config);
-        
+
     }
 
 }

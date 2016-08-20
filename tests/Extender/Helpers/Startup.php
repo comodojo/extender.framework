@@ -19,7 +19,8 @@ class Startup extends \PHPUnit_Framework_TestCase {
                     "level" => "debug"
                 )
             )
-        )
+        ),
+
     );
 
     protected static $configuration;
@@ -33,7 +34,12 @@ class Startup extends \PHPUnit_Framework_TestCase {
         $config = array_merge(self::$configuration_parameters, array(
             "base-path" => realpath(dirname(__FILE__)."/../../resources/"),
             "pid-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.pid",
-            "run-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.run"
+            "run-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.run",
+            "database" => array(
+                'dbname' => 'sqlite',
+                'driver' => 'pdo_sqlite',
+                'path' => realpath(dirname(__FILE__)."/../../resources/database")."/extender.sqlite"
+            )
         ));
 
         self::$configuration = new Configuration($config);

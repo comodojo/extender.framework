@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Tasks;
 
 use \Comodojo\Extender\Tasks\Table as TasksTable;
+use \Comodojo\Extender\Components\Database;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Dispatcher\Components\EventsManager;
 use \Psr\Log\LoggerInterface;
@@ -38,8 +39,6 @@ class Runner {
 
     protected $dbh;
 
-    protected $dbh;
-
     protected $worklog;
 
     protected $tasks;
@@ -60,7 +59,7 @@ class Runner {
         $this->dbh = is_null($dbh) ? Database::init($configuration) : $dbh;
 
         // init worklog manager
-        $this->worklog = new Worklog($dbh);
+        $this->worklog = new Worklog($this->dbh, $this->configuration->get('database-worklogs-table'));
 
     }
 
