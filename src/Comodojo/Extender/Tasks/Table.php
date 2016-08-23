@@ -65,7 +65,7 @@ class Table implements Iterator, ArrayAccess, Countable {
             return false;
         }
 
-        if ( empty($name) || empty($class) ) {
+        if ( empty($name) || empty($class) || !class_exists($class) ) {
             $this->logger->warning("Skipping invalid task definition", array(
                 "NAME"       => $name,
                 "CLASS"      => $class,

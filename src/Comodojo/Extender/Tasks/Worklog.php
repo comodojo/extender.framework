@@ -41,25 +41,28 @@ class Worklog {
 
     }
 
-    public function open($pid, $name, $jobid, $task, $start) {
+    public function open($pid, $name, $jobid, $task, $parameters, $start) {
 
         $this->dbh
             ->createQueryBuilder()
             ->insert($this->table)
             ->values(array (
-                'status' => 'RUNNING',
+				'id' => 0,
+                'status' => '?',
                 'pid' => '?',
                 'name' => '?',
-                'jobid' => '?',
+                'jid' => '?',
                 'task' => '?',
+				'parameters' => '?',
                 'start' => '?'
             ))
-            ->setParameter(0, $pid)
-            ->setParameter(1, $name)
-            ->setParameter(2, $jobid)
-            ->setParameter(3, $task)
-            ->setParameter(4, $start)
-            ->getQuery()
+            ->setParameter(0, 'RUNNING')
+			->setParameter(1, $pid)
+            ->setParameter(2, $name)
+            ->setParameter(3, $jobid)
+            ->setParameter(4, $task)
+			->setParameter(5, serialize($parameters))
+            ->setParameter(6, $start)
             ->execute();
 
         return $this->dbh->lastInsertId();
@@ -71,17 +74,12 @@ class Worklog {
         $this->dbh
             ->createQueryBuilder()
             ->update($this->table)
+            ->set('status', '?')
+            ->set('success', $success)
+            ->set('result', $result)
+            ->set('end', $end)
             ->where("id = $wid")
-            ->values(array (
-                'status' => 'FINISHED',
-                'success' => '?',
-                'result' => '?',
-                'end' => '?'
-            ))
-            ->setParameter(0, $success)
-            ->setParameter(1, $result)
-            ->setParameter(2, $end)
-            ->getQuery()
+            ->setParameter(0, 'FINISHED')
             ->execute();
 
     }

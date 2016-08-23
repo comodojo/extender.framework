@@ -5,9 +5,10 @@ use \Comodojo\Extender\Components\RunLock;
 use \Comodojo\Extender\Events\DaemonEvent;
 use \Comodojo\Extender\Listeners\PauseDaemon;
 use \Comodojo\Extender\Listeners\ResumeDaemon;
+use \Comodojo\Extender\Utils\Checks;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Cache\Cache;
-use \League\Event\Emitter;
+use \Comodojo\Dispatcher\Components\EventsManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
 
@@ -42,10 +43,14 @@ abstract class Daemon extends Process {
     public function __construct(
         Configuration $configuration,
         LoggerInterface $logger,
-        Emitter $events,
+        EventsManager $events,
         $looptime = 1,
         $niceness = null)
     {
+
+        if ( !Checks::signals() ) {
+            throw new Exception("Missing pcntl fork");
+        }
 
         parent::__construct($configuration, $logger, $events, $niceness);
 

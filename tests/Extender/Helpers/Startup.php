@@ -39,7 +39,10 @@ class Startup extends \PHPUnit_Framework_TestCase {
                 'dbname' => 'sqlite',
                 'driver' => 'pdo_sqlite',
                 'path' => realpath(dirname(__FILE__)."/../../resources/database")."/extender.sqlite"
-            )
+            ),
+            'database-worklogs-table' => 'worklogs',
+            'database-jobs-table' => 'jobs',
+            'database-queue-table' => 'queue'
         ));
 
         self::$configuration = new Configuration($config);

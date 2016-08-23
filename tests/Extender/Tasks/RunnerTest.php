@@ -12,13 +12,15 @@ class RunnerTest extends Startup {
         $table = new Table(self::$logger);
         $table->add('test','\Comodojo\Extender\Tests\Helpers\MockTask','mocktask');
 
-        $runner = new Runner(self::$configuration, self::$logger, $table);
+        $runner = new Runner(self::$configuration, self::$logger, $table, self::$events);
 
         $result = $runner->run('runnertest','test');
 
         $this->assertInstanceOf('\Comodojo\Extender\Tasks\Result', $result);
 
-        var_export($result);
+        $this->assertEquals(42, $result->result);
+        $this->assertEquals('runnertest', $result->name);
+        $this->assertTrue($result->success);
 
     }
 

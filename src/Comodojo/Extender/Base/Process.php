@@ -1,12 +1,14 @@
 <?php namespace Comodojo\Extender\Base;
 
 use \Comodojo\Extender\Components\ProcessUtils;
-use \Comodojo\Dispatcher\Components\Model as ClassModel;
 use \Comodojo\Extender\Events\SignalEvent;
+use \Comodojo\Extender\Utils\Checks;
+use \Comodojo\Dispatcher\Components\Model as ClassModel;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Dispatcher\Components\Timestamp as TimestampTrait;
-use \League\Event\Emitter;
+use \Comodojo\Dispatcher\Components\EventsManager;
 use \Psr\Log\LoggerInterface;
+use \RuntimeException;
 use \Exception;
 
 /**
@@ -42,12 +44,20 @@ abstract class Process extends ClassModel {
     public function __construct(
         Configuration $configuration,
         LoggerInterface $logger,
-        Emitter $events,
+        EventsManager $events,
         $niceness = null
     ){
 
+        if ( !Checks::cli() ) {
+            throw new RuntimeException("Extender process can run only in cli SAPI");
+        }
+
+        if ( !Checks::signals() ) {
+            throw new Exception("Missing pcntl signaling");
+        }
+
         // Setup parent Model
-        parent::_construct($configuration, $logger);
+        parent::__construct($configuration, $logger);
 
         // get current PID and timestamp
         $this->pid = $this->getPid();

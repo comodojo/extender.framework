@@ -2,6 +2,8 @@
 
 use \Comodojo\Extender\Tasks\Table as TasksTable;
 use \Comodojo\Extender\Components\Database;
+use \Comodojo\Extender\Events\TaskEvent;
+use \Comodojo\Extender\Events\TaskStatusEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Dispatcher\Components\EventsManager;
 use \Psr\Log\LoggerInterface;
@@ -37,6 +39,8 @@ class Runner {
 
     protected $logger;
 
+    protected $events;
+
     protected $dbh;
 
     protected $worklog;
@@ -47,12 +51,14 @@ class Runner {
         Configuration $configuration,
         LoggerInterface $logger,
         TasksTable $tasks,
+        EventsManager $events,
         Connection $dbh = null
     ) {
 
         // init components
         $this->configuration = $configuration;
         $this->logger = $logger;
+        $this->events = $events;
         $this->tasks = $tasks;
 
         // init database
@@ -67,61 +73,90 @@ class Runner {
 
         try {
 
-            // retrieve the task class
-            $class = $this->tasks->get($task)->class;
+            $this->logger->info("Starting new task $task ($name)");
 
             $start = microtime(true);
 
-            // create a task instance
-            $thetask = new $class(
-                $this->logger,
-                $name,
-                $parameters
-            );
+            $thetask = $this->createTask($name, $task, $parameters);
 
-            // get the task pid
+            $this->events->emit( new TaskEvent('start', $thetask) );
+
             $pid = $thetask->pid;
 
-            $this->logger->info("Starting task $task ($class) with pid $pid");
-
-            $wid = $this->worklog->open($pid, $name, $jid, $task, $start);
-
-            // run task
-            $result = $thetask->run();
+            $wid = $this->worklog->open($pid, $name, $jid, $task, $parameters, $start);
 
             $status = true;
 
-        } catch (TaskException $te) {
+            $this->events->emit( new TaskStatusEvent('start', $thetask) );
 
-            $status = false;
+            try {
 
-            $result = $te->getMessage();
+                // run task
+                $result = $thetask->run();
+
+            } catch (TaskException $te) {
+
+                $status = false;
+
+                $result = $te->getMessage();
+
+            } catch (Exception $e) {
+
+                $status = false;
+
+                $result = $e->getMessage();
+
+            }
+
+            $this->events->emit( new TaskStatusEvent($status ? 'success' : 'error', $thetask) );
+
+            $this->events->emit( new TaskStatusEvent('stop', $thetask) );
+
+            $this->events->emit( new TaskEvent('stop', $thetask) );
+
+            $end = microtime(true);
+
+            $this->worklog->close($wid, $status, $result, $end);
+
+            $this->logger->notice("Task $name ($task) with pid $pid ends in ".$status ? 'success' : 'error');
 
         } catch (Exception $e) {
 
-            $status = false;
-
-            $result = $e->getMessage();
-
-        } finally {
-
-            if ( $wid ) $this->worklog->close($wid, true, $result, microtime(true));
+            throw $e;
 
         }
-
-        $this->logger->notice("Task $name ($task) with pid $pid ends in ".$status ? 'success' : 'error');
 
         return new Result(
             array (
                 $pid,
                 $name,
-                $success,
+                $status,
                 $start,
                 $end,
                 $result,
-                $wid
+                intval($wid)
             )
         );
+
+    }
+
+    private function createTask($name, $task, $parameters) {
+
+        // retrieve the task class
+        $class = $this->tasks->get($task)->class;
+
+        // create a task instance
+        $thetask = new $class(
+            $this->logger,
+            $name,
+            $parameters
+        );
+
+        if ( !($thetask instanceof \Comodojo\Extender\Tasks\TaskInterface) ) {
+            throw new Exception("Invalid task object $class");
+        }
+
+        return $thetask;
 
     }
 

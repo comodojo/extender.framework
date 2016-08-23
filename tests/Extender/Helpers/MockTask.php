@@ -6,7 +6,7 @@ class MockTask extends AbstractTask {
 
     public function run() {
 
-        return true;
+        return 42;
 
     }
 

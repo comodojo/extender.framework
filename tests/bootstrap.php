@@ -61,15 +61,15 @@ $jobs->addColumn("lastrun", "integer", array("length" => 64, "default" => null))
 $worklogs = $schema->createTable("worklogs");
 $worklogs->addColumn("id", "integer", array("unsigned" => true, "notnull" => true, "autoincrement" => true));
 $worklogs->addColumn("pid", "integer", array("unsigned" => true, "notnull" => true));
-$worklogs->addColumn("jid", "integer", array("unsigned" => true, "default" => null));
+$worklogs->addColumn("jid", "integer", array("unsigned" => true, "notnull" => false, "default" => null));
 $worklogs->addColumn("name", "string", array("length" => 128, "notnull" => true));
 $worklogs->addColumn("task", "string", array("length" => 128, "notnull" => true));
-$worklogs->addColumn("parameters", "text", array("default" => null));
+$worklogs->addColumn("parameters", "text", array("default" => null, "notnull" => false));
 $worklogs->addColumn("status", "string", array("length" => 12, "notnull" => true));
-$worklogs->addColumn("success", "boolean", array("default" => false));
-$worklogs->addColumn("result", "text", array("default" => null));
+$worklogs->addColumn("success", "boolean", array("default" => false, "notnull" => false));
+$worklogs->addColumn("result", "text", array("default" => null, "notnull" => false));
 $worklogs->addColumn("start", "integer", array("length" => 64, "notnull" => true));
-$worklogs->addColumn("end", "integer", array("length" => 64, "default" => null));
+$worklogs->addColumn("end", "integer", array("length" => 64, "default" => null, "notnull" => false));
 $worklogs->addForeignKeyConstraint($jobs, array("jid"), array("id"), array("onUpdate" => "NO ACTION", "onDelete" => "SET NULL"));
 
 $queue = $schema->createTable("queue");
