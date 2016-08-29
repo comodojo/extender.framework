@@ -74,12 +74,11 @@ class Worklog {
         $this->dbh
             ->createQueryBuilder()
             ->update($this->table)
-            ->set('status', '?')
+            ->set('status', $this->dbh->quote('FINISHED'))
             ->set('success', $success)
-            ->set('result', $result)
+            ->set('result', $this->dbh->quote(serialize($result)))
             ->set('end', $end)
             ->where("id = $wid")
-            ->setParameter(0, 'FINISHED')
             ->execute();
 
     }

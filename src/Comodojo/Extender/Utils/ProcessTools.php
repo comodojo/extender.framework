@@ -1,4 +1,4 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Utils;
 
 use \Exception;
 
@@ -25,11 +25,11 @@ use \Exception;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class ProcessUtils {
-    
+class ProcessTools {
+
     /**
      * Kill a child process
-     * 
+     *
      * @return  bool
      */
     public static function kill($pid, $lagger_timeout = 0) {
@@ -39,7 +39,7 @@ class ProcessUtils {
         $term = posix_kill($pid, SIGTERM);
 
         while ( time() < $kill_time ) {
-            
+
             if ( !self::isRunning($pid) ) return $term;
 
         }
@@ -47,10 +47,10 @@ class ProcessUtils {
         return posix_kill($pid, SIGKILL);
 
     }
-    
+
     /**
      * Return true if process is still running, false otherwise
-     * 
+     *
      * @return  bool
      */
     public static function isRunning($pid) {
@@ -58,14 +58,14 @@ class ProcessUtils {
         return (pcntl_waitpid($pid, $status, WNOHANG) === 0);
 
     }
-    
+
     public static function getNiceness($pid = null) {
-        
+
         return pcntl_getpriority($pid);
-        
+
     }
-    
-    public function setNiceness($niceness = null, $pid = null) {
+
+    public static function setNiceness($niceness = null, $pid = null) {
 
         $niceness = self::filterNiceness($niceness);
 
@@ -73,8 +73,8 @@ class ProcessUtils {
 
             return proc_nice($niceness);
 
-        } 
-        
+        }
+
         return pcntl_setpriority($pid, $$niceness);
 
     }
@@ -90,5 +90,11 @@ class ProcessUtils {
         ));
 
     }
-    
+
+    public static function getPid() {
+
+        return posix_getpid();
+
+    }
+
 }

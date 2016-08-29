@@ -11,7 +11,7 @@ use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
  * @license     GPL-3.0+
  *
  * LICENSE:
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -29,22 +29,30 @@ use \Comodojo\Dispatcher\Components\DataAccess as DataAccessTrait;
 class Job {
 
     use DataAccessTrait;
-    
-    public function __construct($name, $id, $task, $class, $parameters=array()) {
-        
+
+    public function __construct(
+        $name,
+        $id,
+        $task,
+        $niceness = null,
+        $maxtime = null,
+        $parameters = array()
+    ) {
+
         $this->name = $name;
         $this->id = $id;
         $this->task = $task;
-        $this->class = $class;
-        $this->parameters = new Parameters($parameters);
-        
+        $this->niceness = $niceness;
+        $this->maxtime = $maxtime;
+        // $this->parameters = new Parameters($parameters);
+        $this->parameters = $parameters;
         $this->uid = self::getUid();
-        
+
     }
-    
+
     /**
      * Get a job unique identifier
-     * 
+     *
      * @return  string
      */
     private static function getUid() {
@@ -52,5 +60,5 @@ class Job {
         return md5(uniqid(rand(), true), 0);
 
     }
-    
+
 }

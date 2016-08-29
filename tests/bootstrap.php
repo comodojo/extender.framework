@@ -54,6 +54,7 @@ $jobs->addColumn("dayofweek", "string", array("length" => 16, "notnull" => true)
 $jobs->addColumn("year", "string", array("length" => 16, "notnull" => true));
 $jobs->addColumn("parameters", "text", array("default" => null));
 $jobs->addColumn("niceness", "integer", array("default" => 0));
+$jobs->addColumn("maxtime", "integer", array("default" => null));
 $jobs->addColumn("enabled", "boolean", array("default" => false));
 $jobs->addColumn("firstrun", "integer", array("length" => 64, "notnull" => true));
 $jobs->addColumn("lastrun", "integer", array("length" => 64, "default" => null));

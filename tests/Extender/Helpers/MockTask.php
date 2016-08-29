@@ -6,7 +6,16 @@ class MockTask extends AbstractTask {
 
     public function run() {
 
-        return 42;
+        $copy = $this->parameters->get('copy');
+
+        $sleep = $this->parameters->get('sleep');
+
+        if ( $sleep !== null ) {
+            $this->logger->debug("zZz... sleeping for $sleep seconds... zZz");
+            sleep($sleep);
+        }
+
+        return is_null($copy) ? 42 : $copy;
 
     }
 

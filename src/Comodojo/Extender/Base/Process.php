@@ -1,8 +1,8 @@
 <?php namespace Comodojo\Extender\Base;
 
-use \Comodojo\Extender\Components\ProcessUtils;
 use \Comodojo\Extender\Events\SignalEvent;
 use \Comodojo\Extender\Utils\Checks;
+use \Comodojo\Extender\Utils\ProcessTools;
 use \Comodojo\Dispatcher\Components\Model as ClassModel;
 use \Comodojo\Dispatcher\Components\Configuration;
 use \Comodojo\Dispatcher\Components\Timestamp as TimestampTrait;
@@ -60,16 +60,13 @@ abstract class Process extends ClassModel {
         parent::__construct($configuration, $logger);
 
         // get current PID and timestamp
-        $this->pid = $this->getPid();
+        $this->pid = ProcessTools::getPid();
         $this->setTimestamp();
 
         // init events components
         $this->events = $events;
 
-        // adjust process niceness
-        $this->utils = new ProcessUtils();
-
-        if ( $this->utils->setNiceness($niceness) === false ) {
+        if ( ProcessTools::setNiceness($niceness) === false ) {
             $this->logger->warning("Unable to set parent process niceness to $niceness");
         }
 
@@ -128,7 +125,7 @@ abstract class Process extends ClassModel {
      */
     public function sigIntHandler($signal) {
 
-        if ( $this->pid == $this->getPid() ) {
+        if ( $this->pid == ProcessTools::getPid() ) {
 
             $this->logger->info("Received TERM signal, shutting down process gracefully");
 
@@ -147,7 +144,7 @@ abstract class Process extends ClassModel {
      */
     public function sigTermHandler($signal) {
 
-        if ( $this->pid == $this->getPid() ) {
+        if ( $this->pid == ProcessTools::getPid() ) {
 
             $this->logger->info("Received TERM signal, shutting down process");
 
@@ -166,7 +163,7 @@ abstract class Process extends ClassModel {
      */
     public function genericSignalHandler($signal) {
 
-        if ( $this->pid == $this->getPid() ) {
+        if ( $this->pid == ProcessTools::getPid() ) {
 
             $this->logger->info("Received $signal signal, firing associated event(s)");
 
@@ -192,12 +189,6 @@ abstract class Process extends ClassModel {
             exit($return_code);
 
         }
-
-    }
-
-    private function getPid() {
-
-        return posix_getpid();
 
     }
 

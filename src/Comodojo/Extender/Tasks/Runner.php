@@ -73,9 +73,9 @@ class Runner {
 
         try {
 
-            $this->logger->info("Starting new task $task ($name)");
-
             $start = microtime(true);
+
+            $this->logger->info("Starting new task $task ($name)");
 
             $thetask = $this->createTask($name, $task, $parameters);
 
@@ -118,7 +118,7 @@ class Runner {
 
             $this->worklog->close($wid, $status, $result, $end);
 
-            $this->logger->notice("Task $name ($task) with pid $pid ends in ".$status ? 'success' : 'error');
+            $this->logger->notice("Task $name ($task) with pid $pid ends in ".($status ? 'success' : 'error'));
 
         } catch (Exception $e) {
 
@@ -142,8 +142,15 @@ class Runner {
 
     private function createTask($name, $task, $parameters) {
 
+        // get the Task
+        $task_entry = $this->tasks->get($task);
+
+        if ( is_null($task_entry) ) {
+            throw new Exception("Cannot find task $task");
+        }
+
         // retrieve the task class
-        $class = $this->tasks->get($task)->class;
+        $class = $task_entry->class;
 
         // create a task instance
         $thetask = new $class(

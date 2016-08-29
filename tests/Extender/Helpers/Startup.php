@@ -35,6 +35,7 @@ class Startup extends \PHPUnit_Framework_TestCase {
             "base-path" => realpath(dirname(__FILE__)."/../../resources/"),
             "pid-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.pid",
             "run-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.run",
+            "queue-file" => realpath(dirname(__FILE__)."/../../resources/cache")."/extender.queue",
             "database" => array(
                 'dbname' => 'sqlite',
                 'driver' => 'pdo_sqlite',
