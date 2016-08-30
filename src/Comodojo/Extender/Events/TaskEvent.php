@@ -26,23 +26,13 @@ use \Comodojo\Extender\Tasks\TaskInterface;
 
 class TaskEvent extends AbstractEvent {
 
-    private $event;
-
     private $task;
 
     public function __construct($event, TaskInterface $task) {
 
         parent::__construct("extender.task.$event");
 
-        $this->event = $event;
-
         $this->task = $task;
-
-    }
-
-    public function getEvent() {
-
-        return $this->event;
 
     }
 

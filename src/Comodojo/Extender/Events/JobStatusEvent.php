@@ -24,9 +24,7 @@ use \Comodojo\Extender\Jobs\Job;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class JobEvent extends AbstractEvent {
-
-    private $status;
+class JobStatusEvent extends AbstractEvent {
 
     private $job;
 
@@ -36,15 +34,7 @@ class JobEvent extends AbstractEvent {
 
         parent::__construct("extender.job.$name.$status");
 
-        $this->status = $status;
-
         $this->job = $job;
-
-    }
-
-    public function getStatus() {
-
-        return $this->status;
 
     }
 

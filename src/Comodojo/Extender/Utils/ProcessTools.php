@@ -28,13 +28,13 @@ use \Exception;
 class ProcessTools {
 
     /**
-     * Kill a child process
+     * Terminate a process
      *
      * @return  bool
      */
-    public static function kill($pid, $lagger_timeout = 0) {
+    public static function term($pid, $lagger_timeout = 0) {
 
-        $kill_time = time() + self::$lagger_timeout;
+        $kill_time = time() + $lagger_timeout;
 
         $term = posix_kill($pid, SIGTERM);
 
@@ -43,6 +43,17 @@ class ProcessTools {
             if ( !self::isRunning($pid) ) return $term;
 
         }
+
+        return self::kill($pid);
+
+    }
+
+    /**
+     * Kill a process
+     *
+     * @return  bool
+     */
+    public static function kill($pid) {
 
         return posix_kill($pid, SIGKILL);
 

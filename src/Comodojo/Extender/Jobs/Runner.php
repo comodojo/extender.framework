@@ -6,6 +6,7 @@ use \Comodojo\Extender\Tasks\Table as TasksTable;
 use \Comodojo\Extender\Tasks\Runner as TasksRunner;
 use \Comodojo\Extender\Utils\ProcessTools;
 use \Comodojo\Extender\Utils\Checks;
+use \Comodojo\Extender\Utils\Validator;
 use \Comodojo\Extender\Events\JobEvent;
 use \Comodojo\Extender\Events\JobStatusEvent;
 use \Comodojo\Dispatcher\Components\Configuration;
@@ -60,6 +61,8 @@ class Runner {
 
     private $runner;
 
+    private $active = true;
+
     public function __construct(
         Configuration $configuration,
         LoggerInterface $logger,
@@ -84,10 +87,10 @@ class Runner {
         );
 
         // retrieve parameters
-        $this->lagger_timeout = self::getLaggerTimeout($this->configuration);
-        $this->multithread = self::getMultithread($this->configuration);
-        $this->max_runtime = self::getMaxRuntime($this->configuration);
-        $this->max_childs = self::getForkLimit($this->configuration);
+        $this->lagger_timeout = Validator::laggerTimeout($this->configuration->get('child-lagger-timeout'));
+        $this->multithread = Validator::multithread($this->configuration->get('multithread'));
+        $this->max_runtime = Validator::maxChildRuntime($this->configuration->get('child-max-runtime'));
+        $this->max_childs = Validator::forkLimit($this->configuration->get('fork-limit'));
 
         $this->logger->debug("Jobs runner online", array(
             'lagger_timeout' => $this->lagger_timeout,
@@ -122,9 +125,13 @@ class Runner {
 
         foreach ($this->manager->queued() as $uid => $job) {
 
+            $this->events->emit( new JobEvent('start', $job) );
+            $this->events->emit( new JobStatusEvent('start', $job) );
+
             if ( $this->multithread === false ) {
 
                 $pid = ProcessTools::getPid();
+
                 $this->manager->isStarting($uid, $pid);
 
                 $result = $this->runner->run(
@@ -135,6 +142,9 @@ class Runner {
                 );
 
                 $this->manager->isCompleted($uid, $result->success, $result->result, $result->wid);
+
+                $this->events->emit( new JobEvent('stop', $job) );
+                $this->events->emit( new JobStatusEvent('stop', $job) );
 
                 continue;
 
@@ -147,6 +157,9 @@ class Runner {
             } catch (Exception $e) {
 
                 $this->manager->isAborted($uid, $e->getMessage());
+
+                $this->events->emit( new JobEvent('stop', $job) );
+                $this->events->emit( new JobStatusEvent('stop', $job) );
 
                 continue;
 
@@ -164,11 +177,53 @@ class Runner {
 
             }
 
+            // is it the right way to terminate loop?
+            // if ( $this->active === false ) return;
+
         }
 
         if ( $this->multithread === true ) $this->catcher_loop();
 
         return array_values($this->manager->completed());
+
+    }
+
+    public function free() {
+
+        $this->ipc->free();
+        $this->manager->free();
+
+    }
+
+    public function stop() {
+
+        $this->logger->info("Stop signal received, trying to termminate jobs gracefully");
+
+        // $this->active = false;
+
+        $this->abortQueued("Stop signal received, aborting queued jobs");
+
+        foreach ( $this->manager->running() as $uid => $job ) {
+
+            $term = ProcessTools::term($job->pid, $this->lagger_timeout);
+
+        }
+
+    }
+
+    public function kill() {
+
+        $this->logger->info("Term signal received, termminating jobs the hard way");
+
+        // $this->active = false;
+
+        $this->abortQueued("Kill signal received, aborting queued jobs");
+
+        foreach ( $this->manager->running() as $uid => $job ) {
+
+            $term = ProcessTools::kill($job->pid);
+
+        }
 
     }
 
@@ -287,6 +342,9 @@ class Runner {
 
                 $this->logger->notice("Job ".$job->name."(id: ".$job->id.", uid: $uid) ends in $status");
 
+                $this->events->emit( new JobEvent('stop', $job) );
+                $this->events->emit( new JobStatusEvent('stop', $job) );
+
             } else {
 
                 $current_time = microtime(true);
@@ -301,7 +359,7 @@ class Runner {
                         "MAX_RUNTIME"   => $maxtime
                     ));
 
-                    $kill = ProcessTools::kill($job->pid, $this->lagger_timeout);
+                    $kill = ProcessTools::term($job->pid, $this->lagger_timeout);
 
                     if ( $kill ) {
                         $this->logger->warning("Pid ".$job->pid." killed");
@@ -315,6 +373,9 @@ class Runner {
 
                     $this->logger->notice("Job ".$job->name."(id: ".$job->id.", uid: $uid) ends in error");
 
+                    $this->events->emit( new JobEvent('stop', $job) );
+                    $this->events->emit( new JobStatusEvent('stop', $job) );
+
                 }
 
             }
@@ -323,49 +384,13 @@ class Runner {
 
     }
 
-    public function free() {
+    private function abortQueued($message) {
 
-        $this->ipc->free();
-        $this->manager->free();
+        foreach ($this->manager->queued() as $uid => $job) {
 
-    }
+            $this->manager->isAborted($uid, $message);
 
-    private static function getLaggerTimeout(Configuration $configuration) {
-
-        return filter_var($configuration->get('child-lagger-timeout'), FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 5,
-                'min_range' => 0
-            )
-        ));
-
-    }
-
-    private static function getMaxRuntime(Configuration $configuration) {
-
-        return filter_var($configuration->get('child-max-runtime'), FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 600,
-                'min_range' => 1
-            )
-        ));
-
-    }
-
-    private static function getForkLimit(Configuration $configuration) {
-
-        return filter_var($configuration->get('fork-limit'), FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 0,
-                'min_range' => 0
-            )
-        ));
-
-    }
-
-    private static function getMultithread(Configuration $configuration) {
-
-        return $configuration->get('multithread') === true && Checks::multithread();
+        }
 
     }
 

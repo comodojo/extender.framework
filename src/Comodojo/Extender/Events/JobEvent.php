@@ -26,23 +26,13 @@ use \Comodojo\Extender\Jobs\Job;
 
 class JobEvent extends AbstractEvent {
 
-    private $event;
-
     private $job;
 
     public function __construct($event, Job $job) {
 
         parent::__construct("extender.job.$event");
 
-        $this->event = $event;
-
         $this->job = $job;
-
-    }
-
-    public function getEvent() {
-
-        return $this->event;
 
     }
 

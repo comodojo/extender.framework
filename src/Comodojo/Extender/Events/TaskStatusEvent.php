@@ -26,8 +26,6 @@ use \Comodojo\Extender\Tasks\TaskInterface;
 
 class TaskStatusEvent extends AbstractEvent {
 
-    private $status;
-
     private $task;
 
     public function __construct($status, TaskInterface $task) {
@@ -39,12 +37,6 @@ class TaskStatusEvent extends AbstractEvent {
         $this->status = $status;
 
         $this->task = $task;
-
-    }
-
-    public function getStatus() {
-
-        return $this->status;
 
     }
 
