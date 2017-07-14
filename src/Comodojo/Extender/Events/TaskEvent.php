@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Events;
 
-use \Comodojo\Extender\Tasks\TaskInterface;
+use \Comodojo\Extender\Interfaces\TaskInterface;
 
 /**
  * @package     Comodojo Dispatcher

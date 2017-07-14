@@ -1,0 +1,10 @@
+#!/usr/bin/env php
+<?php
+
+require realpath(dirname(__FILE__)."/../")."/bootstrap.php";
+
+use \Comodojo\Extender\ExtenderDaemon;
+
+$daemon = new ExtenderDaemon();
+
+$daemon->init();

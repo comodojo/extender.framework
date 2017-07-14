@@ -1,0 +1,29 @@
+enabled: true
+encoding: UTF-8
+static-config: config
+routing-table-cache: true
+routing-table-ttl: 86400
+log:
+    enabled: true
+    name: worker
+    providers:
+        local:
+            type: StreamHandler
+            level: info
+            stream: tests/root/logs/worker.log
+cache:
+    enabled: true
+    algorithm: PICK_FIRST
+    providers:
+        local:
+            type: Filesystem
+            folder: tests/root/cache
+database-params:
+    user: extender
+    password: extender
+    path: database/extender_test
+    driver: pdo_sqlite
+database-devmode: true
+database-proxies: proxy
+database-repositories:
+    - ../../src/Comodojo/Extender/Orm/Entities

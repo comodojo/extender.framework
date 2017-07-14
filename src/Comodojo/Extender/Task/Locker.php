@@ -1,6 +1,6 @@
-<?php namespace Comodojo\Extender\Jobs;
+<?php namespace Comodojo\Extender\Task;
 
-use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Foundation\Base\Configuration;
 use \Psr\Log\LoggerInterface;
 
 /**
@@ -19,25 +19,26 @@ use \Psr\Log\LoggerInterface;
  * THE SOFTWARE.
  */
 
-class Manager {
+class Locker {
 
-    private $logger;
+    use ConfigurationTrait;
+    use LoggerTrait;
 
-    private $running_jobs = array();
+    private $running_jobs = [];
 
-    private $completed_jobs = array();
+    private $completed_jobs = [];
 
-    private $queued_jobs = array();
+    private $queued_jobs = [];
 
-    private $queue_file = 'extender.queue';
+    private $lock_file = 'extender.tasks.locker';
 
     public function __construct(Configuration $configuration, LoggerInterface $logger) {
 
-        $queue_file = $configuration->get('queue-file');
+        $this->setConfiguration($configuration);
+        $this->setLogger($logger);
 
-        if ( $queue_file !== null ) $this->queue_file = $queue_file;
-
-        $this->logger = $logger;
+        $lock_file = $configuration->get('queue-file');
+        if ( $lock_file !== null ) $this->$lock_file = $lock_file;
 
     }
 

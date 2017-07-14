@@ -1,15 +1,15 @@
 <?php
 
-use \Doctrine\DBAL\Configuration;
-use \Doctrine\DBAL\DriverManager;
-use \Doctrine\DBAL\Schema\Schema;
+// use \Doctrine\DBAL\Configuration;
+// use \Doctrine\DBAL\DriverManager;
+// use \Doctrine\DBAL\Schema\Schema;
 
 // init the autoloader
 $loader = require __DIR__ . "/../vendor/autoload.php";
 
 // add PSR4 test classes
 $loader->addPsr4('Comodojo\\Extender\\Tests\\', __DIR__."/Extender");
-
+/*
 $database = __DIR__.'/resources/database/extender.sqlite';
 
 // delete the old database (if any)
@@ -85,3 +85,4 @@ $queries = $schema->toSql($platform);
 foreach ($queries as $query) {
     $conn->executeQuery($query);
 }
+*/

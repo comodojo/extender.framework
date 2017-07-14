@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Events;
 
-use \Comodojo\Extender\Tasks\TaskInterface;
+use \Comodojo\Extender\Interfaces\TaskInterface;
 
 /**
  * @package     Comodojo Dispatcher
@@ -30,7 +30,7 @@ class TaskStatusEvent extends AbstractEvent {
 
     public function __construct($status, TaskInterface $task) {
 
-        $name = $task->name;
+        $name = $task->getName();
 
         parent::__construct("extender.task.$name.$status");
 

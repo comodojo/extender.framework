@@ -1,19 +1,26 @@
 <?php namespace Comodojo\Extender\Tests\Helpers;
 
-use \Comodojo\Extender\Tasks\AbstractTask;
+use \Comodojo\Extender\Task\AbstractTask;
 use \Comodojo\Exception\TaskException;
+use \Exception;
 
 class MockTask extends AbstractTask {
 
     public function run() {
 
-        $copy = $this->parameters->get('copy');
+        $parametes = $this->getParameters();
 
-        $sleep = $this->parameters->get('sleep');
+        $copy = $parametes->get('copy');
 
-        $fail = $this->parameters->get('fail');
+        $sleep = $parametes->get('sleep');
 
-        if ( $fail === true ) throw new TaskException("Task is failing due to Vogon's poetry");
+        $abort = $parametes->get('abort');
+
+        $fail = $parametes->get('fail');
+
+        if ( $abort === true ) throw new TaskException("Task aborted due to Vogon's poetry");
+
+        if ( $fail === true ) throw new Exception("Task is failing due to Vogon's poetry");
 
         if ( $sleep !== null ) {
             $this->logger->debug("zZz... sleeping for $sleep seconds... zZz");

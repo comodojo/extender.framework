@@ -1,9 +1,12 @@
-<?php namespace Comodojo\Extender\Components;
+<?php namespace Comodojo\Extender\Interfaces;
 
-use \Comodojo\Dispatcher\Components\Parameters as ParametersTrait;
+use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Foundation\Events\Manager as EventsManager;
+use \Comodojo\Extender\Task\TaskParameters;
+use \Psr\Log\LoggerInterface;
 
 /**
- * Job object
+ * Task object
  *
  * @package     Comodojo extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
@@ -25,22 +28,26 @@ use \Comodojo\Dispatcher\Components\Parameters as ParametersTrait;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class Parameters {
+interface TaskInterface {
 
-    use ParametersTrait;
+    /**
+     * Task constructor
+     *
+     * @param string $name
+     * @param TaskParameters $parameters
+     * @param LoggerInterface $logger
+     */
+    public function __construct(
+        Configuration $configuration,
+        EventsManager $events,
+        LoggerInterface $logger,
+        $name,
+        TaskParameters $parameters
+    );
 
-    public function __construct($parameters = array()) {
-
-        $this->merge($parameters);
-
-    }
-
-    public function merge($properties) {
-
-        $this->parameters = array_replace($this->parameters, $properties);
-
-        return $this;
-
-    }
+    /**
+     * The run method; SHOULD be implemented by each task
+     */
+    public function run();
 
 }

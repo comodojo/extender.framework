@@ -31,12 +31,11 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.6",
-        "mtdowling/cron-expression": "^1.0",
-        "monolog/monolog": "^1.0",
-        "comodojo/exceptions": "^1.0",
+        "comodojo/daemon": "dev-master",
         "comodojo/dispatcher.framework": "^4.0",
-        "league/climate": "^3.0",
-        "doctrine/dbal": "^2.5"
+        "comodojo/cache": "^2.0",
+        "mtdowling/cron-expression": "^1.0",
+        "doctrine/orm": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^4.0|^5.0",
@@ -44,5 +43,11 @@
     },
     "replace": {
         "comodojo/extender.framework": "^1.0"
+    },
+    "repositories": {
+        "daemon": {
+            "type": "vcs",
+            "url": "git@github.com:comodojo/daemon.git"
+        }
     }
 }

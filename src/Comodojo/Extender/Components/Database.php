@@ -1,44 +1,146 @@
 <?php namespace Comodojo\Extender\Components;
 
-use \Comodojo\Dispatcher\Components\Configuration;
-use \Doctrine\DBAL\Configuration as DoctrineConfiguration;
+use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Doctrine\ORM\Tools\Setup;
+use \Doctrine\ORM\EntityManager;
 use \Doctrine\DBAL\DriverManager;
-use \Exception;
+use \Doctrine\DBAL\Configuration as DoctrineConfiguration;
+use \Doctrine\ORM\Query\ResultSetMappingBuilder;
+use \Doctrine\Common\Cache\ApcCache;
 
 /**
- * Lock file manager (static methods)
- *
- * @package     Comodojo extender
- * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
- * @license     GPL-3.0+
- *
- * LICENSE:
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+* @package     Comodojo Extender
+* @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+* @license     MIT
+*
+* LICENSE:
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
  */
 
 class Database {
 
+    use ConfigurationTrait;
+
+    protected $entity_manager;
+
+    public function __construct(Configuration $configuration) {
+
+        $this->setConfiguration($configuration);
+
+    }
+
+    public function getConnection() {
+
+        $configuration = $this->getConfiguration();
+        $connection_params = self::getConnectionParameters($configuration);
+        $driverConfig = new DoctrineConfiguration();
+
+        $devmode = $configuration->get('database-devmode') === true ? true : false;
+
+        // currently only ApcCache driver is supported
+        if ( empty($devmode) ) {
+
+            $cache = new ApcCache();
+            $driverConfig->setResultCacheImpl($cache);
+
+        }
+
+        return DriverManager::getConnection($connection_params, $driverConfig);
+
+    }
+
+    public function getEntityManager() {
+
+        if ( $this->entity_manager === null ) {
+
+            $configuration = $this->getConfiguration();
+
+            $connection_params = self::getConnectionParameters($configuration);
+
+            $entity_repositories = self::getEntityRepositories($configuration);
+
+            $devmode = $configuration->get('database-devmode') === true ? true : false;
+            $proxies_folder = $configuration->get('database-proxies');
+
+            $base_folder = $configuration->get('base-path');
+
+            $driverConfig = new DoctrineConfiguration();
+
+            $db_config = Setup::createAnnotationMetadataConfiguration(
+                $entity_repositories,
+                $devmode,
+                "$base_folder/$proxies_folder",
+                null,
+                false
+            );
+
+            if ( $devmode ) {
+
+                $db_config->setAutoGenerateProxyClasses(true);
+
+            } else {
+
+                $cache = new ApcCache();
+                $db_config->setAutoGenerateProxyClasses(false);
+                $db_config->setQueryCacheImpl($cache);
+                $db_config->setResultCacheImpl($cache);
+                $db_config->setMetadataCacheImpl($cache);
+
+            }
+
+            $this->entity_manager = EntityManager::create($connection_params, $db_config);
+
+        } else {
+
+            $this->entity_manager->clear();
+
+        }
+
+        return $this->entity_manager;
+
+    }
+
+    public function setEntityManager(EntityManager $manager) {
+
+        $this->entity_manager = $manager;
+
+        return $this;
+
+    }
+
     public static function init(Configuration $configuration) {
 
-        $dbspecs = $configuration->get('database');
+        return new Database($configuration);
 
-        if ( empty($dbspecs) || !is_array($dbspecs) ) throw new Exception("Empty database connection parameters");
+    }
 
-        $config = new DoctrineConfiguration();
+    protected static function getConnectionParameters(Configuration $configuration) {
 
-        return DriverManager::getConnection($dbspecs, $config);
+        $connection_params = $configuration->get('database-params');
+        $base_folder = $configuration->get('base-path');
+
+        if ( isset($connection_params['path']) ) $connection_params['path'] = $base_folder."/".$connection_params['path'];
+
+        return $connection_params;
+
+    }
+
+    protected static function getEntityRepositories(Configuration $configuration) {
+
+        $base_folder = $configuration->get('base-path');
+        $repos = $configuration->get('database-repositories');
+
+        return array_map(function($repo) use ($base_folder) {
+            return "$base_folder/$repo";
+        }, $repos);
 
     }
 

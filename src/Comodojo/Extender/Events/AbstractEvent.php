@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Events;
 
-use \Comodojo\Dispatcher\Components\Timestamp as TimestampTrait;
+use \Comodojo\Foundation\Timing\TimeTrait;
 use \League\Event\AbstractEvent as LeagueAbstractEvent;
 
 /**
@@ -28,13 +28,13 @@ use \League\Event\AbstractEvent as LeagueAbstractEvent;
 
 abstract class AbstractEvent extends LeagueAbstractEvent {
 
-    use TimestampTrait;
+    use TimeTrait;
 
     private $name;
 
     public function __construct($name) {
 
-        $this->setTimestamp();
+        $this->setTime();
 
         $this->name = $name;
 
