@@ -36,6 +36,13 @@ class Worklog {
     use BaseEntityTrait;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="uid", type="string", length=128, nullable=false)
+     */
+    protected $uid;
+
+    /**
      * @var integer
      *
      * @ORM\Column(name="pid", type="integer", nullable=false)
@@ -84,6 +91,31 @@ class Worklog {
      * @ORM\Column(name="end", type="datetime", nullable=true)
      */
     protected $end_time;
+
+    /**
+     * Get worklog item's uid
+     *
+     * @return integer
+     */
+    public function getUid() {
+
+        return $this->uid;
+
+    }
+
+    /**
+     * Set worklog item's uid
+     *
+     * @param string $uid
+     * @return Worklog
+     */
+    public function setUid($uid) {
+
+        $this->uid = $uid;
+
+        return $this;
+
+    }
 
     /**
      * Get worklog item's pid

@@ -40,10 +40,19 @@ class Runner {
     use EventsTrait;
     use TasksTableTrait;
 
+    /**
+     * @var EntityManager
+     */
     protected $em;
 
+    /**
+     * @var Worklog
+     */
     protected $worklog;
 
+    /**
+     * @var StopWatch
+     */
     protected $stopwatch;
 
     public function __construct(
@@ -71,14 +80,13 @@ class Runner {
 
     }
 
-    public function run(
-        $name,
-        $task,
-        $jid = null,
-        TaskParameters $parameters = null
-    ) {
+    public function run(Request $request) {
 
-        if ( is_null($parameters) ) $parameters = new TaskParameters();
+        $name = $request->getName();
+        $task = $request->getTask();
+        $uid = $request->getUid();
+        $jid = $request->getJid();
+        $parameters = $request->getParameters();
 
         try {
 
@@ -93,6 +101,7 @@ class Runner {
             $pid = $thetask->getPid();
 
             $this->openWorklog(
+                $uid,
                 $pid,
                 $name,
                 $jid,
@@ -143,21 +152,46 @@ class Runner {
 
         }
 
-        return new Result(
-            array (
-                $pid,
-                $name,
-                $status,
-                $this->stopwatch->getStartTime(),
-                $this->stopwatch->getStopTime(),
-                $result,
-                $this->worklog->getId()
-            )
+        $result = new Result([
+            $uid,
+            $pid,
+            $name,
+            $status,
+            $this->stopwatch->getStartTime(),
+            $this->stopwatch->getStopTime(),
+            $result,
+            $this->worklog->getId()
+        ]);
+
+        $this->stopwatch->clear();
+
+        return $result;
+
+    }
+
+    public static function fastStart(
+        Request $request,
+        Configuration $configuration,
+        LoggerInterface $logger,
+        TasksTable $table,
+        EventsManager $events,
+        EntityManager $em = null
+    ) {
+
+        $runner = new Runner(
+            $configuration,
+            $logger,
+            $table,
+            $events,
+            $em
         );
+
+        return $runner->run($request);
 
     }
 
     protected function openWorklog(
+        $uid,
         $pid,
         $name,
         $jid,
@@ -167,6 +201,7 @@ class Runner {
     ) {
 
         $this->worklog
+            ->setUid($uid)
             ->setPid($pid)
             ->setName($name)
             ->setStatus(Worklog::STATUS_RUNNING)

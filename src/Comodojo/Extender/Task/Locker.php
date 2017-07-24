@@ -1,5 +1,7 @@
 <?php namespace Comodojo\Extender\Task;
 
+use \Comodojo\Daemon\Traits\LoggerTrait;
+use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Foundation\Base\Configuration;
 use \Psr\Log\LoggerInterface;
 
@@ -24,31 +26,56 @@ class Locker {
     use ConfigurationTrait;
     use LoggerTrait;
 
-    private $running_jobs = [];
+    /**
+     * @var array
+     */
+    private $queued = [];
 
-    private $completed_jobs = [];
+    /**
+     * @var array
+     */
+    private $running = [];
 
-    private $queued_jobs = [];
+    /**
+     * @var array
+     */
+    private $completed = [];
 
-    private $lock_file = 'extender.tasks.locker';
+    /**
+     * @var string
+     */
+    private $lock_file;
 
-    public function __construct(Configuration $configuration, LoggerInterface $logger) {
+    /**
+     * Manager constructor
+     *
+     * @param string $name
+     * @param Configuration $configuration
+     * @param LoggerInterface $logger
+     */
+    public function __construct($name, Configuration $configuration, LoggerInterface $logger) {
 
         $this->setConfiguration($configuration);
         $this->setLogger($logger);
 
-        $lock_file = $configuration->get('queue-file');
-        if ( $lock_file !== null ) $this->$lock_file = $lock_file;
+        $lock_path = $configuration->get('tasksmanager-lockfile-path');
+        $this->lock_file = "$lock_path/$name";
 
     }
 
-    public function isQueued(Job $job) {
+    public function getQueued() {
 
-        $this->logger->debug('Adding job '.$job->name.' (uid '.$job->uid.') to queue');
+        return $this->queued;
 
-        $uid = $job->uid;
+    }
 
-        $this->queued_jobs[$uid] = $job;
+    public function setQueued(Request $request) {
+
+        $uid = $request->getUid();
+
+        $this->logger->debug("Adding task with uid $uid to queue");
+
+        $this->queued[$uid] = $request;
 
         $this->dump();
 
@@ -56,19 +83,24 @@ class Locker {
 
     }
 
-    public function isStarting($uid, $pid) {
+    public function getRunning() {
 
-        $job = $this->queued_jobs[$uid];
+        return $this->running;
 
-        $this->logger->debug('Job '.$job->name.' (uid '.$job->uid.') is starting with pid '.$pid);
+    }
 
-        $job->pid = $pid;
+    public function setRunning($uid, $pid) {
 
-        $job->start_timestamp = microtime(true);
+        $request = $this->queued[$uid];
 
-        $this->running_jobs[$uid] = $job;
+        $this->logger->debug("Task ".$request->getName()." (uid $uid) is starting with pid $pid");
 
-        unset($this->queued_jobs[$uid]);
+        $request->setPid($pid);
+        $request->setStartTimestamp(microtime(true));
+
+        $this->running[$uid] = $request;
+
+        unset($this->queued[$uid]);
 
         $this->dump();
 
@@ -76,23 +108,27 @@ class Locker {
 
     }
 
-    public function isCompleted($uid, $success, $result, $wid = null) {
+    public function countRunning() {
 
-        $job = $this->running_jobs[$uid];
+        return count($this->running);
 
-        $this->logger->debug('Job '.$job->name.' (uid '.$job->uid.') completed with '.($success ? 'success' : 'error'));
+    }
 
-        $job->success = $success;
+    public function getCompleted() {
 
-        $job->result = $result;
+        return $this->completed;
 
-        $job->wid = $wid;
+    }
 
-        $job->end_timestamp = microtime(true);
+    public function setCompleted($uid, Result $result) {
 
-        $this->completed_jobs[$uid] = $job;
+        $request = $this->running[$uid];
 
-        unset($this->running_jobs[$uid]);
+        $this->logger->debug("Task ".$request->getName()." (uid $uid) completed with ".($result->success ? 'success' : 'error'));
+
+        $this->completed[$uid] = $result;
+
+        unset($this->running[$uid]);
 
         $this->dump();
 
@@ -100,23 +136,15 @@ class Locker {
 
     }
 
-    public function isAborted($uid, $error) {
+    public function setAborted($uid, Result $result) {
 
-        $job = $this->running_jobs[$uid];
+        $request = $this->queued[$uid];
 
-        $this->logger->debug('Job '.$job->name.' (uid '.$job->uid.') aborted, reason: '.$error);
+        $this->logger->debug("Task ".$request->getName()." (uid $uid) aborted: internal error");
 
-        $job->success = false;
+        $this->completed[$uid] = $result;
 
-        $job->result = $error;
-
-        $job->wid = null;
-
-        $job->end_timestamp = microtime(true);
-
-        $this->completed_jobs[$uid] = $job;
-
-        unset($this->queued_jobs[$uid]);
+        unset($this->queued[$uid]);
 
         $this->dump();
 
@@ -124,29 +152,35 @@ class Locker {
 
     }
 
-    public function queued() {
+    public function getSucceeded() {
 
-        return $this->queued_jobs;
-
-    }
-
-    public function running() {
-
-        return $this->running_jobs;
+        return array_filter($this->completed, function($result) {
+            return $result->success;
+        });
 
     }
 
-    public function completed() {
+    public function getFailed() {
 
-        return $this->completed_jobs;
+        return array_filter($this->completed, function($result) {
+            return !$result->success;
+        });
+
+    }
+
+    public function freeCompleted() {
+
+        $this->completed = array_filter($this->completed, function($result) {
+            return $result->success;
+        });
 
     }
 
     public function free() {
 
-        $this->queued_jobs = array();
-        $this->running_jobs = array();
-        $this->completed_jobs = array();
+        $this->queued = [];
+        $this->running = [];
+        $this->completed = [];
 
         $this->dump();
 
@@ -154,7 +188,7 @@ class Locker {
 
     public function release() {
 
-        $lock = file_exists($this->queue_file) ? unlink($this->queue_file) : true;
+        $lock = file_exists($this->lock_file) ? unlink($this->lock_file) : true;
 
         return $lock;
 
@@ -162,15 +196,21 @@ class Locker {
 
     private function dump() {
 
-        $data = array(
-            'QUEUED' => count($this->queued_jobs),
-            'RUNNING' => count($this->running_jobs),
-            'COMPLETED' => count($this->completed_jobs)
-        );
+        return @file_put_contents($this->lock_file, serialize(
+            [
+                'QUEUED' => count($this->getQueued()),
+                'RUNNING' => count($this->getRunning()),
+                'COMPLETED' => count($this->getCompleted()),
+                'SUCCEEDED' => count($this->getSucceeded()),
+                'FAILED' => count($this->getFailed())
+            ]
+        ));
 
-        $content = serialize($data);
+    }
 
-        return file_put_contents($this->queue_file, $content);
+    public static function create($name, Configuration $configuration, LoggerInterface $logger) {
+
+        return new Locker($name, $configuration, $logger);
 
     }
 

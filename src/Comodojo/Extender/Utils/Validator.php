@@ -1,5 +1,6 @@
 <?php namespace Comodojo\Extender\Utils;
 
+use \Comodojo\Foundation\Validation\DataFilter;
 use \Cron\CronExpression;
 use \Exception;
 
@@ -61,34 +62,45 @@ class Validator {
 
     public static function laggerTimeout($timeout) {
 
-        return filter_var($timeout, FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 5,
-                'min_range' => 0
-            )
-        ));
+        return DataFilter::filterInteger(
+            $timeout,
+            0,
+            PHP_INT_MAX,
+            5
+        );
 
     }
 
     public static function maxChildRuntime($runtime) {
 
-        return filter_var($runtime, FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 600,
-                'min_range' => 1
-            )
-        ));
+        return DataFilter::filterInteger(
+            $runtime,
+            1,
+            PHP_INT_MAX,
+            600
+        );
 
     }
 
     public static function forkLimit($limit) {
 
-        return filter_var($limit, FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 0,
-                'min_range' => 0
-            )
-        ));
+        return DataFilter::filterInteger(
+            $limit,
+            0,
+            PHP_INT_MAX,
+            5
+        );
+
+    }
+
+    public static function niceness($niceness) {
+
+        return DataFilter::filterInteger(
+            $niceness,
+            -20,
+            20,
+            0
+        );
 
     }
 

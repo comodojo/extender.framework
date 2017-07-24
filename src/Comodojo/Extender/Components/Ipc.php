@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Components;
 
-use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Foundation\Validation\DataFilter;
 use \Exception;
 
 /**
@@ -34,17 +35,22 @@ class Ipc {
 
     private $bytes;
 
-    private $ipc = array();
+    private $ipc = [];
 
     public function __construct(Configuration $configuration) {
 
-        $this->bytes = self::getBytes($configuration->get('child-max-result-bytes'));
+        $this->bytes = DataFilter::filterInteger(
+            $configuration->get('child-max-result-bytes'),
+            1024,
+            PHP_INT_MAX,
+            2048
+        );
 
     }
 
     public function init($uid) {
 
-        $this->ipc[$uid] = array();
+        $this->ipc[$uid] = [];
 
         $socket = socket_create_pair(AF_UNIX, SOCK_STREAM, 0, $this->ipc[$uid]);
 
@@ -93,18 +99,7 @@ class Ipc {
 
     public function free() {
 
-        $this->ipc = array();
-
-    }
-
-    private static function getBytes($bytes = null) {
-
-        return filter_var($bytes, FILTER_VALIDATE_INT, array(
-            'options' => array(
-                'default' => 2048,
-                'min_range' => 1024
-            )
-        ));
+        $this->ipc = [];
 
     }
 

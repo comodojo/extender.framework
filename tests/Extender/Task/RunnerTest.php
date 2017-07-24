@@ -4,6 +4,7 @@ use \Comodojo\Extender\Tests\Helpers\MockTask;
 use \Comodojo\Extender\Tests\Helpers\AbstractTestCase;
 use \Comodojo\Extender\Task\Table;
 use \Comodojo\Extender\Task\Runner;
+use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Task\TaskParameters;
 use \Comodojo\Extender\Orm\Entities\Worklog;
 
@@ -24,7 +25,7 @@ class RunnerTest extends AbstractTestCase {
 
     public function testExecution() {
 
-        $result = $this->runner->run('runnertest','test');
+        $result = $this->runner->run(new Request('runnertest', 'test'));
 
         $this->assertInstanceOf('\Comodojo\Extender\Task\Result', $result);
 
@@ -39,7 +40,7 @@ class RunnerTest extends AbstractTestCase {
         $params = new TaskParameters();
         $params->set("abort", true);
 
-        $result = $this->runner->run('runnertest','test', null, $params);
+        $result = $this->runner->run(new Request('runnertest', 'test', $params));
 
         $this->assertInstanceOf('\Comodojo\Extender\Task\Result', $result);
 
@@ -56,7 +57,7 @@ class RunnerTest extends AbstractTestCase {
         $params = new TaskParameters();
         $params->set("copy", $copy);
 
-        $result = $this->runner->run('runnertest','test', null, $params);
+        $result = $this->runner->run(new Request('runnertest', 'test', $params));
 
         $this->assertInstanceOf('\Comodojo\Extender\Task\Result', $result);
 
@@ -71,7 +72,7 @@ class RunnerTest extends AbstractTestCase {
         $params = new TaskParameters();
         $params->set("fail", true);
 
-        $result = $this->runner->run('runnertest','test', null, $params);
+        $result = $this->runner->run(new Request('runnertest', 'test', $params));
 
         $this->assertInstanceOf('\Comodojo\Extender\Task\Result', $result);
 

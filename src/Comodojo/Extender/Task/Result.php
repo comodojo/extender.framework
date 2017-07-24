@@ -25,13 +25,14 @@ class Result extends Model{
 
     public function __construct($output) {
 
-        $this->setRaw('pid', $output[0]);
-        $this->setRaw('name', $output[1]);
-        $this->setRaw('success', $output[2]);
-        $this->setRaw('start', $output[3]);
-        $this->setRaw('end', $output[4]);
-        $this->setRaw('result', $output[5]);
-        $this->setRaw('wid', $output[6]);
+        $this->setRaw('uid', $output[0]);
+        $this->setRaw('pid', $output[1]);
+        $this->setRaw('name', $output[2]);
+        $this->setRaw('success', $output[3]);
+        $this->setRaw('start', $output[4]);
+        $this->setRaw('end', $output[5]);
+        $this->setRaw('result', $output[6]);
+        $this->setRaw('wid', $output[7]);
 
     }
 
