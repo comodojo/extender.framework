@@ -22,27 +22,78 @@ use \Comodojo\Extender\Utils\Validator;
 
 class Request {
 
+    /**
+     * @var string
+     */
     protected $name;
 
+    /**
+     * @var string
+     */
     protected $task;
 
+    /**
+     * @var int
+     */
     protected $uid;
 
-    protected $jid = null;
+    /**
+     * @var int
+     */
+    protected $parent_uid;
 
+    /**
+     * @var int
+     */
+    protected $jid;
+
+    /**
+     * @var int
+     */
     protected $niceness = 0;
 
+    /**
+     * @var int
+     */
     protected $maxtime = 600;
 
+    /**
+     * @var int
+     */
     protected $start_timestamp;
 
+    /**
+     * @var int
+     */
     protected $pid;
+
+    /**
+     * @var Request
+     */
+    protected $done;
+
+    /**
+     * @var Request
+     */
+    protected $fail;
+
+    /**
+     * @var Request
+     */
+    protected $pipe;
 
     /**
      * @var TaskParameters
      */
     protected $parameters = null;
 
+    /**
+     * Class constructor
+     *
+     * @param string $name
+     * @param string $task
+     * @param TaskParameters $parameters
+     */
     public function __construct($name, $task, TaskParameters $parameters = null) {
 
         $this->uid = UniqueId::generate();
@@ -53,13 +104,18 @@ class Request {
 
     }
 
+    /**
+     * Get request name
+     *
+     * @return string
+     */
     public function getName() {
 
         return $this->name;
 
     }
 
-    protected function setName($name) {
+    public function setName($name) {
 
         $this->name = $name;
 
@@ -67,13 +123,18 @@ class Request {
 
     }
 
+    /**
+     * Get request associated task
+     *
+     * @return string
+     */
     public function getTask() {
 
         return $this->task;
 
     }
 
-    protected function setTask($task) {
+    public function setTask($task) {
 
         $this->task = $task;
 
@@ -81,13 +142,18 @@ class Request {
 
     }
 
+    /**
+     * Get current unique id
+     *
+     * @return int
+     */
     public function getUid() {
 
         return $this->uid;
 
     }
 
-    protected function setUid($uid) {
+    public function setUid($uid) {
 
         $this->uid = $uid;
 
@@ -95,13 +161,37 @@ class Request {
 
     }
 
+    /**
+     * Get parent unique id
+     *
+     * @return int
+     */
+    public function getParentUid() {
+
+        return $this->parent_uid;
+
+    }
+
+    public function setParentUid($uid) {
+
+        $this->parent_uid = $uid;
+
+        return $this;
+
+    }
+
+    /**
+     * Get current job id
+     *
+     * @return int
+     */
     public function getJid() {
 
         return $this->jid;
 
     }
 
-    protected function setJid($jid) {
+    public function setJid($jid) {
 
         $this->jid = $jid;
 
@@ -109,13 +199,18 @@ class Request {
 
     }
 
+    /**
+     * Get requested niceness (-20/20)
+     *
+     * @return int
+     */
     public function getNiceness() {
 
         return $this->niceness;
 
     }
 
-    protected function setNiceness($niceness) {
+    public function setNiceness($niceness) {
 
         $this->niceness = Validator::niceness($niceness);
 
@@ -123,13 +218,18 @@ class Request {
 
     }
 
+    /**
+     * Get max allowed execution time
+     *
+     * @return int
+     */
     public function getMaxtime() {
 
         return $this->maxtime;
 
     }
 
-    protected function setMaxtime($maxtime) {
+    public function setMaxtime($maxtime) {
 
         $this->maxtime = Validator::maxChildRuntime($maxtime);
 
@@ -137,13 +237,18 @@ class Request {
 
     }
 
+    /**
+     * Get parameters
+     *
+     * @return TaskParameters
+     */
     public function getParameters() {
 
         return $this->parameters;
 
     }
 
-    protected function setParameters(TaskParameters $parameters = null) {
+    public function setParameters(TaskParameters $parameters = null) {
 
         $this->parameters = is_null($parameters) ? new TaskParameters() : $parameters;
 
@@ -151,6 +256,11 @@ class Request {
 
     }
 
+    /**
+     * Get start timestamp (microseconds)
+     *
+     * @return float
+     */
     public function getStartTimestamp() {
 
         return $this->start_timestamp;
@@ -165,6 +275,11 @@ class Request {
 
     }
 
+    /**
+     * Get pid
+     *
+     * @return int
+     */
     public function getPid() {
 
         return $this->pid;
@@ -176,6 +291,78 @@ class Request {
         $this->pid = $pid;
 
         return $this;
+
+    }
+
+    public function hasOnDone() {
+
+        return $this->done !== null;
+
+    }
+
+    public function getOnDone() {
+
+        return $this->done;
+
+    }
+
+    public function onDone(Request $request = null) {
+
+        $this->done = $request;
+
+        return $this;
+
+    }
+
+    public function hasOnFail() {
+
+        return $this->fail !== null;
+
+    }
+
+    public function getOnFail() {
+
+        return $this->fail;
+
+    }
+
+    public function onFail(Request $request = null) {
+
+        $this->fail = $request;
+
+        return $this;
+
+    }
+
+    public function hasPipe() {
+
+        return $this->pipe !== null;
+
+    }
+
+    public function getPipe() {
+
+        return $this->pipe;
+
+    }
+
+    public function pipe(Request $request = null) {
+
+        $this->pipe = $request;
+
+        return $this;
+
+    }
+
+    public function isChain() {
+
+        return ( $this->done !== null || $this->fail !== null || $this->pipe !== null );
+
+    }
+
+    public static function create($name, $task, TaskParameters $parameters = null) {
+
+        return new Request($name, $task, $parameters);
 
     }
 

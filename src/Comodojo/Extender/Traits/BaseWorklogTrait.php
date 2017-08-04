@@ -18,16 +18,16 @@ use \Comodojo\Extender\Task\TaskParameters;
  * THE SOFTWARE.
  */
 
-trait BaseEntityTrait {
+trait BaseScheduleEntityTrait {
 
     /**
      * @var integer
      *
+     * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @ORM\Column(type="integer", nullable=false)
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
-    protected $id = 0;
+    protected $id;
 
     /**
      * @var string
@@ -35,6 +35,20 @@ trait BaseEntityTrait {
      * @ORM\Column(name="name", type="string", length=256, nullable=false)
      */
     protected $name;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="task", type="string", length=256, nullable=false)
+     */
+    protected $task;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="parameters", type="array", nullable=false)
+     */
+    protected $parameters = [];
 
     /**
      * Get queue item's id
@@ -81,6 +95,56 @@ trait BaseEntityTrait {
     public function setName($name) {
 
         $this->name = $name;
+
+        return $this;
+
+    }
+
+    /**
+     * Get associated task
+     *
+     * @return string
+     */
+    public function getTask() {
+
+        return $this->task;
+
+    }
+
+    /**
+     * Set associated task
+     *
+     * @param string $task
+     * @return Schedule
+     */
+    public function setTask($task) {
+
+        $this->task = $task;
+
+        return $this;
+
+    }
+
+    /**
+     * Get queue item's parameters
+     *
+     * @return TaskParameters
+     */
+    public function getParameters() {
+
+        return new TaskParameters($this->parameters);
+
+    }
+
+    /**
+     * Set queue item's parameters
+     *
+     * @param TaskParameters $parameters
+     * @return Schedule
+     */
+    public function setParameters(TaskParameters $parameters) {
+
+        $this->parameters = $parameters->get();
 
         return $this;
 

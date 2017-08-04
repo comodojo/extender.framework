@@ -1,8 +1,8 @@
 <?php namespace Comodojo\Extender\Task;
 
-use \Comodojo\Daemon\Traits\LoggerTrait;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Daemon\Traits\LoggerTrait;
 use \Psr\Log\LoggerInterface;
 
 /**
@@ -58,8 +58,8 @@ class Locker {
         $this->setConfiguration($configuration);
         $this->setLogger($logger);
 
-        $lock_path = $configuration->get('tasksmanager-lockfile-path');
-        $this->lock_file = "$lock_path/$name";
+        $lock_path = $configuration->get('lockfiles-path');
+        $this->lock_file = "$lock_path/$name.lock";
 
     }
 
@@ -79,7 +79,13 @@ class Locker {
 
         $this->dump();
 
-        return true;
+        return $this;
+
+    }
+
+    public function countQueued() {
+
+        return count($this->queued);
 
     }
 

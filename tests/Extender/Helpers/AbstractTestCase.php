@@ -34,7 +34,7 @@ class AbstractTestCase extends \PHPUnit_Framework_TestCase {
         // self::$configuration->set('base-path', $root_path);
 
         self::$logger = new Logger('test');
-        self::$logger->pushHandler( new NullHandler(Logger::DEBUG) );
+        //self::$logger->pushHandler( new NullHandler(Logger::DEBUG) );
         self::$events = new EventsManager(self::$logger);
 
     }

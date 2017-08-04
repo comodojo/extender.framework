@@ -1,8 +1,6 @@
-<?php namespace Comodojo\Extender\Orm\Entities;
+<?php namespace Comodojo\Extender\Traits;
 
-use \Doctrine\ORM\Mapping as ORM;
-use \Comodojo\Extender\Traits\BaseEntityTrait;
-use \Comodojo\Extender\Traits\RequestEntityTrait;
+use \Comodojo\Extender\Task\Request;
 
 /**
  * @package     Comodojo Extender
@@ -18,13 +16,40 @@ use \Comodojo\Extender\Traits\RequestEntityTrait;
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
- * @ORM\Table(name="extender_queue")
- * @ORM\Entity
  */
-class Queue {
 
-    use BaseEntityTrait;
-    use RequestEntityTrait;
+trait RequestEntityTrait {
+
+    /**
+     * @var Request
+     *
+     * @ORM\Column(name="request", type="object", nullable=false)
+     */
+    protected $request;
+
+    /**
+     * Get desired process niceness
+     *
+     * @return Request
+     */
+    public function getRequest() {
+
+        return $this->request;
+
+    }
+
+    /**
+     * Set desired process niceness
+     *
+     * @param Request $request
+     * @return self
+     */
+    public function setRequest(Request $request) {
+
+        $this->request = $request;
+
+        return $this;
+
+    }
 
 }

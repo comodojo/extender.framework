@@ -106,6 +106,8 @@ class Table implements Iterator, ArrayAccess, Countable {
             $description
         );
 
+        $this->logger->debug("Task $name ($class) in table");
+
         return true;
 
     }
@@ -133,7 +135,7 @@ class Table implements Iterator, ArrayAccess, Countable {
      * @param array $tasks
      * @return bool
      */
-    public function bulk(array $tasks) {
+    public function addBulk(array $tasks) {
 
         $result = [];
 
@@ -157,6 +159,16 @@ class Table implements Iterator, ArrayAccess, Countable {
         }
 
         return $result;
+
+    }
+
+    public static function create(
+        Configuration $configuration,
+        LoggerInterface $logger,
+        EventsManager $events
+    ) {
+
+        return new Table($configuration, $logger, $events);
 
     }
 

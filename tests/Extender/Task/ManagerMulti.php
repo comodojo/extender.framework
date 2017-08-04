@@ -57,7 +57,7 @@ class ManagerMulti {
         self::$configuration->set('multithread', true);
         $manager = $this->createManager();
 
-        for ($i=0; $i < 5; $i++) {
+        for ($i=0; $i < 100; $i++) {
             $manager->add(
                 new Request(
                     "runnertest_$i",

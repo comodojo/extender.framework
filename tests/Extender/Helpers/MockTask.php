@@ -8,15 +8,19 @@ class MockTask extends AbstractTask {
 
     public function run() {
 
-        $parametes = $this->getParameters();
+        $parameters = $this->getParameters();
 
-        $copy = $parametes->get('copy');
+        $copy = $parameters->get('copy');
 
-        $sleep = $parametes->get('sleep');
+        $sleep = $parameters->get('sleep');
 
-        $abort = $parametes->get('abort');
+        $abort = $parameters->get('abort');
 
-        $fail = $parametes->get('fail');
+        $fail = $parameters->get('fail');
+
+        $parent = $parameters->get('parent');
+
+        if ($parent !== null) $this->getLogger()->info("I'm a child, my parent returned ".$parent->result);
 
         if ( $abort === true ) throw new TaskException("Task aborted due to Vogon's poetry");
 

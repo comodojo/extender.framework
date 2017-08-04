@@ -40,22 +40,31 @@ class ManagerTest extends AbstractTestCase {
 
     }
 
-    public function testMultiExecution() {
+    public function testChainExecution() {
 
-        self::$configuration->set('multithread', true);
         $manager = $this->createManager();
 
-        for ($i=0; $i < 5; $i++) {
-            $manager->add(
-                new Request(
-                    "runnertest_$i",
-                    'test',
-                    new TaskParameters([
-                        'sleep' => rand(1,5)
-                    ])
+        $manager->add(
+            Request::create('runnertest1', 'test')->onDone(
+                Request::create('runnertest1.1', 'test')
+            )
+        );
+
+        $manager->add(
+            Request::create('runnertest2', 'test')->onFail(
+                Request::create('runnertest2.1', 'test')
+            )
+        );
+
+        $manager->add(
+            Request::create('runnertest3', 'test')->pipe(
+                Request::create('runnertest3.1', 'test')->pipe(
+                    Request::create('runnertest3.3', 'test')->pipe(
+                        Request::create('runnertest3.4', 'test')
+                    )
                 )
-            );
-        }
+            )
+        );
 
         $results = $manager->run();
 

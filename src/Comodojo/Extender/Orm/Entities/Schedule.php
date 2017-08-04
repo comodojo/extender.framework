@@ -2,7 +2,7 @@
 
 use \Doctrine\ORM\Mapping as ORM;
 use \Comodojo\Extender\Traits\BaseEntityTrait;
-use \Comodojo\Extender\Traits\ProcessEntityTrait;
+use \Comodojo\Extender\Traits\RequestEntityTrait;
 use \Cron\CronExpression;
 use \Comodojo\Foundation\Validation\DataFilter;
 use \DateTime;
@@ -29,7 +29,14 @@ use \DateTime;
 class Schedule {
 
     use BaseEntityTrait;
-    use ProcessEntityTrait;
+    use RequestEntityTrait;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="name", type="string", length=256, nullable=false, unique=true)
+     */
+    protected $name;
 
     /**
      * @var string
@@ -133,7 +140,7 @@ class Schedule {
      */
     public function getExpression() {
 
-        return (string) $this->buildExpression();
+        return $this->buildExpression();
 
     }
 
@@ -143,9 +150,7 @@ class Schedule {
      * @param srting $expression A cron-compatible expression
      * @return Schedule
      */
-    public function setExpression($expression) {
-
-        $exp = CronExpression::factory($expression);
+    public function setExpression(CronExpression $expression) {
 
         $this->minute = $exp->getExpression(0);
         $this->hour = $exp->getExpression(1);

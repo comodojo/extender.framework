@@ -2,6 +2,7 @@
 
 use \Doctrine\ORM\Mapping as ORM;
 use \Comodojo\Extender\Traits\BaseEntityTrait;
+use \Comodojo\Extender\Task\TaskParameters;
 use \InvalidArgumentException;
 use \DateTime;
 
@@ -60,16 +61,30 @@ class Worklog {
     /**
      * @var integer
      *
+     * @ORM\Column(name="parentuid", type="string", nullable=true)
+     */
+    protected $parent_uid;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="task", type="string", length=256, nullable=false)
+     */
+    protected $task;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="parameters", type="array", nullable=false)
+     */
+    protected $parameters = [];
+
+    /**
+     * @var integer
+     *
      * @ORM\Column(name="status", type="integer", nullable=false)
      */
     protected $status;
-
-    /**
-     * @var boolean
-     *
-     * @ORM\Column(name="success", type="boolean", nullable=true)
-     */
-    protected $success;
 
     /**
      * @var string
@@ -95,7 +110,7 @@ class Worklog {
     /**
      * Get worklog item's uid
      *
-     * @return integer
+     * @return string
      */
     public function getUid() {
 
@@ -168,6 +183,81 @@ class Worklog {
     }
 
     /**
+     * Get worklog item's parent
+     *
+     * @return strin
+     */
+    public function getParentUid() {
+
+        return $this->parent_uid;
+
+    }
+
+    /**
+     * Set worklog item's parent
+     *
+     * @param string $parent_uid
+     * @return Worklog
+     */
+    public function setParentUid($parent_uid) {
+
+        $this->parent_uid = $parent_uid;
+
+        return $this;
+
+    }
+
+    /**
+     * Get associated task
+     *
+     * @return string
+     */
+    public function getTask() {
+
+        return $this->task;
+
+    }
+
+    /**
+     * Set associated task
+     *
+     * @param string $task
+     * @return Schedule
+     */
+    public function setTask($task) {
+
+        $this->task = $task;
+
+        return $this;
+
+    }
+
+    /**
+     * Get queue item's parameters
+     *
+     * @return TaskParameters
+     */
+    public function getParameters() {
+
+        return new TaskParameters($this->parameters);
+
+    }
+
+    /**
+     * Set queue item's parameters
+     *
+     * @param TaskParameters $parameters
+     * @return Schedule
+     */
+    public function setParameters(TaskParameters $parameters) {
+
+        $this->parameters = $parameters->get();
+
+        return $this;
+
+    }
+
+    /**
      * Get current job status
      *
      * @return int
@@ -189,33 +279,6 @@ class Worklog {
         if ( !in_array($status, range(0, 3)) ) throw new InvalidArgumentException("Invalid status $status");
 
         $this->status = $status;
-
-        return $this;
-
-    }
-
-    /**
-     * True if task is finished with success state
-     *
-     * @return bool
-     */
-    public function getSuccess() {
-
-        return $this->success;
-
-    }
-
-    /**
-     * Set task exit status
-     *
-     * @param bool $success
-     * @return Worklog
-     */
-    public function setSuccess($success) {
-
-        $success = DataFilter::filterBoolean($success);
-
-        $this->success = $success;
 
         return $this;
 

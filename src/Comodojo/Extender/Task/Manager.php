@@ -4,14 +4,15 @@ use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Daemon\Traits\LoggerTrait;
 use \Comodojo\Daemon\Traits\EventsTrait;
+use \Comodojo\Daemon\Utils\ProcessTools;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Utils\Validator as ExtenderCommonValidations;
+use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Components\Ipc;
 use \Comodojo\Extender\Task\Table as TasksTable;
-use \Comodojo\Daemon\Utils\ProcessTools;
+use \Comodojo\Extender\Components\Database;
 use \Doctrine\ORM\EntityManager;
-use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Psr\Log\LoggerInterface;
 use \Exception;
 
@@ -39,20 +40,46 @@ class Manager {
     use TasksTableTrait;
     use EntityManagerTrait;
 
+    /**
+     * @var int
+     */
     protected $lagger_timeout;
 
+    /**
+     * @var bool
+     */
     protected $multithread;
 
+    /**
+     * @var int
+     */
     protected $max_runtime;
 
+    /**
+     * @var int
+     */
     protected $max_childs;
 
+    /**
+     * @var Ipc
+     */
     protected $ipc;
 
+    /**
+     * @var Locker
+     */
     protected $locker;
 
-    protected $runner;
-
+    /**
+     * Class constructor
+     *
+     * @param string $manager_name
+     * @param Configuration $configuration
+     * @param LoggerInterface $logger
+     * @param TasksTable $tasks
+     * @param EventsManager $events
+     * @param EntityManager $em
+     */
     public function __construct(
         $manager_name,
         Configuration $configuration,
@@ -89,6 +116,11 @@ class Manager {
 
     }
 
+    /**
+     * Class destructor
+     *
+     * Remove the locker file on shutdown
+     */
     public function __destruct() {
 
         $this->locker->release();
@@ -97,7 +129,9 @@ class Manager {
 
     public function add(Request $request) {
 
-        return $this->locker->setQueued($request);
+        $this->locker->setQueued($request);
+
+        return $this;
 
     }
 
@@ -108,7 +142,8 @@ class Manager {
         foreach ($requests as $id => $request) {
 
             if ($request instanceof \Comodojo\Extender\Task\Request) {
-                $responses[$id] = $this->add($request);
+                $this->add($request);
+                $responses[$id] = true;
             } else {
                 $this->logger->error("Skipping invalid request with local id $id: class mismatch");
                 $responses[$id] = false;
@@ -122,65 +157,89 @@ class Manager {
 
     public function run() {
 
+        while ( $this->locker->countQueued() > 0 ) {
+
+            // Start to cycle queued tasks
+            $this->cycle();
+
+        }
+
+        $result = $this->locker->getCompleted();
+
+        $this->locker->freeCompleted();
+
+        return $result;
+
+    }
+
+    protected function cycle() {
+
         foreach ($this->locker->getQueued() as $uid => $request) {
 
             if ( $this->multithread === false ) {
 
-                $pid = ProcessTools::getPid();
+                $this->runSingleThread($uid, $request);
+
+            } else {
+
+                try {
+
+                    $pid = $this->forker($request);
+
+                } catch (Exception $e) {
+
+                    $result = self::generateSyntheticResult($uid, $e->getMessage(), false);
+
+                    $this->locker->setAborted($uid, $result);
+
+                    if ( $request->isChain() ) $this->evalChain($request, $result);
+
+                    continue;
+
+                }
 
                 $this->locker->setRunning($uid, $pid);
 
-                $result = Runner::fastStart(
-                    $request,
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getTasksTable(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
-                );
+                if ( $this->max_childs > 0 && $this->locker->countRunning() >= $this->max_childs ) {
 
-                $this->locker->setCompleted($uid, $result);
+                    while( $this->locker->countRunning() >= $this->max_childs ) {
 
-                continue;
+                        $this->catcher();
 
-            }
-
-            try {
-
-                $pid = $this->forker($request);
-
-            } catch (Exception $e) {
-
-                $this->locker->setAborted($uid, self::generateSyntheticResult($uid, $e->getMessage(), false));
-
-                continue;
-
-            }
-
-            $this->locker->setRunning($uid, $pid);
-
-            if ( $this->max_childs > 0 && $this->locker->countRunning() >= $this->max_childs ) {
-
-                while( $this->locker->countRunning() >= $this->max_childs ) {
-
-                    $this->catcher();
+                    }
 
                 }
 
             }
 
-            // is tihs the right way to terminate loop?
-            // if ( $this->active === false ) return;
-
         }
 
+        // spawn the loop if multithread
         if ( $this->multithread === true ) $this->catcher_loop();
 
-        $return = $this->locker->getCompleted();
+    }
 
-        $this->locker->freeCompleted();
+    protected function runSingleThread($uid, Request $request) {
 
-        return $return;
+        $pid = ProcessTools::getPid();
+
+        $this->locker->setRunning($uid, $pid);
+
+        $result = Runner::fastStart(
+            $request,
+            $this->getConfiguration(),
+            $this->getLogger(),
+            $this->getTasksTable(),
+            $this->getEvents(),
+            $this->getEntityManager()
+        );
+
+        if ( $request->isChain() ) $this->evalChain($request, $result);
+
+        $this->locker->setCompleted($uid, $result);
+
+        $success = $result->success === false ? "error" : "success";
+        $this->logger->notice("Task ".$request->getName()."(uid: ".$request->getUid().") ends in $success");
 
     }
 
@@ -287,10 +346,11 @@ class Manager {
 
                 }
 
+                if ( $request->isChain() ) $this->evalChain($request, $result);
+
                 $this->locker->setCompleted($uid, $result);
 
                 $success = $result->success === false ? "error" : "success";
-
                 $this->logger->notice("Task ".$request->getName()."(uid: ".$request->getUid().") ends in $success");
 
             } else {
@@ -320,7 +380,11 @@ class Manager {
 
                     $this->ipc->hang($uid);
 
-                    $this->locker->setCompleted($uid, self::generateSyntheticResult($uid, "Job killed due to max runtime reached", false));
+                    $result = self::generateSyntheticResult($uid, "Job killed due to max runtime reached", false);
+
+                    if ( $request->isChain() ) $this->evalChain($request, $result);
+
+                    $this->locker->setCompleted($uid, $result);
 
                     $this->logger->notice("Task ".$request->getName()."(uid: $uid) ends in error");
 
@@ -336,6 +400,31 @@ class Manager {
 
         $this->ipc->free();
         $this->locker->free();
+
+    }
+
+    private function evalChain(Request $request, Result $result) {
+
+        if ( $result->success && $request->hasOnDone() ) {
+            $chain_done = $request->getOnDone();
+            $chain_done->getParameters()->set('parent', $result);
+            $chain_done->setParentUid($result->uid);
+            $this->add($chain_done);
+        }
+
+        if ( $result->success === false && $request->hasOnFail() ) {
+            $chain_fail = $request->getOnFail();
+            $chain_fail->getParameters()->set('parent', $result);
+            $chain_fail->setParentUid($result->uid);
+            $this->add($chain_fail);
+        }
+
+        if ( $request->hasPipe() ) {
+            $chain_pipe = $request->getPipe();
+            $chain_pipe->getParameters()->set('parent', $result);
+            $chain_pipe->setParentUid($result->uid);
+            $this->add($chain_pipe);
+        }
 
     }
 

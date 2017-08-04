@@ -86,6 +86,7 @@ class Runner {
         $task = $request->getTask();
         $uid = $request->getUid();
         $jid = $request->getJid();
+        $puid = $request->getParentUid();
         $parameters = $request->getParameters();
 
         try {
@@ -102,6 +103,7 @@ class Runner {
 
             $this->openWorklog(
                 $uid,
+                $puid,
                 $pid,
                 $name,
                 $jid,
@@ -192,6 +194,7 @@ class Runner {
 
     protected function openWorklog(
         $uid,
+        $puid,
         $pid,
         $name,
         $jid,
@@ -202,6 +205,7 @@ class Runner {
 
         $this->worklog
             ->setUid($uid)
+            ->setParentUid($puid)
             ->setPid($pid)
             ->setName($name)
             ->setStatus(Worklog::STATUS_RUNNING)
