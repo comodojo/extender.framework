@@ -47,11 +47,11 @@ class ScheduleWorker extends AbstractWorker {
     public function loop() {
 
         if ( $this->wakeup_time > time() ) {
-            $this->logger->info('Still in sleep time, sorry');
+            $this->logger->info('Still in sleep time, next planned wakeup is '.date('r', $this->wakeup_time));
             return;
         }
 
-        $jobs = $this->job_manager->getJobs(true);
+        $jobs = $this->job_manager->getAll(true);
 
         if ( empty($jobs) ) {
 
@@ -67,7 +67,7 @@ class ScheduleWorker extends AbstractWorker {
 
             $result = $this->task_manager->run();
 
-            $this->job_manager->updateSchedules($result);
+            $this->job_manager->updateFromResults($result);
 
         }
 

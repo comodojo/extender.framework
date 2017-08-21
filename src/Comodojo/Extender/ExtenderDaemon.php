@@ -10,6 +10,8 @@ use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Queue\Manager as QueueManager;
+use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
+use \Comodojo\Extender\Orm\Entities\Schedule;
 use \Comodojo\Daemon\Daemon as AbstractDaemon;
 use \Comodojo\Daemon\Traits\LoggerTrait;
 use \Comodojo\Daemon\Traits\EventsTrait;
@@ -32,8 +34,8 @@ class ExtenderDaemon extends AbstractDaemon {
     use EntityManagerTrait;
 
     protected static $default_properties = array(
-        'pidfile' => 'extender.pid',
-        'socketfile' => 'unix://extender.sock',
+        'pidfile' => '',
+        'socketfile' => '',
         'socketbuffer' => 8192,
         'sockettimeout' => 15,
         'niceness' => 0,
@@ -51,6 +53,19 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $this->configuration = new Configuration(self::$default_properties);
         $this->configuration->merge($configuration);
+
+        $run_path = $this->getRunPath();
+
+        if ( empty($this->configuration->get('socketfile')) ) {
+            $this->configuration->set('socketfile', "unix://$run_path/extender.sock");
+        }
+
+        if ( empty($this->configuration->get('pidfile')) ) {
+            $this->configuration->set('pidfile', "$run_path/extender.pid");
+        }
+
+        $logger = is_null($logger) ? LogManager::createFromConfiguration($this->configuration)->getLogger() : $logger;
+        $events = is_null($events) ? EventsManager::create($logger) : $events;
 
         parent::__construct(ArrayOps::replaceStrict(self::$default_properties, $this->configuration->get()), $logger, $events);
 
@@ -130,12 +145,105 @@ class ExtenderDaemon extends AbstractDaemon {
 
     protected function pushScheduleCommands() {
 
-        $this->getSocket()->getCommands()->add('scheduler:refresh', function($data, $daemon) {
+        $this->getSocket()->getCommands()
+            ->add('scheduler:refresh', function($data, $daemon) {
 
-            return $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
+                return $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
 
-        });
+            })
+            ->add('scheduler:add', function(Schedule $data, $daemon) {
 
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                $id = $manager->add($data);
+
+                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
+
+                return $id;
+
+            })
+            ->add('scheduler:get', function($id, $daemon) {
+
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                return $manager->get($id);
+
+            })
+            ->add('scheduler:getByName', function($name, $daemon) {
+
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                return $manager->getByName($name);
+
+            })
+            ->add('scheduler:edit', function(Schedule $data, $daemon) {
+
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                $edit = $manager->edit($data);
+
+                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
+
+                return $edit;
+
+            })
+            ->add('scheduler:enable', function($name, $daemon) {
+
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                $edit = $manager->enable($name);
+
+                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
+
+                return $edit;
+
+            })
+            ->add('scheduler:edit', function($name, $daemon) {
+
+                $manager = new ScheduleManager(
+                    $this->getConfiguration(),
+                    $this->getLogger(),
+                    $this->getEvents(),
+                    $this->getEntityManager()
+                );
+
+                $edit = $manager->disable($name);
+
+                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
+
+                return $edit;
+
+            });
+
+    }
+
+    private function getRunPath() {
+        return $this->configuration->get('base-path')."/".$this->configuration->get('run-path');
     }
 
 }

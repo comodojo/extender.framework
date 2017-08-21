@@ -6,7 +6,6 @@ use \Comodojo\Daemon\Traits\LoggerTrait;
 use \Comodojo\Daemon\Traits\EventsTrait;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
-use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Orm\Entities\Schedule;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
@@ -67,33 +66,74 @@ class Manager {
         // $this->locker->lock(0);
     }
 
-    public function getJobById($id) {
+    public function get($id) {
 
         $em = $this->getEntityManager();
 
-        return $repo->find('Comodojo\Extender\Orm\Entities\Schedule', $id);
+        $data = $em->find('Comodojo\Extender\Orm\Entities\Schedule', $id);
+
+        //if ( empty($data) ) return null;
+
+        //return $data[0];
+
+        return $data;
 
     }
 
-    public function getJobs($ready = false) {
+    public function getByName($name) {
+
+        $em = $this->getEntityManager();
+
+        $data = $em->getRepository('Comodojo\Extender\Orm\Entities\Schedule')->findBy(["name" => $name]);
+
+        if ( empty($data) ) return null;
+
+        return $data[0];
+
+    }
+
+    public function getAll($ready = false) {
+
+        $logger = $this->getLogger();
 
         $time = new DateTime();
 
         $em = $this->getEntityManager();
 
-        $repo = $em->getRepository('Comodojo\Extender\Orm\Entities\Schedule');
+        $standby = $em->getRepository('Comodojo\Extender\Orm\Entities\Schedule')->findAll();
 
-        $standby = $repo->findAll();
+        return $ready ? array_filter($standby, function($job) use ($time, $logger) {
 
-        return $ready ? array_filter($standby, function($job) use ($time) {
-            return $job->shouldRunJob($time);
+            $name = $job->getName();
+            $id = $job->getId();
+            $enabled = $job->getEnabled();
+            $firstrun = $job->getFirstrun();
+            $lastrun = $job->getLastrun();
+            $expression = $job->getExpression();
+
+            if ( $lastrun !== null ) {
+                $nextrun = $expression->getNextRunDate($lastrun);
+            } else {
+                $nextrun = $expression->getNextRunDate($firstrun);
+            }
+
+            $shouldrun = $nextrun <= $time;
+
+            $logger->debug("Job $name (id $id) will ".($shouldrun ? "" : "NOT ")."be executed", [
+                'ENABLED' => $enabled,
+                'NEXTRUN' => $nextrun->format('r'),
+                'SHOULDRUN' => $shouldrun
+            ]);
+
+            return $shouldrun;
+
         }) : $standby;
 
     }
 
     public function getNextCycleTimestamp() {
 
-        $items = $this->getJobs();
+        $items = $this->getAll();
 
         $date = new DateTime();
         $timestamps = [];
@@ -108,21 +148,23 @@ class Manager {
 
     }
 
-    public function updateSchedules(array $results) {
+    public function updateFromResults(array $results) {
 
         $em = $this->getEntityManager();
 
         foreach ($results as $result) {
 
-            $id = $result->getJid();
+            $id = $result->jid;
 
-            $job = $this->getJobById($id);
+            if ( $id === null ) continue;
+
+            $job = $this->get($id);
 
             if ( $job === null ) continue;
 
             if ( $job->getFirstrun() === null ) $job->setFirstrun($result->start);
 
-            $job->setLastRun($result->start);
+            $job->setLastrun($result->start);
 
             $em->persist($job);
 
@@ -132,55 +174,118 @@ class Manager {
 
     }
 
-    // public function remove(array $queue) {
-    //
-    //     $em = $this->getEntityManager();
-    //
-    //     foreach ($queue as $record) {
-    //         $em->remove($record);
-    //     }
-    //
-    //     $em->flush();
-    //
-    // }
-    //
-    // public function add($name, Request $request) {
-    //
-    //     $em = $this->getEntityManager();
-    //
-    //     $uid = $this->doAddRequest($name, $request, $em);
-    //
-    //     $em->flush();
-    //
-    //     return $uid;
-    //
-    // }
-    //
-    // public function addBulk(array $queue) {
-    //
-    //     $em = $this->getEntityManager();
-    //
-    //     $records = [];
-    //
-    //     foreach ($queue as $name => $request) {
-    //         $records[] = $this->doAddRequest($name, $request, $em);
-    //     }
-    //
-    //     $em->flush();
-    //
-    //     return $records;
-    //
-    // }
-    //
-    // protected function doAddRequest($name, Request $request, EntityManager $em) {
-    //
-    //     $record = new Queue();
-    //     $record->setName($name)->setRequest($request);
-    //
-    //     $em->persist($record);
-    //
-    //     return $request->getUid();
-    //
-    // }
+    public function add(Schedule $schedule) {
+
+        $time = new DateTime();
+
+        $schedule->setFirstrun($schedule->getNextPlannedRun($time));
+
+        $em = $this->getEntityManager();
+
+        $em->persist($schedule);
+
+        $em->flush();
+
+        return $schedule->getId();
+
+    }
+
+    public function addBulk(array $schedules) {
+
+        $em = $this->getEntityManager();
+
+        $records = [];
+
+        foreach ($schedules as $key => $schedule) {
+
+            try {
+
+                $em->persist($schedule);
+
+                $em->flush();
+
+            } catch (Exception $e) {
+
+                $records[$key] = false;
+
+                continue;
+
+            }
+
+            $records[$key] = $scheudle->getId();
+
+        }
+
+        return $records;
+
+    }
+
+    public function remove(Schedule $schedule) {
+
+        $em = $this->getEntityManager();
+
+        $em->remove($schedule);
+
+        $em->flush();
+
+    }
+
+    public function edit(Schedule $schedule) {
+
+        $em = $this->getEntityManager();
+
+        $id = $schedule->getId();
+
+        if ( empty($id) ) throw new Exception("Cannot edit scheule without id");
+
+        $old_schedule = $this->get($schedule->getId());
+
+        if ( empty($old_schedule) ) throw new Exception("Cannot find schedule with id $id");
+
+        $old_schedule->merge($schedule);
+
+        $em->persist($old_schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function enable($name) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->getByName($name);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+
+        $schedule->setEnabled(true);
+
+        $em->persist($schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function disable($name) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->getByName($name);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+
+        $schedule->setEnabled(false);
+
+        $em->persist($schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
 
 }

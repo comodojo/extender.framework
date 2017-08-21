@@ -58,8 +58,9 @@ class Locker {
         $this->setConfiguration($configuration);
         $this->setLogger($logger);
 
-        $lock_path = $configuration->get('lockfiles-path');
-        $this->lock_file = "$lock_path/$name.lock";
+        $base_path = $configuration->get('base-path');
+        $lock_path = $configuration->get('run-path');
+        $this->lock_file = "$base_path/$lock_path/$name.lock";
 
     }
 
@@ -146,7 +147,7 @@ class Locker {
 
         $request = $this->queued[$uid];
 
-        $this->logger->debug("Task ".$request->getName()." (uid $uid) aborted: internal error");
+        $this->logger->debug("Task ".$request->getName()." (uid $uid) aborted: ".$result->message);
 
         $this->completed[$uid] = $result;
 
@@ -176,9 +177,9 @@ class Locker {
 
     public function freeCompleted() {
 
-        $this->completed = array_filter($this->completed, function($result) {
+        $this->completed = array_map(function($result) {
             return $result->success;
-        });
+        }, $this->completed);
 
     }
 

@@ -5,11 +5,11 @@ routing-table-cache: true
 routing-table-ttl: 86400
 log:
     enable: true
-    name: dispatcher
+    name: extender
     providers:
         local:
             type: StreamHandler
-            level: info
+            level: debug
             stream: logs/extenderd.log
 cache:
     enable: true
@@ -30,5 +30,6 @@ database-repositories:
 child-lagger-timeout: 10
 multithread: false
 child-max-runtime: 600
+child-max-result-bytes: 16384
 fork-limit: 50
-tasksmanager-lockfile-path: run
+run-path: run

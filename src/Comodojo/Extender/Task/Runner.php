@@ -157,6 +157,7 @@ class Runner {
         $result = new Result([
             $uid,
             $pid,
+            $jid,
             $name,
             $status,
             $this->stopwatch->getStartTime(),

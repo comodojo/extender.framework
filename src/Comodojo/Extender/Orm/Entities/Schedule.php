@@ -48,9 +48,9 @@ class Schedule {
     /**
      * @var string
      *
-     * @ORM\Column(name="min", type="string", length=16, nullable=false)
+     * @ORM\Column(name="minute", type="string", length=16, nullable=false)
      */
-    protected $min;
+    protected $minute;
 
     /**
      * @var string
@@ -83,7 +83,7 @@ class Schedule {
     /**
      * @var string
      *
-     * @ORM\Column(name="year", type="string", length=16, nullable=false)
+     * @ORM\Column(name="year", type="string", length=16, nullable=true)
      */
     protected $year;
 
@@ -92,7 +92,7 @@ class Schedule {
      *
      * @ORM\Column(name="enabled", type="boolean", nullable=false)
      */
-    protected $enabled = 0;
+    protected $enabled = false;
 
     /**
      * @var datetime
@@ -152,12 +152,12 @@ class Schedule {
      */
     public function setExpression(CronExpression $expression) {
 
-        $this->minute = $exp->getExpression(0);
-        $this->hour = $exp->getExpression(1);
-        $this->day = $exp->getExpression(2);
-        $this->month = $exp->getExpression(3);
-        $this->weekday = $exp->getExpression(4);
-        $this->year = $exp->getExpression(5);
+        $this->minute = $expression->getExpression(0);
+        $this->hour = $expression->getExpression(1);
+        $this->day = $expression->getExpression(2);
+        $this->month = $expression->getExpression(3);
+        $this->weekday = $expression->getExpression(4);
+        $this->year = $expression->getExpression(5);
 
         return $this;
 
@@ -180,11 +180,11 @@ class Schedule {
      * @param bool $enable
      * @return Schedule
      */
-    public function setEnable($enable) {
+    public function setEnabled($enabled) {
 
-        $ena = DataFilter::filterBoolean($enable);
+        $ena = DataFilter::filterBoolean($enabled);
 
-        $this->enable = $ena;
+        $this->enabled = $ena;
 
         return $this;
 
@@ -242,29 +242,42 @@ class Schedule {
 
     public function shouldRunJob(DateTime $time) {
 
+        $first_run = $this->getFirstrun();
         $last_run = $this->getLastrun();
 
-        if ( is_null($lastrun) ) {
-            $next_run = $this->getFirstrun();
-        } else {
-            $next_run = $this->buildExpression()->getNextRunDate($last_run);
-        }
+        $next_run = $this->buildExpression()->getNextRunDate(is_null($last_run) ? $first_run : $last_run);
 
-        return $time < $next_run;
+        return $next_run <= $time ? true : false;
+
+        // return $time <= $next_run;
 
     }
 
     public function getNextPlannedRun(DateTime $time) {
 
-        $last_run = $this->getLastrun();
+        // $first_run = $this->getFirstrun();
+        // $last_run = $this->getLastrun();
+        //
+        // if ( is_null($last_run) ) {
+        //     $next_run = $this->getFirstrun();
+        // } else {
+        //     $next_run = $this->buildExpression()->getNextRunDate($time);
+        // }
+        //
+        // return $next_run;
 
-        if ( is_null($lastrun) ) {
-            $next_run = $this->getFirstrun();
-        } else {
-            $next_run = $this->buildExpression()->getNextRunDate($time);
-        }
+        return $this->buildExpression()->getNextRunDate($time);
 
-        return $next_run;
+    }
+
+    public function merge(Schedule $schedule) {
+
+        $this->setName($schedule->getName())
+            ->setDescription($schedule->getDescription())
+            ->setExpression($schedule->getExpression())
+            ->setEnabled($schedule->getEnabled());
+
+        return $this;
 
     }
 

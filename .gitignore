@@ -4,6 +4,5 @@ coverage.clover
 vendor/
 docs/_build/
 build
-tests/resources/database/extender.sqlite
-tests/resources/cache/extender.cache
-# composer.lock
+tests/root/database/extender_test
+tests/root/logs/extenderd.log

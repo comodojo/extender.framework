@@ -111,7 +111,8 @@ class Manager {
             'lagger_timeout' => $this->lagger_timeout,
             'multithread' => $this->multithread,
             'max_runtime' => $this->max_runtime,
-            'max_childs' => $this->max_childs
+            'max_childs' => $this->max_childs,
+            'tasks_count' => count($this->table)
         ));
 
     }
@@ -188,7 +189,7 @@ class Manager {
 
                 } catch (Exception $e) {
 
-                    $result = self::generateSyntheticResult($uid, $e->getMessage(), false);
+                    $result = self::generateSyntheticResult($uid, $e->getMessage(), $request->getJid(), false);
 
                     $this->locker->setAborted($uid, $result);
 
@@ -340,7 +341,7 @@ class Manager {
 
                 } catch (Exception $e) {
 
-                    $result = self::generateSyntheticResult($uid, $e->getMessage(), false);
+                    $result = self::generateSyntheticResult($uid, $e->getMessage(), $request->getJid(), false);
 
                     // $this->logger->error($result);
 
@@ -380,7 +381,7 @@ class Manager {
 
                     $this->ipc->hang($uid);
 
-                    $result = self::generateSyntheticResult($uid, "Job killed due to max runtime reached", false);
+                    $result = self::generateSyntheticResult($uid, "Job killed due to max runtime reached", $request->getJid(), false);
 
                     if ( $request->isChain() ) $this->evalChain($request, $result);
 
@@ -428,11 +429,12 @@ class Manager {
 
     }
 
-    private function generateSyntheticResult($uid, $message, $success = true) {
+    private function generateSyntheticResult($uid, $message, $jid = null, $success = true) {
 
         return new Result([
             $uid,
             null,
+            $jid,
             null,
             $success,
             null,

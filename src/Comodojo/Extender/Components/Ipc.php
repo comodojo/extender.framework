@@ -43,7 +43,7 @@ class Ipc {
             $configuration->get('child-max-result-bytes'),
             1024,
             PHP_INT_MAX,
-            2048
+            16384
         );
 
     }
