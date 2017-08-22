@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Components;
 
-use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Foundation\Base\Configuration;
 
 /**
  * Version information class

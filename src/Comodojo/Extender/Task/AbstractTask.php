@@ -3,9 +3,9 @@
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Extender\Interfaces\TaskInterface;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
-use \Comodojo\Daemon\Traits\LoggerTrait;
+use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Daemon\Traits\PidTrait;
-use \Comodojo\Daemon\Traits\EventsTrait;
+use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Daemon\Utils\ProcessTools;
 use \Psr\Log\LoggerInterface;
 use \Comodojo\Foundation\Events\Manager as EventsManager;

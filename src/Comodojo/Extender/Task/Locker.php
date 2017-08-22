@@ -2,7 +2,7 @@
 
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Foundation\Base\Configuration;
-use \Comodojo\Daemon\Traits\LoggerTrait;
+use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Psr\Log\LoggerInterface;
 
 /**

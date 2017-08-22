@@ -2,8 +2,8 @@
 
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
-use \Comodojo\Daemon\Traits\LoggerTrait;
-use \Comodojo\Daemon\Traits\EventsTrait;
+use \Comodojo\Foundation\Logging\LoggerTrait;
+use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Task\Request;
