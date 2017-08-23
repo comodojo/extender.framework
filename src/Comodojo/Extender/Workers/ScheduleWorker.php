@@ -47,7 +47,7 @@ class ScheduleWorker extends AbstractWorker {
     public function loop() {
 
         if ( $this->wakeup_time > time() ) {
-            $this->logger->info('Still in sleep time, next planned wakeup is '.date('r', $this->wakeup_time));
+            $this->logger->debug('Still in sleep time, next planned wakeup is '.date('r', $this->wakeup_time));
             return;
         }
 

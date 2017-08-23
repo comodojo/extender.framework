@@ -34,7 +34,7 @@ class Schedule {
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=256, nullable=false, unique=true)
+     * @ORM\Column(name="name", type="string", length=128, nullable=false, unique=true)
      */
     protected $name;
 

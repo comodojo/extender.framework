@@ -32,7 +32,7 @@ trait BaseEntityTrait {
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=256, nullable=false)
+     * @ORM\Column(name="name", type="string", length=128, nullable=false)
      */
     protected $name;
 
