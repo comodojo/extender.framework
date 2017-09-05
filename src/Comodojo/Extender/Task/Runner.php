@@ -8,7 +8,7 @@ use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Orm\Entities\Worklog;
 use \Comodojo\Extender\Utils\StopWatch;
@@ -41,11 +41,6 @@ class Runner {
     use TasksTableTrait;
 
     /**
-     * @var EntityManager
-     */
-    protected $em;
-
-    /**
      * @var Worklog
      */
     protected $worklog;
@@ -59,8 +54,7 @@ class Runner {
         Configuration $configuration,
         LoggerInterface $logger,
         TasksTable $table,
-        EventsManager $events,
-        EntityManager $em = null
+        EventsManager $events
     ) {
 
         // init components
@@ -71,9 +65,6 @@ class Runner {
 
         // create StopWatch
         $this->stopwatch = new StopWatch();
-
-        // init database
-        $this->em = is_null($em) ? Database::init($configuration)->getEntityManager() : $em;
 
         // init worklog manager
         $this->worklog = new Worklog();
@@ -88,6 +79,8 @@ class Runner {
         $jid = $request->getJid();
         $puid = $request->getParentUid();
         $parameters = $request->getParameters();
+
+        ob_start();
 
         try {
 
@@ -150,6 +143,8 @@ class Runner {
 
         } catch (Exception $e) {
 
+            ob_end_clean();
+
             throw $e;
 
         }
@@ -167,6 +162,8 @@ class Runner {
         ]);
 
         $this->stopwatch->clear();
+
+        ob_end_clean();
 
         return $result;
 
@@ -204,6 +201,8 @@ class Runner {
         $start
     ) {
 
+        $em = Database::init($this->getConfiguration())->getEntityManager();
+
         $this->worklog
             ->setUid($uid)
             ->setParentUid($puid)
@@ -215,8 +214,10 @@ class Runner {
             ->setParameters($parameters)
             ->setStartTime($start);
 
-        $this->em->persist($this->worklog);
-        $this->em->flush();
+        $em->persist($this->worklog);
+        $em->flush();
+        //$em->getConnection()->close();
+        $em->close();
 
     }
 
@@ -226,13 +227,17 @@ class Runner {
         $end
     ) {
 
+        $em = Database::init($this->getConfiguration())->getEntityManager();
+
         $this->worklog
             ->setStatus($status)
             ->setResult($result)
             ->setEndTime($end);
 
-        $this->em->persist($this->worklog);
-        $this->em->flush();
+        $em->persist($this->worklog);
+        $em->flush();
+        //$em->getConnection()->close();
+        $em->close();
 
     }
 

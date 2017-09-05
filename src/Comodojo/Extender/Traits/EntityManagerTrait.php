@@ -50,9 +50,20 @@ trait EntityManagerTrait {
 
     }
 
+    public function closeEntityManager() {
+
+        $em = $this->getEntityManager();
+
+        if ( $em instanceof EntityManager ) {
+            $em->getConnection()->close();
+            $em->close();
+        }
+
+    }
+
     public function __destruct() {
 
-        $this->getEntityManager()->close();
+        $this->closeEntityManager();
 
     }
 

@@ -6,7 +6,7 @@ try {
 
     $name = 'test_sched';
 
-    $client = \Comodojo\Daemon\Socket\Client::create('unix://extender.sock');
+    $client = \Comodojo\Daemon\Socket\Client::create('unix://tests/root/run/extender.sock');
 
     $schedule = $client->send('scheduler:getByName', $name);
 

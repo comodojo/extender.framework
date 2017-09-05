@@ -5,14 +5,12 @@ use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Daemon\Utils\ProcessTools;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Utils\Validator as ExtenderCommonValidations;
-use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Components\Ipc;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Components\Database;
-use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
 
@@ -38,7 +36,6 @@ class Manager {
     use LoggerTrait;
     use EventsTrait;
     use TasksTableTrait;
-    use EntityManagerTrait;
 
     /**
      * @var int
@@ -71,6 +68,11 @@ class Manager {
     protected $locker;
 
     /**
+     * @var Tracker
+     */
+    protected $tracker;
+
+    /**
      * Class constructor
      *
      * @param string $manager_name
@@ -81,12 +83,11 @@ class Manager {
      * @param EntityManager $em
      */
     public function __construct(
-        $manager_name,
+        Locker $locker,
         Configuration $configuration,
         LoggerInterface $logger,
         TasksTable $tasks,
-        EventsManager $events,
-        EntityManager $em = null
+        EventsManager $events
     ) {
 
         $this->setConfiguration($configuration);
@@ -94,12 +95,9 @@ class Manager {
         $this->setTasksTable($tasks);
         $this->setEvents($events);
 
-        $em = is_null($em) ? Database::init($configuration)->getEntityManager() : $em;
-        $this->setEntityManager($em);
-
+        $this->locker = $locker;
+        $this->tracker = new Tracker($configuration, $logger);
         $this->ipc = new Ipc($configuration);
-
-        $this->locker = Locker::create($manager_name, $configuration, $logger);
 
         // retrieve parameters
         $this->lagger_timeout = ExtenderCommonValidations::laggerTimeout($this->configuration->get('child-lagger-timeout'));
@@ -107,30 +105,27 @@ class Manager {
         $this->max_runtime = ExtenderCommonValidations::maxChildRuntime($this->configuration->get('child-max-runtime'));
         $this->max_childs = ExtenderCommonValidations::forkLimit($this->configuration->get('fork-limit'));
 
-        $logger->debug("Tasks Manager online", array(
-            'lagger_timeout' => $this->lagger_timeout,
-            'multithread' => $this->multithread,
-            'max_runtime' => $this->max_runtime,
-            'max_childs' => $this->max_childs,
-            'tasks_count' => count($this->table)
-        ));
+        // $logger->debug("Tasks Manager online", array(
+        //     'lagger_timeout' => $this->lagger_timeout,
+        //     'multithread' => $this->multithread,
+        //     'max_runtime' => $this->max_runtime,
+        //     'max_childs' => $this->max_childs,
+        //     'tasks_count' => count($this->table)
+        // ));
+
+        set_error_handler([$this, 'customErrorHandler']);
 
     }
 
-    /**
-     * Class destructor
-     *
-     * Remove the locker file on shutdown
-     */
     public function __destruct() {
 
-        $this->locker->release();
+        restore_error_handler();
 
     }
 
     public function add(Request $request) {
 
-        $this->locker->setQueued($request);
+        $this->tracker->setQueued($request);
 
         return $this;
 
@@ -138,44 +133,48 @@ class Manager {
 
     public function addBulk(array $requests) {
 
-        $responses = [];
-
         foreach ($requests as $id => $request) {
 
             if ($request instanceof \Comodojo\Extender\Task\Request) {
                 $this->add($request);
-                $responses[$id] = true;
             } else {
                 $this->logger->error("Skipping invalid request with local id $id: class mismatch");
-                $responses[$id] = false;
             }
 
         }
 
-        return $responses;
+        return $this;
 
     }
 
     public function run() {
 
-        while ( $this->locker->countQueued() > 0 ) {
+        $this->updateTrackerSetQueued();
+
+        while ( $this->tracker->countQueued() > 0 ) {
 
             // Start to cycle queued tasks
             $this->cycle();
 
         }
 
-        $result = $this->locker->getCompleted();
+        $this->ipc->free();
 
-        $this->locker->freeCompleted();
+        return $this->tracker->getCompleted();
 
-        return $result;
+    }
+
+    public function customErrorHandler($errno, $errstr, $errfile, $errline) {
+
+        $this->getLogger()->error("Unhandled error ($errno): $errstr [in $errfile line $errline]");
+
+        return true;
 
     }
 
     protected function cycle() {
 
-        foreach ($this->locker->getQueued() as $uid => $request) {
+        foreach ($this->tracker->getQueued() as $uid => $request) {
 
             if ( $this->multithread === false ) {
 
@@ -191,7 +190,7 @@ class Manager {
 
                     $result = self::generateSyntheticResult($uid, $e->getMessage(), $request->getJid(), false);
 
-                    $this->locker->setAborted($uid, $result);
+                    $this->updateTrackerSetAborted($uid, $result);
 
                     if ( $request->isChain() ) $this->evalChain($request, $result);
 
@@ -199,11 +198,11 @@ class Manager {
 
                 }
 
-                $this->locker->setRunning($uid, $pid);
+                $this->updateTrackerSetRunning($uid, $pid);
 
-                if ( $this->max_childs > 0 && $this->locker->countRunning() >= $this->max_childs ) {
+                if ( $this->max_childs > 0 && $this->tracker->countRunning() >= $this->max_childs ) {
 
-                    while( $this->locker->countRunning() >= $this->max_childs ) {
+                    while( $this->tracker->countRunning() >= $this->max_childs ) {
 
                         $this->catcher();
 
@@ -224,20 +223,19 @@ class Manager {
 
         $pid = ProcessTools::getPid();
 
-        $this->locker->setRunning($uid, $pid);
+        $this->updateTrackerSetRunning($uid, $pid);
 
         $result = Runner::fastStart(
             $request,
             $this->getConfiguration(),
             $this->getLogger(),
             $this->getTasksTable(),
-            $this->getEvents(),
-            $this->getEntityManager()
+            $this->getEvents()
         );
 
         if ( $request->isChain() ) $this->evalChain($request, $result);
 
-        $this->locker->setCompleted($uid, $result);
+        $this->updateTrackerSetCompleted($uid, $result);
 
         $success = $result->success === false ? "error" : "success";
         $this->logger->notice("Task ".$request->getName()."(uid: ".$request->getUid().") ends in $success");
@@ -287,15 +285,8 @@ class Manager {
                 $this->getConfiguration(),
                 $this->getLogger(),
                 $this->getTasksTable(),
-                $this->getEvents(),
-                $this->getEntityManager()
+                $this->getEvents()
             );
-
-            // $output = array(
-            //     'success' => $result->success,
-            //     'result' => $result->result,
-            //     'wid' => $result->wid
-            // );
 
             $this->ipc->write($uid, serialize($result));
 
@@ -311,7 +302,7 @@ class Manager {
 
     private function catcher_loop() {
 
-        while ( !empty($this->locker->getRunning()) ) {
+        while ( !empty($this->tracker->getRunning()) ) {
 
             $this->catcher();
 
@@ -325,7 +316,7 @@ class Manager {
      */
     private function catcher() {
 
-        foreach ( $this->locker->getRunning() as $uid => $request ) {
+        foreach ( $this->tracker->getRunning() as $uid => $request ) {
 
             if ( ProcessTools::isRunning($request->getPid()) === false ) {
 
@@ -349,7 +340,7 @@ class Manager {
 
                 if ( $request->isChain() ) $this->evalChain($request, $result);
 
-                $this->locker->setCompleted($uid, $result);
+                $this->updateTrackerSetCompleted($uid, $result);
 
                 $success = $result->success === false ? "error" : "success";
                 $this->logger->notice("Task ".$request->getName()."(uid: ".$request->getUid().") ends in $success");
@@ -385,7 +376,7 @@ class Manager {
 
                     if ( $request->isChain() ) $this->evalChain($request, $result);
 
-                    $this->locker->setCompleted($uid, $result);
+                    $this->updateTrackerSetCompleted($uid, $result);
 
                     $this->logger->notice("Task ".$request->getName()."(uid: $uid) ends in error");
 
@@ -394,13 +385,6 @@ class Manager {
             }
 
         }
-
-    }
-
-    public function free() {
-
-        $this->ipc->free();
-        $this->locker->free();
 
     }
 
@@ -444,5 +428,64 @@ class Manager {
         ]);
 
     }
+
+    private function updateTrackerSetQueued() {
+
+        $this->locker->lock([
+            'QUEUED' => $this->tracker->countQueued()
+        ]);
+
+    }
+
+    private function updateTrackerSetRunning($uid, $pid) {
+
+        $this->tracker->setRunning($uid, $pid);
+        $this->locker->lock([
+            'QUEUED' => $this->tracker->countQueued(),
+            'RUNNING' => $this->tracker->countRunning()
+        ]);
+
+    }
+
+    private function updateTrackerSetCompleted($uid, $result) {
+
+        $this->tracker->setCompleted($uid, $result);
+
+        $lock_data = [
+            'RUNNING' => $this->tracker->countRunning(),
+            'COMPLETED' => 1
+        ];
+
+        if ( $result->success ) {
+            $lock_data['SUCCEEDED'] = 1;
+        } else {
+            $lock_data['FAILED'] = 1;
+        }
+
+        $this->locker->lock($lock_data);
+
+    }
+
+    private function updateTrackerSetAborted($uid, $result) {
+
+        $this->tracker->setAborted($uid, $result);
+        $lock_data = [
+            'RUNNING' => $this->tracker->countRunning(),
+            'ABORTED' => 1
+        ];
+
+    }
+
+    // private function updateLocker() {
+    //
+    //     $this->locker->lock([
+    //         'QUEUED' => $this->tracker->countQueued(),
+    //         'RUNNING' => $this->tracker->countRunning(),
+    //         'COMPLETED' => $this->tracker->countCompleted(),
+    //         'SUCCEEDED' => $this->tracker->countSucceeded(),
+    //         'FAILED' => $this->tracker->countFailed()
+    //     ]);
+    //
+    // }
 
 }

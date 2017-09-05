@@ -23,6 +23,12 @@ database-params:
     password: extender
     path: database/extender_test
     driver: pdo_sqlite
+# database-params:
+#     user: extender
+#     password: extender
+#     dbname: extender
+#     host: localhost
+#     driver: pdo_mysql
 database-devmode: true
 database-proxies: proxy
 database-repositories:

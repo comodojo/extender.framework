@@ -5,7 +5,7 @@ use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Extender\Components\Database;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Orm\Entities\Schedule;
 use \Doctrine\ORM\EntityManager;
@@ -39,7 +39,6 @@ class Manager {
     /**
      * Class constructor
      *
-     * @param string $manager_name
      * @param Configuration $configuration
      * @param LoggerInterface $logger
      * @param TasksTable $tasks

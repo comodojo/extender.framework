@@ -2,7 +2,7 @@
 
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Extender\Interfaces\TaskInterface;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Daemon\Traits\PidTrait;
 use \Comodojo\Foundation\Events\EventsTrait;

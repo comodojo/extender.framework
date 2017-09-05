@@ -2,7 +2,7 @@
 
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Psr\Log\LoggerInterface;

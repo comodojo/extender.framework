@@ -4,8 +4,8 @@ use \Comodojo\Extender\Workers\ScheduleWorker;
 use \Comodojo\Extender\Workers\QueueWorker;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Task\Request;
-use \Comodojo\Extender\Task\TaskParameters;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
+use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Queue\Manager as QueueManager;
 use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
@@ -20,6 +20,7 @@ use \Comodojo\Foundation\Logging\Manager as LogManager;
 use \Comodojo\Foundation\Utils\ArrayOps;
 use \Comodojo\SimpleCache\Manager as SimpleCacheManager;
 use \Psr\Log\LoggerInterface;
+use \Exception;
 
 class ExtenderDaemon extends AbstractDaemon {
 
@@ -32,7 +33,7 @@ class ExtenderDaemon extends AbstractDaemon {
     protected static $default_properties = array(
         'pidfile' => '',
         'socketfile' => '',
-        'socketbuffer' => 8192,
+        'socketbuffer' => 102400,
         'sockettimeout' => 15,
         'niceness' => 0,
         'arguments' => '\\Comodojo\\Daemon\\Console\\DaemonArguments',
@@ -74,6 +75,15 @@ class ExtenderDaemon extends AbstractDaemon {
     }
 
     public function setup() {
+
+        // try {
+        //     if ( Database::validate($this->configuration) === false ){
+        //         printf("\nWARNING: %s\n\n", "database seems to be not in sync!");
+        //     }
+        // } catch (Exception $e) {
+        //     printf("\nFATAL ERROR: %s\n\n", $e->getMessage());
+        //     $this->end(1);
+        // }
 
         $this->installWorkers();
 
@@ -117,7 +127,7 @@ class ExtenderDaemon extends AbstractDaemon {
                     $this->getEvents()
                 );
 
-                return $manager->add($name, $request);
+                return $manager->add($request);
             })
             ->add('queue:addBulk', function(array $requests, $daemon) {
 

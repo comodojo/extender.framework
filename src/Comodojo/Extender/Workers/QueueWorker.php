@@ -1,13 +1,13 @@
 <?php namespace Comodojo\Extender\Workers;
 
 use \Comodojo\Daemon\Worker\AbstractWorker;
-use \Comodojo\Extender\Task\Manager as TaskManager;
-use \Comodojo\Extender\Queue\Manager as QueueManager;
-use \Comodojo\Extender\Task\Request;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Extender\Queue\Manager as QueueManager;
+use \Comodojo\Extender\Task\Locker;
+use \Comodojo\Extender\Task\Manager as TaskManager;
 use \Comodojo\Extender\Traits\TasksTableTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\WorkerTrait;
 
 class QueueWorker extends AbstractWorker {
@@ -18,34 +18,65 @@ class QueueWorker extends AbstractWorker {
     use TasksTableTrait;
     use WorkerTrait;
 
+    protected $locker;
+
+    public function spinup() {
+
+        $configuration = $this->getConfiguration();
+
+        $base_path = $configuration->get('base-path');
+        $lock_path = $configuration->get('run-path');
+        $lock_file = "$base_path/$lock_path/queue.worker.lock";
+
+        $this->locker = new Locker($lock_file);
+        $this->locker->lock([]);
+
+    }
+
     public function loop() {
 
         $task_manager = new TaskManager(
-            'queue.worker',
+            $this->locker,
             $this->getConfiguration(),
             $this->getLogger(),
             $this->getTasksTable(),
             $this->getEvents()
         );
 
-        $job_manager = new QueueManager(
+        $queue_manager = new QueueManager(
             $this->getConfiguration(),
             $this->getLogger(),
             $this->getEvents()
         );
 
-        $queue = $job_manager->get();
+        $queue = $queue_manager->get();
 
-        $requests = $this->jobsToRequests($queue);
+        if ( !empty($queue) ) {
 
-        $job_manager->remove($queue);
+            $requests = $this->jobsToRequests($queue);
 
-        $task_manager->addBulk($requests);
+            $queue_manager->remove($queue);
+            unset($queue_manager);
 
-        $result = $task_manager->run();
+            $result = $task_manager->addBulk($requests)->run();
+            unset($task_manager);
 
-        unset($task_manager);
-        unset($job_manager);
+        } else {
+
+            unset($queue_manager);
+            unset($task_manager);
+
+        }
+
+
+
+        $this->locker->lock([]);
+
+    }
+
+    public function spindown() {
+
+        $this->locker->release();
 
     }
 

@@ -1,14 +1,14 @@
 <?php namespace Comodojo\Extender\Queue;
 
 use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Orm\Entities\Queue;
-use \Comodojo\Extender\Components\Database;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
@@ -39,7 +39,6 @@ class Manager {
     /**
      * Class constructor
      *
-     * @param string $manager_name
      * @param Configuration $configuration
      * @param LoggerInterface $logger
      * @param TasksTable $tasks
@@ -120,9 +119,7 @@ class Manager {
     protected function doAddRequest(Request $request, EntityManager $em) {
 
         $record = new Queue();
-        $record
-            ->setName($request->getName())
-            ->setRequest($request);
+        $record->setName($request->getName())->setRequest($request);
 
         $em->persist($record);
 

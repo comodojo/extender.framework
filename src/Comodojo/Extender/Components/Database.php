@@ -1,8 +1,9 @@
 <?php namespace Comodojo\Extender\Components;
 
 use \Comodojo\Foundation\Base\Configuration;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Doctrine\ORM\Tools\Setup;
+use \Doctrine\ORM\Tools\SchemaValidator;
 use \Doctrine\ORM\EntityManager;
 use \Doctrine\DBAL\DriverManager;
 use \Doctrine\DBAL\Configuration as DoctrineConfiguration;
@@ -136,6 +137,27 @@ class Database {
     public static function init(Configuration $configuration) {
 
         return new Database($configuration);
+
+    }
+
+    public static function validate(Configuration $configuration) {
+
+        $db = new Database($configuration);
+
+        $em = $db->getEntityManager();
+        $validator = new SchemaValidator($em);
+
+        $result = [
+            'MAPPING' => empty($validator->validateMapping()),
+            'SYNC' => $validator->schemaInSyncWithMetadata()
+        ];
+        
+        unset($validator);
+        $em->getConnection()->close();
+        $em->close();
+        unset($db);
+
+        return $result;
 
     }
 

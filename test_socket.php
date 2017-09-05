@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 
 try {
 
-    $client = \Comodojo\Daemon\Socket\Client::create('unix://extender.sock');
+    $client = \Comodojo\Daemon\Socket\Client::create('unix://tests/root/run/extender.sock');
 
     // $data = $client->send('queue:add', ['name'=>'test', 'task'=>'test', 'parameters'=>['copy'=>'fooboo']]);
 

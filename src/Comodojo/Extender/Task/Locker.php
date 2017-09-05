@@ -1,9 +1,7 @@
 <?php namespace Comodojo\Extender\Task;
 
-use \Comodojo\Extender\Traits\ConfigurationTrait;
-use \Comodojo\Foundation\Base\Configuration;
-use \Comodojo\Foundation\Logging\LoggerTrait;
-use \Psr\Log\LoggerInterface;
+use \Comodojo\Daemon\Locker\AbstractLocker;
+use \Comodojo\Daemon\Utils\ProcessTools;
 
 /**
  * @package     Comodojo Extender
@@ -21,203 +19,120 @@ use \Psr\Log\LoggerInterface;
  * THE SOFTWARE.
  */
 
-class Locker {
+class Locker extends AbstractLocker {
 
-    use ConfigurationTrait;
-    use LoggerTrait;
+    protected $usage = [
+        'STARTTIMESTAMP' => null,
+        'PID' => null,
+        'MEMORYUSAGE' => null,
+        'MEMORYPEAKUSAGE' => null
+    ];
 
-    /**
-     * @var array
-     */
-    private $queued = [];
-
-    /**
-     * @var array
-     */
-    private $running = [];
-
-    /**
-     * @var array
-     */
-    private $completed = [];
+    protected $counters = [
+        'QUEUED' => 0,
+        'RUNNING' => 0,
+        'COMPLETED' => 0,
+        'SUCCEEDED' => 0,
+        'FAILED' => 0,
+        'ABORTED' => 0
+    ];
 
     /**
+     * Lock file name
+     *
      * @var string
      */
-    private $lock_file;
+    private $lockfile;
 
-    /**
-     * Manager constructor
-     *
-     * @param string $name
-     * @param Configuration $configuration
-     * @param LoggerInterface $logger
-     */
-    public function __construct($name, Configuration $configuration, LoggerInterface $logger) {
+    public function __construct($lockfile) {
 
-        $this->setConfiguration($configuration);
-        $this->setLogger($logger);
-
-        $base_path = $configuration->get('base-path');
-        $lock_path = $configuration->get('run-path');
-        $this->lock_file = "$base_path/$lock_path/$name.lock";
+        $this->lockfile = $lockfile;
+        $this->usage_data['STARTTIMESTAMP'] = time();
+        $this->usage_data['PID'] = ProcessTools::getPid();
 
     }
 
     public function getQueued() {
 
-        return $this->queued;
-
-    }
-
-    public function setQueued(Request $request) {
-
-        $uid = $request->getUid();
-
-        $this->logger->debug("Adding task with uid $uid to queue");
-
-        $this->queued[$uid] = $request;
-
-        $this->dump();
-
-        return $this;
-
-    }
-
-    public function countQueued() {
-
-        return count($this->queued);
+        return $this->counters['QUEUED'];
 
     }
 
     public function getRunning() {
 
-        return $this->running;
-
-    }
-
-    public function setRunning($uid, $pid) {
-
-        $request = $this->queued[$uid];
-
-        $this->logger->debug("Task ".$request->getName()." (uid $uid) is starting with pid $pid");
-
-        $request->setPid($pid);
-        $request->setStartTimestamp(microtime(true));
-
-        $this->running[$uid] = $request;
-
-        unset($this->queued[$uid]);
-
-        $this->dump();
-
-        return $this;
-
-    }
-
-    public function countRunning() {
-
-        return count($this->running);
+        return $this->counters['RUNNING'];
 
     }
 
     public function getCompleted() {
 
-        return $this->completed;
-
-    }
-
-    public function setCompleted($uid, Result $result) {
-
-        $request = $this->running[$uid];
-
-        $this->logger->debug("Task ".$request->getName()." (uid $uid) completed with ".($result->success ? 'success' : 'error'));
-
-        $this->completed[$uid] = $result;
-
-        unset($this->running[$uid]);
-
-        $this->dump();
-
-        return $this;
-
-    }
-
-    public function setAborted($uid, Result $result) {
-
-        $request = $this->queued[$uid];
-
-        $this->logger->debug("Task ".$request->getName()." (uid $uid) aborted: ".$result->message);
-
-        $this->completed[$uid] = $result;
-
-        unset($this->queued[$uid]);
-
-        $this->dump();
-
-        return $this;
+        return $this->counters['COMPLETED'];
 
     }
 
     public function getSucceeded() {
 
-        return array_filter($this->completed, function($result) {
-            return $result->success;
-        });
+        return $this->counters['SUCCEEDED'];
 
     }
 
     public function getFailed() {
 
-        return array_filter($this->completed, function($result) {
-            return !$result->success;
-        });
+        return $this->counters['FAILED'];
 
     }
 
-    public function freeCompleted() {
+    public function getAborted() {
 
-        $this->completed = array_map(function($result) {
-            return $result->success;
-        }, $this->completed);
+        return $this->counters['ABORTED'];
 
     }
 
-    public function free() {
+    public function lock($what) {
 
-        $this->queued = [];
-        $this->running = [];
-        $this->completed = [];
+        $usage = $this->updateUsage();
+        $counters = $this->updateCounters($what);
 
-        $this->dump();
+        $data = serialize([
+            'USAGE' => $usage,
+            'COUNTERS' => $counters
+        ]);
+
+        return self::writeLock($this->lockfile, $data);
 
     }
 
     public function release() {
 
-        $lock = file_exists($this->lock_file) ? unlink($this->lock_file) : true;
-
-        return $lock;
+        return self::releaseLock($this->lockfile);
 
     }
 
-    private function dump() {
+    protected function updateUsage() {
 
-        return @file_put_contents($this->lock_file, serialize(
-            [
-                'QUEUED' => count($this->getQueued()),
-                'RUNNING' => count($this->getRunning()),
-                'COMPLETED' => count($this->getCompleted()),
-                'SUCCEEDED' => count($this->getSucceeded()),
-                'FAILED' => count($this->getFailed())
-            ]
-        ));
+        $this->usage_data['MEMORYUSAGE'] = memory_get_usage();
+        $this->usage_data['MEMORYPEAKUSAGE'] = memory_get_peak_usage();
+
+        return $this->usage_data;
 
     }
 
-    public static function create($name, Configuration $configuration, LoggerInterface $logger) {
+    protected function updateCounters($counters) {
 
-        return new Locker($name, $configuration, $logger);
+        if ( isset($counters['QUEUED']) && is_int($counters['QUEUED']) ) $this->counters['QUEUED'] = $counters['QUEUED'];
+        if ( isset($counters['RUNNING']) && is_int($counters['RUNNING']) ) $this->counters['RUNNING'] = $counters['RUNNING'];
+        if ( !empty($counters['COMPLETED']) ) $this->counters['COMPLETED'] = $this->counters['COMPLETED'] + (int) $counters['COMPLETED'];
+        if ( !empty($counters['SUCCEEDED']) ) $this->counters['SUCCEEDED'] = $this->counters['SUCCEEDED'] + (int) $counters['SUCCEEDED'];
+        if ( !empty($counters['FAILED']) ) $this->counters['FAILED'] = $this->counters['FAILED'] + (int) $counters['FAILED'];
+        if ( !empty($counters['ABORTED']) ) $this->counters['ABORTED'] = $this->counters['ABORTED'] + (int) $counters['ABORTED'];
+
+        // array_walk($this->counters, function(&$counter, $name) use ($counters) {
+        //
+        //     if ( !empty($counters[$name]) ) $counter = $counter + (int) $counters[$name];
+        //
+        // });
+
+        return $this->counters;
 
     }
 

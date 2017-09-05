@@ -2,13 +2,13 @@
 
 use \Comodojo\Daemon\Worker\AbstractWorker;
 use \Comodojo\Extender\Task\Manager as TaskManager;
+use \Comodojo\Extender\Task\Locker;
 use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
-use \Comodojo\Extender\Task\Request;
-use \Comodojo\Foundation\Logging\LoggerTrait;
-use \Comodojo\Foundation\Events\EventsTrait;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Traits\WorkerTrait;
+use \Comodojo\Foundation\Logging\LoggerTrait;
+use \Comodojo\Foundation\Events\EventsTrait;
 
 class ScheduleWorker extends AbstractWorker {
 
@@ -18,7 +18,24 @@ class ScheduleWorker extends AbstractWorker {
     use TasksTableTrait;
     use WorkerTrait;
 
+    protected $locker;
+
     protected $wakeup_time = 0;
+
+    public function spinup() {
+
+        $configuration = $this->getConfiguration();
+
+        $base_path = $configuration->get('base-path');
+        $lock_path = $configuration->get('run-path');
+        $lock_file = "$base_path/$lock_path/schedule.worker.lock";
+
+        $this->locker = new Locker($lock_file);
+        $this->locker->lock([]);
+
+        $this->getEvents()->subscribe('daemon.worker.refresh', '\Comodojo\Extender\Listeners\RefreshScheduler');
+
+    }
 
     public function loop() {
 
@@ -27,23 +44,21 @@ class ScheduleWorker extends AbstractWorker {
             return;
         }
 
+        $schedule_manager = new ScheduleManager(
+            $this->getConfiguration(),
+            $this->getLogger(),
+            $this->getEvents()
+        );
+
         $task_manager = new TaskManager(
-            'schedule.worker',
+            $this->locker,
             $this->getConfiguration(),
             $this->getLogger(),
             $this->getTasksTable(),
             $this->getEvents()
         );
 
-        $this->getEvents()->subscribe('daemon.worker.refresh', '\Comodojo\Extender\Listeners\RefreshScheduler');
-
-        $job_manager = new ScheduleManager(
-            $this->getConfiguration(),
-            $this->getLogger(),
-            $this->getEvents()
-        );
-
-        $jobs = $job_manager->getAll(true);
+        $jobs = $schedule_manager->getAll(true);
 
         if ( empty($jobs) ) {
 
@@ -55,18 +70,24 @@ class ScheduleWorker extends AbstractWorker {
 
             $requests = $this->jobsToRequests($jobs);
 
-            $task_manager->addBulk($requests);
+            $results = $task_manager->addBulk($requests)->run();
 
-            $result = $task_manager->run();
-
-            $job_manager->updateFromResults($result);
+            $schedule_manager->updateFromResults($results);
 
         }
 
-        $this->wakeup_time = $job_manager->getNextCycleTimestamp();
+        $this->wakeup_time = $schedule_manager->getNextCycleTimestamp();
 
         unset($task_manager);
-        unset($job_manager);
+        unset($schedule_manager);
+
+        $this->locker->lock([]);
+
+    }
+
+    public function spindown() {
+
+        $this->locker->release();
 
     }
 
