@@ -50,4 +50,10 @@ trait EntityManagerTrait {
 
     }
 
+    public function __destruct() {
+
+        $this->getEntityManager()->close();
+
+    }
+
 }

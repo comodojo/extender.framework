@@ -8,6 +8,7 @@ use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Orm\Entities\Queue;
+use \Comodojo\Extender\Components\Database;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
@@ -88,11 +89,11 @@ class Manager {
 
     }
 
-    public function add($name, Request $request) {
+    public function add(Request $request) {
 
         $em = $this->getEntityManager();
 
-        $uid = $this->doAddRequest($name, $request, $em);
+        $uid = $this->doAddRequest($request, $em);
 
         $em->flush();
 
@@ -107,7 +108,7 @@ class Manager {
         $records = [];
 
         foreach ($queue as $name => $request) {
-            $records[] = $request instanceof Request ? $this->doAddRequest($name, $request, $em) : false;
+            $records[] = $request instanceof Request ? $this->doAddRequest($request, $em) : false;
         }
 
         $em->flush();
@@ -116,10 +117,12 @@ class Manager {
 
     }
 
-    protected function doAddRequest($name, Request $request, EntityManager $em) {
+    protected function doAddRequest(Request $request, EntityManager $em) {
 
         $record = new Queue();
-        $record->setName($name)->setRequest($request);
+        $record
+            ->setName($request->getName())
+            ->setRequest($request);
 
         $em->persist($record);
 

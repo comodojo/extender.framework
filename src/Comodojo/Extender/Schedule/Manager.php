@@ -4,6 +4,7 @@ use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
+use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Orm\Entities\Schedule;
@@ -35,8 +36,6 @@ class Manager {
     use EventsTrait;
     use EntityManagerTrait;
 
-    // protected $locker;
-
     /**
      * Class constructor
      *
@@ -61,9 +60,6 @@ class Manager {
         $em = is_null($em) ? Database::init($configuration)->getEntityManager() : $em;
         $this->setEntityManager($em);
 
-        // $lock_path = $configuration->get('lockfiles-path');
-        // $this->locker = new Locker("$lock_path/schedule.lock");
-        // $this->locker->lock(0);
     }
 
     public function get($id) {
@@ -71,10 +67,6 @@ class Manager {
         $em = $this->getEntityManager();
 
         $data = $em->find('Comodojo\Extender\Orm\Entities\Schedule', $id);
-
-        //if ( empty($data) ) return null;
-
-        //return $data[0];
 
         return $data;
 

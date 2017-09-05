@@ -63,24 +63,41 @@ class Database {
 
             $configuration = $this->getConfiguration();
 
+            $base_folder = $configuration->get('base-path');
+
             $connection_params = self::getConnectionParameters($configuration);
 
             $entity_repositories = self::getEntityRepositories($configuration);
 
+            $proxies_folder = self::getProxiesFolder($configuration);
+
             $devmode = $configuration->get('database-devmode') === true ? true : false;
-            $proxies_folder = $configuration->get('database-proxies');
 
-            $base_folder = $configuration->get('base-path');
+            $metadata_mode = $configuration->get('database-metadata');
 
-            $driverConfig = new DoctrineConfiguration();
-
-            $db_config = Setup::createAnnotationMetadataConfiguration(
+            $config_args = [
                 $entity_repositories,
                 $devmode,
                 "$base_folder/$proxies_folder",
                 null,
                 false
-            );
+            ];
+
+            switch (strtoupper($metadata_mode)) {
+
+                case 'YAML':
+                    $db_config = Setup::createYAMLMetadataConfiguration(...$config_args);
+                    break;
+
+                case 'XML':
+                    $db_config = Setup::createXMLMetadataConfiguration(...$config_args);
+                    break;
+
+                case 'ANNOTATIONS':
+                default:
+                    $db_config = Setup::createAnnotationMetadataConfiguration(...$config_args);
+                    break;
+            }
 
             if ( $devmode ) {
 
@@ -139,8 +156,17 @@ class Database {
         $repos = $configuration->get('database-repositories');
 
         return array_map(function($repo) use ($base_folder) {
-            return "$base_folder/$repo";
+            return substr($repo, 0, 1 ) === "/" ? $repo : "$base_folder/$repo";
         }, $repos);
+
+    }
+
+    protected static function getProxiesFolder(Configuration $configuration) {
+
+        $base_folder = $configuration->get('base-path');
+        $folder = $configuration->get('database-proxies');
+
+        return substr($folder, 0, 1 ) === "/" ? $folder : "$base_folder/$folder";
 
     }
 

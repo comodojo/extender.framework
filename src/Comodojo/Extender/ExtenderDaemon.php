@@ -7,8 +7,6 @@ use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Task\TaskParameters;
 use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
-use \Comodojo\Extender\Traits\EntityManagerTrait;
-use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Queue\Manager as QueueManager;
 use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
 use \Comodojo\Extender\Orm\Entities\Schedule;
@@ -21,7 +19,6 @@ use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Logging\Manager as LogManager;
 use \Comodojo\Foundation\Utils\ArrayOps;
 use \Comodojo\SimpleCache\Manager as SimpleCacheManager;
-use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 
 class ExtenderDaemon extends AbstractDaemon {
@@ -31,7 +28,6 @@ class ExtenderDaemon extends AbstractDaemon {
     use LoggerTrait;
     use CacheTrait;
     use TasksTableTrait;
-    use EntityManagerTrait;
 
     protected static $default_properties = array(
         'pidfile' => '',
@@ -75,8 +71,6 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $this->setCache(is_null($cache) ? SimpleCacheManager::createFromConfiguration($this->configuration, $this->logger) : $cache);
 
-        $this->setEntityManager(Database::init($this->configuration)->getEntityManager());
-
     }
 
     public function setup() {
@@ -98,16 +92,14 @@ class ExtenderDaemon extends AbstractDaemon {
             ->setConfiguration($this->getConfiguration())
             ->setLogger($this->getLogger())
             ->setEvents($this->getEvents())
-            ->setTasksTable($this->getTasksTable())
-            ->setEntityManager($this->getEntityManager());
+            ->setTasksTable($this->getTasksTable());
 
         $queue_worker = new QueueWorker("queue");
         $queue_worker
             ->setConfiguration($this->getConfiguration())
             ->setLogger($this->getLogger())
             ->setEvents($this->getEvents())
-            ->setTasksTable($this->getTasksTable())
-            ->setEntityManager($this->getEntityManager());
+            ->setTasksTable($this->getTasksTable());
 
         $manager
             ->install($schedule_worker, 1, true)
@@ -122,8 +114,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new QueueManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 return $manager->add($name, $request);
@@ -133,8 +124,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new QueueManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 return $manager->addBulk($requests);
@@ -156,8 +146,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 $id = $manager->add($data);
@@ -172,8 +161,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 return $manager->get($id);
@@ -184,8 +172,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 return $manager->getByName($name);
@@ -196,8 +183,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 $edit = $manager->edit($data);
@@ -212,8 +198,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 $edit = $manager->enable($name);
@@ -228,8 +213,7 @@ class ExtenderDaemon extends AbstractDaemon {
                 $manager = new ScheduleManager(
                     $this->getConfiguration(),
                     $this->getLogger(),
-                    $this->getEvents(),
-                    $this->getEntityManager()
+                    $this->getEvents()
                 );
 
                 $edit = $manager->disable($name);
