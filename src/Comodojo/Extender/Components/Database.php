@@ -79,7 +79,7 @@ class Database {
             $config_args = [
                 $entity_repositories,
                 $devmode,
-                "$base_folder/$proxies_folder",
+                $proxies_folder,
                 null,
                 false
             ];
