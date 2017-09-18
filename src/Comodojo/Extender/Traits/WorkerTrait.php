@@ -43,7 +43,7 @@ trait WorkerTrait {
             $request = $job->getRequest();
 
             if ( $job instanceof \Comodojo\Extender\Orm\Entities\Schedule ) {
-                $request->setJid($job);
+                $request->setJid($job->getId());
             }
 
             return $request;

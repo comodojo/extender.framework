@@ -4,12 +4,29 @@ use \Comodojo\Daemon\Worker\AbstractWorker;
 use \Comodojo\Extender\Task\Manager as TaskManager;
 use \Comodojo\Extender\Task\Locker;
 use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
+use \Comodojo\Extender\Schedule\Updater as ScheduleUpdater;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Extender\Traits\WorkerTrait;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
 
+/**
+ * @package     Comodojo Extender
+ * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
+ * @license     MIT
+ *
+ * LICENSE:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+ 
 class ScheduleWorker extends AbstractWorker {
 
     use ConfigurationTrait;
@@ -50,15 +67,10 @@ class ScheduleWorker extends AbstractWorker {
             $this->getEvents()
         );
 
-        $task_manager = new TaskManager(
-            $this->locker,
-            $this->getConfiguration(),
-            $this->getLogger(),
-            $this->getTasksTable(),
-            $this->getEvents()
-        );
-
         $jobs = $schedule_manager->getAll(true);
+        unset($schedule_manager);
+
+        $results = [];
 
         if ( empty($jobs) ) {
 
@@ -67,19 +79,30 @@ class ScheduleWorker extends AbstractWorker {
         } else {
 
             $this->logger->debug(count($jobs)." jobs will be executed");
-
             $requests = $this->jobsToRequests($jobs);
 
+            $task_manager = new TaskManager(
+                $this->locker,
+                $this->getConfiguration(),
+                $this->getLogger(),
+                $this->getTasksTable(),
+                $this->getEvents()
+            );
             $results = $task_manager->addBulk($requests)->run();
-
-            $schedule_manager->updateFromResults($results);
+            unset($task_manager);
 
         }
 
-        $this->wakeup_time = $schedule_manager->getNextCycleTimestamp();
+        $schedule_updater = new ScheduleUpdater(
+            $this->getConfiguration(),
+            $this->getLogger(),
+            $this->getEvents()
+        );
 
-        unset($task_manager);
-        unset($schedule_manager);
+        $wut = $schedule_updater->updateFromResults($results);
+        unset($schedule_updater);
+
+        $this->wakeup_time = $wut;
 
         $this->locker->lock([]);
 

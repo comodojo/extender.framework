@@ -105,7 +105,7 @@ class Manager {
             if ( $lastrun !== null ) {
                 $nextrun = $expression->getNextRunDate($lastrun);
             } else {
-                $nextrun = $expression->getNextRunDate($firstrun);
+                $nextrun = $firstrun;
             }
 
             $shouldrun = $nextrun <= $time;
@@ -119,49 +119,6 @@ class Manager {
             return $shouldrun;
 
         }) : $standby;
-
-    }
-
-    public function getNextCycleTimestamp() {
-
-        $items = $this->getAll();
-
-        $date = new DateTime();
-        $timestamps = [];
-
-        foreach ($items as $schedule) {
-
-            $timestamps[] = $schedule->getNextPlannedRun($date)->getTimestamp();
-
-        }
-
-        return empty($timestamps) ? 0 : min($timestamps);
-
-    }
-
-    public function updateFromResults(array $results) {
-
-        $em = $this->getEntityManager();
-
-        foreach ($results as $result) {
-
-            $id = $result->jid;
-
-            if ( $id === null ) continue;
-
-            $job = $this->get($id);
-
-            if ( $job === null ) continue;
-
-            if ( $job->getFirstrun() === null ) $job->setFirstrun($result->start);
-
-            $job->setLastrun($result->start);
-
-            $em->persist($job);
-
-        }
-
-        $em->flush();
 
     }
 
@@ -183,13 +140,15 @@ class Manager {
 
     public function addBulk(array $schedules) {
 
-        $em = $this->getEntityManager();
-
+        $time = new DateTime();
         $records = [];
+        $em = $this->getEntityManager();
 
         foreach ($schedules as $key => $schedule) {
 
             try {
+
+                $schedule->setFirstrun($schedule->getNextPlannedRun($time));
 
                 $em->persist($schedule);
 
@@ -203,21 +162,11 @@ class Manager {
 
             }
 
-            $records[$key] = $scheudle->getId();
+            $records[$key] = $schedule->getId();
 
         }
 
         return $records;
-
-    }
-
-    public function remove(Schedule $schedule) {
-
-        $em = $this->getEntityManager();
-
-        $em->remove($schedule);
-
-        $em->flush();
 
     }
 
@@ -236,6 +185,22 @@ class Manager {
         $old_schedule->merge($schedule);
 
         $em->persist($old_schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function remove($name) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->getByName($name);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+
+        $em->remove($schedule);
 
         $em->flush();
 

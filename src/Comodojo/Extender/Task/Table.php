@@ -139,20 +139,16 @@ class Table implements Iterator, ArrayAccess, Countable {
 
         $result = [];
 
-        foreach($tasks as $task) {
+        foreach($tasks as $name => $task) {
 
-            if ( empty($task['name']) || empty($task['class']) ) {
+            if ( empty($task['class']) ) {
 
-                $this->logger->warning("Skipping invalid task definition", array(
-                    "NAME"       => $name,
-                    "CLASS"      => $class,
-                    "DESCRIPTION"=> $description
-                ));
+                $this->logger->warning("Missing class for task $name");
                 $result[] = false;
 
             } else {
 
-                $result[] = $this->add($task['name'], $task['class'], empty($task['description']) ? null : $task['description']);
+                $result[] = $this->add($name, $task['class'], empty($task['description']) ? null : $task['description']);
 
             }
 

@@ -3,7 +3,6 @@
 use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Events\TaskEvent;
-use \Comodojo\Extender\Events\TaskStatusEvent;
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
@@ -41,9 +40,9 @@ class Runner {
     use TasksTableTrait;
 
     /**
-     * @var Worklog
+     * @var int
      */
-    protected $worklog;
+    protected $worklog_id;
 
     /**
      * @var StopWatch
@@ -65,9 +64,6 @@ class Runner {
 
         // create StopWatch
         $this->stopwatch = new StopWatch();
-
-        // init worklog manager
-        $this->worklog = new Worklog();
 
     }
 
@@ -105,8 +101,6 @@ class Runner {
                 $this->stopwatch->getStartTime()
             );
 
-            $this->events->emit( new TaskStatusEvent('start', $thetask) );
-
             try {
 
                 $result = $thetask->run();
@@ -126,10 +120,6 @@ class Runner {
                 $result = $e->getMessage();
 
             }
-
-            $this->events->emit( new TaskStatusEvent($status ? 'success' : 'error', $thetask) );
-
-            $this->events->emit( new TaskStatusEvent('stop', $thetask) );
 
             $this->events->emit( new TaskEvent('stop', $thetask) );
 
@@ -158,7 +148,7 @@ class Runner {
             $this->stopwatch->getStartTime(),
             $this->stopwatch->getStopTime(),
             $result,
-            $this->worklog->getId()
+            $this->worklog_id
         ]);
 
         $this->stopwatch->clear();
@@ -201,23 +191,38 @@ class Runner {
         $start
     ) {
 
-        $em = Database::init($this->getConfiguration())->getEntityManager();
+        try {
 
-        $this->worklog
-            ->setUid($uid)
-            ->setParentUid($puid)
-            ->setPid($pid)
-            ->setName($name)
-            ->setStatus(Worklog::STATUS_RUNNING)
-            ->setJid($jid)
-            ->setTask($task)
-            ->setParameters($parameters)
-            ->setStartTime($start);
+            $em = Database::init($this->getConfiguration())->getEntityManager();
 
-        $em->persist($this->worklog);
-        $em->flush();
-        //$em->getConnection()->close();
-        $em->close();
+            $worklog = new Worklog();
+
+            $worklog
+                ->setUid($uid)
+                ->setParentUid($puid)
+                ->setPid($pid)
+                ->setName($name)
+                ->setStatus(Worklog::STATUS_RUNNING)
+                ->setTask($task)
+                ->setParameters($parameters)
+                ->setStartTime($start);
+
+            if ( $jid !== null ) {
+                $schedule = $em->find('\Comodojo\Extender\Orm\Entities\Schedule', $jid);
+                $worklog->setJid($schedule);
+            }
+
+            $em->persist($worklog);
+            $em->flush();
+
+            $this->worklog_id = $worklog->getId();
+
+            //$em->getConnection()->close();
+            $em->close();
+
+        } catch (Exception $e) {
+            throw $e;
+        }
 
     }
 
@@ -227,17 +232,31 @@ class Runner {
         $end
     ) {
 
-        $em = Database::init($this->getConfiguration())->getEntityManager();
+        try {
 
-        $this->worklog
-            ->setStatus($status)
-            ->setResult($result)
-            ->setEndTime($end);
+            $em = Database::init($this->getConfiguration())->getEntityManager();
 
-        $em->persist($this->worklog);
-        $em->flush();
-        //$em->getConnection()->close();
-        $em->close();
+            $worklog = $em->find('\Comodojo\Extender\Orm\Entities\Worklog', $this->worklog_id);
+
+            $worklog
+                ->setStatus($status)
+                ->setResult($result)
+                ->setEndTime($end);
+
+            $jid = $worklog->getJid();
+            if ( $jid !== null ) {
+                $schedule = $em->find('\Comodojo\Extender\Orm\Entities\Schedule', $jid);
+                $worklog->setJid($schedule);
+            }
+
+            $em->persist($worklog);
+            $em->flush();
+            //$em->getConnection()->close();
+            $em->close();
+
+        } catch (Exception $e) {
+            throw $e;
+        }
 
     }
 

@@ -1,4 +1,3 @@
--
-    name: test
+test:
     class: \Comodojo\Extender\Tests\Helpers\MockTask
     description: mocktask

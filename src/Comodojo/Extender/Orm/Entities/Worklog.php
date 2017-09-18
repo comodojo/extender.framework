@@ -146,7 +146,7 @@ class Worklog {
     /**
      * Set worklog item's pid
      *
-     * @param string $pid
+     * @param int $pid
      * @return Worklog
      */
     public function setPid($pid) {
@@ -171,12 +171,12 @@ class Worklog {
     /**
      * Set worklog item's jid
      *
-     * @param string $jid
+     * @param Schedule $schedule
      * @return Worklog
      */
-    public function setJid($jid) {
+    public function setJid(Schedule $schedule) {
 
-        $this->jid = $jid;
+        $this->jid = $schedule;
 
         return $this;
 

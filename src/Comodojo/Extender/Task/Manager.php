@@ -12,6 +12,7 @@ use \Comodojo\Extender\Components\Ipc;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Components\Database;
 use \Psr\Log\LoggerInterface;
+use \DateTime;
 use \Exception;
 
 /**
@@ -421,7 +422,7 @@ class Manager {
             $jid,
             null,
             $success,
-            null,
+            new DateTime(),
             null,
             $message,
             null

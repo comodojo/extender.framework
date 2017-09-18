@@ -2,7 +2,6 @@
 
 use \Comodojo\Foundation\Utils\UniqueId;
 use \Comodojo\Extender\Utils\Validator;
-use \Comodojo\Extender\Orm\Entities\Schedule;
 
 /**
 * @package     Comodojo Extender
@@ -192,9 +191,9 @@ class Request {
 
     }
 
-    public function setJid(Schedule $schedule) {
+    public function setJid($jid) {
 
-        $this->jid = $schedule;
+        $this->jid = $jid;
 
         return $this;
 
