@@ -48,9 +48,10 @@ class ExtenderDaemon extends AbstractDaemon {
 
     protected static $default_properties = array(
         'pidfile' => '',
-        'socketfile' => '',
-        'socketbuffer' => 102400,
-        'sockettimeout' => 15,
+        'sockethandler' => '',
+        'socketbuffer' => 1024,
+        'sockettimeout' => 2,
+        'socketmaxconnections' => 100,
         'niceness' => 0,
         'arguments' => '\\Comodojo\\Daemon\\Console\\DaemonArguments',
         'description' => 'Extender Daemon'
@@ -69,8 +70,8 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $run_path = $this->getRunPath();
 
-        if ( empty($this->configuration->get('socketfile')) ) {
-            $this->configuration->set('socketfile', "unix://$run_path/extender.sock");
+        if ( empty($this->configuration->get('sockethandler')) ) {
+            $this->configuration->set('sockethandler', "unix://$run_path/extender.sock");
         }
 
         if ( empty($this->configuration->get('pidfile')) ) {
