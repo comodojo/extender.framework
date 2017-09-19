@@ -11,7 +11,8 @@ $loader = require "$base_path/vendor/autoload.php";
 
 try {
 
-    $client = Client::create('unix://tests/root/run/extender.sock');
+    // $client = Client::create('unix://tests/root/run/extender.sock');
+    $client = Client::create('tcp://127.0.0.1:10042');
 
     $data = $client->send('scheduler:refresh');
 
