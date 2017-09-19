@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+
+use \Comodojo\Daemon\Socket\Client;
+use \Comodojo\Extender\Task\Request;
+use \Comodojo\Extender\Task\TaskParameters;
+
+$base_path = realpath(dirname(__FILE__)."/../../");
+
+$loader = require "$base_path/vendor/autoload.php";
+
+try {
+
+    $client = Client::create('unix://tests/root/run/extender.sock');
+
+    $name = 'test_sched';
+    $data = [];
+
+    $data['scheduler:getByName'] = $client->send('scheduler:getByName', $name);
+
+    if ( $data['scheduler:getByName'] !== null ) {
+
+        $data['scheduler:disable'] = $client->send('scheduler:disable', $name);
+
+        $data['scheduler:remove'] = $client->send('scheduler:remove', $name);
+
+    }
+
+} catch (Exception $e) {
+
+    var_dump($e->getMessage());
+
+    exit(1);
+
+}
+
+var_dump($data);
+
+exit(0);

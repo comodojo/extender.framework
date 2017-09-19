@@ -265,13 +265,9 @@ class Manager {
 
         if ( $pid == -1 ) {
 
-            // $this->logger->error("Could not fok job, aborting");
-
             throw new Exception("Unable to fork job, aborting");
 
         } elseif ( $pid ) {
-
-            //PARENT will take actions on processes later
 
             $niceness = $request->getNiceness();
 
@@ -334,8 +330,6 @@ class Manager {
                 } catch (Exception $e) {
 
                     $result = self::generateSyntheticResult($uid, $e->getMessage(), $request->getJid(), false);
-
-                    // $this->logger->error($result);
 
                 }
 
@@ -476,17 +470,5 @@ class Manager {
         ];
 
     }
-
-    // private function updateLocker() {
-    //
-    //     $this->locker->lock([
-    //         'QUEUED' => $this->tracker->countQueued(),
-    //         'RUNNING' => $this->tracker->countRunning(),
-    //         'COMPLETED' => $this->tracker->countCompleted(),
-    //         'SUCCEEDED' => $this->tracker->countSucceeded(),
-    //         'FAILED' => $this->tracker->countFailed()
-    //     ]);
-    //
-    // }
 
 }

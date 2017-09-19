@@ -9,6 +9,7 @@ use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Task\Request;
 use \Comodojo\Extender\Orm\Entities\Queue;
+use \Comodojo\Extender\Events\QueueEvent;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
@@ -76,7 +77,9 @@ class Manager {
 
     }
 
-    public function remove(array $queue) {
+    public function flush(array $queue) {
+
+        $this->getEvents()->emit( new QueueEvent('flush', null, $queue) );
 
         $em = $this->getEntityManager();
 
@@ -117,6 +120,8 @@ class Manager {
     }
 
     protected function doAddRequest(Request $request, EntityManager $em) {
+
+        $this->getEvents()->emit( new QueueEvent('add', $request) );
 
         $record = new Queue();
         $record->setName($request->getName())->setRequest($request);

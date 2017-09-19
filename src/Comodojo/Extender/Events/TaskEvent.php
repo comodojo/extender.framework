@@ -2,6 +2,7 @@
 
 use \Comodojo\Foundation\Events\AbstractEvent;
 use \Comodojo\Extender\Interfaces\TaskInterface;
+use \Comodojo\Extender\Task\Result;
 
 /**
  * @package     Comodojo Extender
@@ -23,17 +24,26 @@ class TaskEvent extends AbstractEvent {
 
     private $task;
 
-    public function __construct($event, TaskInterface $task) {
+    private $result;
+
+    public function __construct($event, TaskInterface $task, Result $result = null) {
 
         parent::__construct("extender.task.$event");
 
         $this->task = $task;
+        $this->result = $result;
 
     }
 
     public function getTask() {
 
         return $this->task;
+
+    }
+
+    public function getResult() {
+
+        return $this->result;
 
     }
 

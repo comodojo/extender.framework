@@ -9,6 +9,7 @@ use \Comodojo\Extender\Task\Manager as TaskManager;
 use \Comodojo\Extender\Traits\TasksTableTrait;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\WorkerTrait;
+use \Comodojo\Extender\Events\QueueEvent;
 
 /**
  * @package     Comodojo Extender
@@ -25,7 +26,7 @@ use \Comodojo\Extender\Traits\WorkerTrait;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- 
+
 class QueueWorker extends AbstractWorker {
 
     use ConfigurationTrait;
@@ -51,28 +52,34 @@ class QueueWorker extends AbstractWorker {
 
     public function loop() {
 
-        $task_manager = new TaskManager(
-            $this->locker,
-            $this->getConfiguration(),
-            $this->getLogger(),
-            $this->getTasksTable(),
-            $this->getEvents()
-        );
+        $configuration = $this->getConfiguration();
+        $logger = $this->getLogger();
+        $events = $this->getEvents();
 
         $queue_manager = new QueueManager(
-            $this->getConfiguration(),
-            $this->getLogger(),
-            $this->getEvents()
+            $configuration,
+            $logger,
+            $events
         );
 
         $queue = $queue_manager->get();
 
         if ( !empty($queue) ) {
 
+            $events->emit( new QueueEvent('process', null, $queue) );
+
             $requests = $this->jobsToRequests($queue);
 
-            $queue_manager->remove($queue);
+            $queue_manager->flush($queue);
             unset($queue_manager);
+
+            $task_manager = new TaskManager(
+                $this->locker,
+                $configuration,
+                $logger,
+                $this->getTasksTable(),
+                $events
+            );
 
             $result = $task_manager->addBulk($requests)->run();
             unset($task_manager);
@@ -80,7 +87,6 @@ class QueueWorker extends AbstractWorker {
         } else {
 
             unset($queue_manager);
-            unset($task_manager);
 
         }
 

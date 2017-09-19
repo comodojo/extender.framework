@@ -78,7 +78,7 @@ class ExtenderDaemon extends AbstractDaemon {
             $this->configuration->set('pidfile', "$run_path/extender.pid");
         }
 
-        $logger = is_null($logger) ? LogManager::createFromConfiguration($this->configuration)->getLogger() : $logger;
+        $logger = is_null($logger) ? LogManager::createFromConfiguration($this->configuration, "extender-log")->getLogger() : $logger;
         $events = is_null($events) ? EventsManager::create($logger) : $events;
 
         parent::__construct(ArrayOps::replaceStrict(self::$default_properties, $this->configuration->get()), $logger, $events);

@@ -2,15 +2,26 @@ language: php
 
 php:
   - 5.6
-  - 7
+  - 7.0
+  - 7.1
   - hhvm
 
+matrix:
+  allow_failures:
+    - php: hhvm
+
 before_script:
-  - composer install --prefer-source
+  - composer update --prefer-stable
+  - tests/bin/extenderd -d -s
 
 script:
   - if [ "$TRAVIS_PHP_VERSION" == "hhvm" ]; then vendor/bin/phpunit; fi
   - if [ "$TRAVIS_PHP_VERSION" != "hhvm" ]; then vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover; fi
+  - tests/bin/testqueue
+  - tests/bin/testscheduleradd
+  - tests/bin/testschedulerrefresh
+  - tests/bin/testschedulerdelete
 
 after_script:
   - bash -c 'if [[ "$TRAVIS_PHP_VERSION" != "hhvm" && "$TRAVIS_PHP_VERSION" != 7* ]]; then php vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover; fi;'
+  - killall php

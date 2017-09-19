@@ -9,7 +9,7 @@ $base_path = realpath(dirname(__FILE__)."/../../");
 
 $loader = require "$base_path/vendor/autoload.php";
 // add PSR4 test classes
-$loader->addPsr4('Comodojo\\Extender\\Tests\\', "$base_path/tests/Extender");
+$loader->addPsr4('Comodojo\\Extender\\Tests\\', "$base_path/tests/Comodojo/Extender");
 
 $root_path = "$base_path/tests/root";
 

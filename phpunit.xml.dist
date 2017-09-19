@@ -12,7 +12,7 @@
     stopOnFailure="false">
     <testsuites>
         <testsuite name="Comodojo Test Suite - extender.framework">
-            <directory>tests/Extender/</directory>
+            <directory>tests/Comodojo/Extender/</directory>
         </testsuite>
     </testsuites>
     <filter>

@@ -26,13 +26,13 @@ use \DateTime;
  */
 class Worklog {
 
-    const STATUS_RUNNING = 0;
+    const STATUS_RUN = 0;
 
     const STATUS_ERROR = 1;
 
-    const STATUS_FINISHED = 2;
+    const STATUS_COMPLETE = 2;
 
-    const STATUS_ABORTED = 3;
+    const STATUS_ABORT = 3;
 
     use BaseEntityTrait;
 

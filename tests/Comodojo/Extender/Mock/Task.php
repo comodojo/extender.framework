@@ -1,10 +1,10 @@
-<?php namespace Comodojo\Extender\Tests\Helpers;
+<?php namespace Comodojo\Extender\Tests\Mock;
 
 use \Comodojo\Extender\Task\AbstractTask;
 use \Comodojo\Exception\TaskException;
 use \Exception;
 
-class MockTask extends AbstractTask {
+class Task extends AbstractTask {
 
     public function run() {
 

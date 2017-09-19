@@ -1,44 +1,49 @@
+#!/usr/bin/env php
 <?php
 
-require 'vendor/autoload.php';
+use \Comodojo\Daemon\Socket\Client;
+use \Comodojo\Extender\Task\Request;
+use \Comodojo\Extender\Task\TaskParameters;
+
+$base_path = realpath(dirname(__FILE__)."/../../");
+
+$loader = require "$base_path/vendor/autoload.php";
 
 try {
 
-    $client = \Comodojo\Daemon\Socket\Client::create('unix://tests/root/run/extender.sock');
-
-    // $data = $client->send('queue:add', ['name'=>'test', 'task'=>'test', 'parameters'=>['copy'=>'fooboo']]);
+    $client = Client::create('unix://tests/root/run/extender.sock');
 
     $data = $client->send('queue:addBulk', [
-        \Comodojo\Extender\Task\Request::create(
+        Request::create(
             'testfail',
             'test',
-            new \Comodojo\Extender\Task\TaskParameters(['sleep'=>10])
+            new TaskParameters(['sleep'=>10])
         )->setMaxtime(5)->setNiceness(2)->onFail(
-            \Comodojo\Extender\Task\Request::create(
+            Request::create(
                 'testisfailed',
                 'test'
             )
         ),
-        \Comodojo\Extender\Task\Request::create(
+        Request::create(
             'testchain',
             'test'
         )->pipe(
-            \Comodojo\Extender\Task\Request::create(
+            Request::create(
                 'testchainpipe',
                 'test'
             )
         )->onDone(
-            \Comodojo\Extender\Task\Request::create(
+            Request::create(
                 'testchaindone',
                 'test'
             )->onDone(
-                \Comodojo\Extender\Task\Request::create(
+                Request::create(
                     'testchainleveltwodone',
                     'test'
                 )
             )
         )->onFail(
-            \Comodojo\Extender\Task\Request::create(
+            Request::create(
                 'testchainfail',
                 'test'
             )
@@ -47,8 +52,12 @@ try {
 
 } catch (Exception $e) {
 
-    exit("\n".$e->getMessage()."\n\n");
+    var_dump($e->getMessage());
+
+    exit(1);
 
 }
 
 var_dump($data);
+
+exit(0);

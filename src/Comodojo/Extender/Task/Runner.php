@@ -105,19 +105,25 @@ class Runner {
 
                 $result = $thetask->run();
 
-                $status = Worklog::STATUS_FINISHED;
+                $status = Worklog::STATUS_COMPLETE;
+
+                $this->events->emit( new TaskEvent('complete', $thetask) );
 
             } catch (TaskException $te) {
 
-                $status = Worklog::STATUS_ABORTED;
+                $status = Worklog::STATUS_ABORT;
 
                 $result = $te->getMessage();
+
+                $this->events->emit( new TaskEvent('abort', $thetask) );
 
             } catch (Exception $e) {
 
                 $status = Worklog::STATUS_ERROR;
 
                 $result = $e->getMessage();
+
+                $this->events->emit( new TaskEvent('error', $thetask) );
 
             }
 
@@ -129,7 +135,7 @@ class Runner {
 
             $drift = $this->stopwatch->getDrift()->format('%s');
 
-            $this->logger->notice("Task $name ($task) with pid $pid ends in ".($status ? 'success' : 'error')." in $drift secs");
+            $this->logger->notice("Task $name ($task) pid $pid ends in ".($status === Worklog::STATUS_COMPLETE ? 'success' : 'error')." in $drift secs");
 
         } catch (Exception $e) {
 
@@ -144,7 +150,7 @@ class Runner {
             $pid,
             $jid,
             $name,
-            $status,
+            $status === Worklog::STATUS_COMPLETE ? true : false,
             $this->stopwatch->getStartTime(),
             $this->stopwatch->getStopTime(),
             $result,
@@ -154,6 +160,8 @@ class Runner {
         $this->stopwatch->clear();
 
         ob_end_clean();
+
+        $this->events->emit( new TaskEvent(self::statusToEvent($status), $thetask, $result) );
 
         return $result;
 
@@ -202,7 +210,7 @@ class Runner {
                 ->setParentUid($puid)
                 ->setPid($pid)
                 ->setName($name)
-                ->setStatus(Worklog::STATUS_RUNNING)
+                ->setStatus(Worklog::STATUS_RUN)
                 ->setTask($task)
                 ->setParameters($parameters)
                 ->setStartTime($start);
@@ -256,6 +264,22 @@ class Runner {
 
         } catch (Exception $e) {
             throw $e;
+        }
+
+    }
+
+    protected function statusToEvent($status) {
+
+        switch ($status) {
+            case Worklog::STATUS_COMPLETE:
+                return 'complete';
+                break;
+            case Worklog::STATUS_ABORT:
+                return 'abort';
+                break;
+            case Worklog::STATUS_ERROR:
+                return 'error';
+                break;
         }
 
     }

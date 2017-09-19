@@ -43,11 +43,5 @@
     },
     "replace": {
         "comodojo/extender.framework": "^1.0"
-    },
-    "repositories": {
-        "daemon": {
-            "type": "vcs",
-            "url": "git@github.com:comodojo/daemon.git"
-        }
     }
 }
