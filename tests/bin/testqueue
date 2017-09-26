@@ -32,7 +32,11 @@ try {
             Request::create(
                 'testchainpipe',
                 'test'
-            )
+            )->pipe(Request::create(
+                'testchainpipetwo',
+                'test',
+                new TaskParameters(['notice'=>true])
+            ))
         )->onDone(
             Request::create(
                 'testchaindone',

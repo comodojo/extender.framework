@@ -7,6 +7,7 @@ use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Daemon\Utils\ProcessTools;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
+use \Comodojo\Extender\Traits\TaskErrorHandlerTrait;
 use \Comodojo\Extender\Utils\Validator as ExtenderCommonValidations;
 use \Comodojo\Extender\Components\Ipc;
 use \Comodojo\Extender\Task\Table as TasksTable;
@@ -37,6 +38,7 @@ class Manager {
     use LoggerTrait;
     use EventsTrait;
     use TasksTableTrait;
+    use TaskErrorHandlerTrait;
 
     /**
      * @var int
@@ -114,14 +116,6 @@ class Manager {
         //     'tasks_count' => count($this->table)
         // ));
 
-        set_error_handler([$this, 'customErrorHandler']);
-
-    }
-
-    public function __destruct() {
-
-        restore_error_handler();
-
     }
 
     public function add(Request $request) {
@@ -165,15 +159,9 @@ class Manager {
 
     }
 
-    public function customErrorHandler($errno, $errstr, $errfile, $errline) {
-
-        $this->getLogger()->error("Unhandled error ($errno): $errstr [in $errfile line $errline]");
-
-        return true;
-
-    }
-
     protected function cycle() {
+
+        $this->installErrorHandler();
 
         foreach ($this->tracker->getQueued() as $uid => $request) {
 
@@ -216,7 +204,11 @@ class Manager {
         }
 
         // spawn the loop if multithread
-        if ( $this->multithread === true ) $this->catcher_loop();
+        if ( $this->multithread === true ) {
+            $this->catcher_loop();
+        } else {
+            $this->restoreErrorHandler();
+        }
 
     }
 
@@ -304,6 +296,8 @@ class Manager {
             $this->catcher();
 
         }
+
+        $this->restoreErrorHandler();
 
     }
 

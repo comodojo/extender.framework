@@ -9,6 +9,7 @@ use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\TasksTableTrait;
+use \Comodojo\Extender\Traits\TaskErrorHandlerTrait;
 use \Comodojo\Extender\Orm\Entities\Worklog;
 use \Comodojo\Extender\Utils\StopWatch;
 use \Psr\Log\LoggerInterface;
@@ -38,6 +39,7 @@ class Runner {
     use ConfigurationTrait;
     use EventsTrait;
     use TasksTableTrait;
+    use TaskErrorHandlerTrait;
 
     /**
      * @var int
@@ -82,7 +84,7 @@ class Runner {
 
             $this->stopwatch->start();
 
-            $this->logger->info("Starting new task $task ($name)");
+            $this->logger->notice("Starting new task $task ($name)");
 
             $thetask = $this->table->get($task)->getInstance($name, $parameters);
 
@@ -100,6 +102,8 @@ class Runner {
                 $parameters,
                 $this->stopwatch->getStartTime()
             );
+
+            $this->installErrorHandler();
 
             try {
 
@@ -126,6 +130,8 @@ class Runner {
                 $this->events->emit( new TaskEvent('error', $thetask) );
 
             }
+
+            $this->restoreErrorHandler();
 
             $this->events->emit( new TaskEvent('stop', $thetask) );
 
