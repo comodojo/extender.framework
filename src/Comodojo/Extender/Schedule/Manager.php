@@ -192,7 +192,23 @@ class Manager {
 
     }
 
-    public function remove($name) {
+    public function remove($id) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->get($id);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+
+        $em->remove($schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function removeByName($name) {
 
         $em = $this->getEntityManager();
 
@@ -208,7 +224,25 @@ class Manager {
 
     }
 
-    public function enable($name) {
+    public function enable($id) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->get($id);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+
+        $schedule->setEnabled(true);
+
+        $em->persist($schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function enableByName($name) {
 
         $em = $this->getEntityManager();
 
@@ -226,7 +260,25 @@ class Manager {
 
     }
 
-    public function disable($name) {
+    public function disable($id) {
+
+        $em = $this->getEntityManager();
+
+        $schedule = $this->get($id);
+
+        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+
+        $schedule->setEnabled(false);
+
+        $em->persist($schedule);
+
+        $em->flush();
+
+        return true;
+
+    }
+
+    public function disableByName($name) {
 
         $em = $this->getEntityManager();
 

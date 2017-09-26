@@ -1,23 +1,21 @@
 <?php namespace Comodojo\Extender;
 
-use \Comodojo\Extender\Workers\ScheduleWorker;
-use \Comodojo\Extender\Workers\QueueWorker;
-use \Comodojo\Extender\Task\Table as TasksTable;
-use \Comodojo\Extender\Task\Request;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
-use \Comodojo\Extender\Components\Database;
-use \Comodojo\Extender\Traits\TasksTableTrait;
-use \Comodojo\Extender\Queue\Manager as QueueManager;
-use \Comodojo\Extender\Schedule\Manager as ScheduleManager;
-use \Comodojo\Extender\Orm\Entities\Schedule;
-use \Comodojo\Extender\Traits\CacheTrait;
-use \Comodojo\Daemon\Daemon as AbstractDaemon;
 use \Comodojo\Foundation\Logging\LoggerTrait;
 use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Logging\Manager as LogManager;
 use \Comodojo\Foundation\Utils\ArrayOps;
+use \Comodojo\Daemon\Daemon as AbstractDaemon;
+use \Comodojo\Extender\Workers\ScheduleWorker;
+use \Comodojo\Extender\Workers\QueueWorker;
+use \Comodojo\Extender\Task\Table as TasksTable;
+use \Comodojo\Extender\Components\Database;
+use \Comodojo\Extender\Traits\TasksTableTrait;
+use \Comodojo\Extender\Queue\SocketInjector as QueueSocketInjector;
+use \Comodojo\Extender\Schedule\SocketInjector as ScheduleSocketInjector;
+use \Comodojo\Extender\Traits\CacheTrait;
 use \Comodojo\SimpleCache\Manager as SimpleCacheManager;
 use \Psr\Log\LoggerInterface;
 use \Exception;
@@ -104,8 +102,10 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $this->installWorkers();
 
-        $this->pushQueueCommands();
-        $this->pushScheduleCommands();
+        $commands = $this->getSocket()->getCommands();
+
+        QueueSocketInjector::inject($commands);
+        ScheduleSocketInjector::inject($commands);
 
     }
 
@@ -131,140 +131,6 @@ class ExtenderDaemon extends AbstractDaemon {
         $manager
             ->install($schedule_worker, 1, true)
             ->install($queue_worker, 1, true);
-
-    }
-
-    protected function pushQueueCommands() {
-
-        $this->getSocket()->getCommands()
-            ->add('queue:add', function(Request $request, $daemon) {
-                $manager = new QueueManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                return $manager->add($request);
-            })
-            ->add('queue:addBulk', function(array $requests, $daemon) {
-
-                $manager = new QueueManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                return $manager->addBulk($requests);
-
-            });
-
-    }
-
-    protected function pushScheduleCommands() {
-
-        $this->getSocket()->getCommands()
-            ->add('scheduler:refresh', function($data, $daemon) {
-
-                return $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-            })
-            ->add('scheduler:add', function(Schedule $data, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                $id = $manager->add($data);
-
-                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-                return $id;
-
-            })
-            ->add('scheduler:get', function($id, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                return $manager->get($id);
-
-            })
-            ->add('scheduler:getByName', function($name, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                return $manager->getByName($name);
-
-            })
-            ->add('scheduler:edit', function(Schedule $data, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                $edit = $manager->edit($data);
-
-                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-                return $edit;
-
-            })
-            ->add('scheduler:remove', function($name, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                $remove = $manager->remove($name);
-
-                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-                return $remove;
-
-            })
-            ->add('scheduler:enable', function($name, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                $edit = $manager->enable($name);
-
-                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-                return $edit;
-
-            })
-            ->add('scheduler:disable', function($name, $daemon) {
-
-                $manager = new ScheduleManager(
-                    $this->getConfiguration(),
-                    $this->getLogger(),
-                    $this->getEvents()
-                );
-
-                $edit = $manager->disable($name);
-
-                $this->getWorkers()->get("scheduler")->getOutputChannel()->send('refresh');
-
-                return $edit;
-
-            });
 
     }
 

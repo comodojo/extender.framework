@@ -14,18 +14,8 @@ try {
     // $client = Client::create('unix://tests/root/run/extender.sock');
     $client = Client::create('tcp://127.0.0.1:10042');
 
-    $name = 'test_sched';
-    $data = [];
-
-    $data['scheduler:getByName'] = $client->send('scheduler:getByName', $name);
-
-    if ( $data['scheduler:getByName'] !== null ) {
-
-        $data['scheduler:disableByName'] = $client->send('scheduler:disableByName', $name);
-
-        $data['scheduler:removeByName'] = $client->send('scheduler:removeByName', $name);
-
-    }
+    $data['queue'] = $client->send('queue:info', null);
+    $data['scheduler'] = $client->send('scheduler:info', null);
 
 } catch (Exception $e) {
 

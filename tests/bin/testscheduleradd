@@ -47,7 +47,7 @@ try {
 
     }
 
-    $data['scheduler:enable'] = $client->send('scheduler:enable', $name);
+    $data['scheduler:enableByName'] = $client->send('scheduler:enableByName', $name);
 
 } catch (Exception $e) {
 

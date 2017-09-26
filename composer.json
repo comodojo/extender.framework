@@ -31,6 +31,9 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.6",
+        "ext-pcntl": "*",
+        "ext-shmop": "*",
+        "ext-sockets": "*",
         "comodojo/daemon": "dev-master",
         "comodojo/dispatcher.framework": "^4.0",
         "comodojo/cache": "^2.0",
