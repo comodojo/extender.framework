@@ -39,4 +39,10 @@ class TaskParameters {
 
     }
 
+    public function export() {
+
+        return $this->parameters;
+
+    }
+
 }

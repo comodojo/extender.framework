@@ -1,7 +1,7 @@
 <?php namespace Comodojo\Extender\Events;
 
 use \Comodojo\Foundation\Events\AbstractEvent;
-use \Comodojo\Extender\Orm\Entities\Schedule;
+use \Comodojo\Extender\Orm\Entities\Worklog;
 
 /**
  * @package     Comodojo Extender
@@ -19,30 +19,21 @@ use \Comodojo\Extender\Orm\Entities\Schedule;
  * THE SOFTWARE.
  */
 
-class ScheduleEvent extends AbstractEvent {
+class WorklogEvent extends AbstractEvent {
 
-    private $schedule;
+    private $worklog;
 
-    private $parent_schedule;
+    public function __construct($event, Worklog $worklog) {
 
-    public function __construct($event, Schedule $schedule, Schedule $parent_schedule = null) {
+        parent::__construct("extender.worklog.$event");
 
-        parent::__construct("extender.schedule.$event");
-
-        $this->schedule = $schedule;
-        $this->parent_schedule = $parent_schedule;
+        $this->worklog = $worklog;
 
     }
 
-    public function getSchedule() {
+    public function getWorklog() {
 
-        return $this->schedule;
-
-    }
-
-    public function getParentSchedule() {
-
-        return $this->parent_schedule;
+        return $this->worklog;
 
     }
 

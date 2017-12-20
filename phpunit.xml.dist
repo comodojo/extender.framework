@@ -12,7 +12,10 @@
     stopOnFailure="false">
     <testsuites>
         <testsuite name="Comodojo Test Suite - extender.framework">
-            <directory>tests/Comodojo/Extender/</directory>
+            <!-- <directory>tests/Comodojo/Extender/</directory> -->
+            <file>tests/Comodojo/Extender/Queue/IndirectQueueTest.php</file>
+            <file>tests/Comodojo/Extender/Schedule/IndirectScheduleTest.php</file>
+            <file>tests/Comodojo/Extender/Worklog/IndirectWorklogTest.php</file>
         </testsuite>
     </testsuites>
     <filter>

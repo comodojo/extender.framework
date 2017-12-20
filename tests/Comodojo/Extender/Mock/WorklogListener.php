@@ -1,7 +1,7 @@
-<?php namespace Comodojo\Extender\Events;
+<?php namespace Comodojo\Extender\Tests\Mock;
 
-use \Comodojo\Foundation\Events\AbstractEvent;
-use \Comodojo\Extender\Orm\Entities\Schedule;
+use \League\Event\AbstractListener;
+use \League\Event\EventInterface;
 
 /**
  * @package     Comodojo Extender
@@ -19,30 +19,19 @@ use \Comodojo\Extender\Orm\Entities\Schedule;
  * THE SOFTWARE.
  */
 
-class ScheduleEvent extends AbstractEvent {
+class WorklogListener extends AbstractListener {
 
-    private $schedule;
+    public function handle(EventInterface $event) {
 
-    private $parent_schedule;
+        $worklog = $event->getWorklog();
 
-    public function __construct($event, Schedule $schedule, Schedule $parent_schedule = null) {
+        $parameters = $worklog->getParameters();
 
-        parent::__construct("extender.schedule.$event");
+        $parameters->set('test-listener', true);
 
-        $this->schedule = $schedule;
-        $this->parent_schedule = $parent_schedule;
+        $worklog->setParameters($parameters);
 
-    }
-
-    public function getSchedule() {
-
-        return $this->schedule;
-
-    }
-
-    public function getParentSchedule() {
-
-        return $this->parent_schedule;
+        return true;
 
     }
 

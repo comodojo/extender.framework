@@ -13,8 +13,7 @@ use \Comodojo\Extender\Workers\QueueWorker;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Traits\TasksTableTrait;
-use \Comodojo\Extender\Queue\SocketInjector as QueueSocketInjector;
-use \Comodojo\Extender\Schedule\SocketInjector as ScheduleSocketInjector;
+use \Comodojo\Extender\Socket\SocketInjector;
 use \Comodojo\Extender\Traits\CacheTrait;
 use \Comodojo\SimpleCache\Manager as SimpleCacheManager;
 use \Psr\Log\LoggerInterface;
@@ -104,8 +103,7 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $commands = $this->getSocket()->getCommands();
 
-        QueueSocketInjector::inject($commands);
-        ScheduleSocketInjector::inject($commands);
+        SocketInjector::inject($commands);
 
     }
 

@@ -1,5 +1,6 @@
-<?php namespace Comodojo\Extender\Queue;
+<?php namespace Comodojo\Extender\Socket;
 
+use \Comodojo\Extender\Queue\Manager;
 use \Comodojo\Daemon\Process;
 use \Comodojo\Extender\Task\Request;
 
@@ -19,7 +20,7 @@ use \Comodojo\Extender\Task\Request;
 * THE SOFTWARE.
  */
 
-class SocketCommands {
+class QueueCommands {
 
     public function queueAdd(Process $daemon, Request $request = null) {
 

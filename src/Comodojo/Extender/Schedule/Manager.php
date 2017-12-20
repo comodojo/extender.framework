@@ -8,6 +8,7 @@ use \Comodojo\Extender\Components\Database;
 use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Traits\EntityManagerTrait;
 use \Comodojo\Extender\Orm\Entities\Schedule;
+use \Comodojo\Extender\Events\ScheduleEvent;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \DateTime;
@@ -128,6 +129,8 @@ class Manager {
 
         $schedule->setFirstrun($schedule->getNextPlannedRun($time));
 
+        $this->getEvents()->emit( new ScheduleEvent('add', $schedule) );
+
         $em = $this->getEntityManager();
 
         $em->persist($schedule);
@@ -149,6 +152,8 @@ class Manager {
             try {
 
                 $schedule->setFirstrun($schedule->getNextPlannedRun($time));
+
+                $this->getEvents()->emit( new ScheduleEvent('add', $schedule) );
 
                 $em->persist($schedule);
 
@@ -182,6 +187,8 @@ class Manager {
 
         if ( empty($old_schedule) ) throw new Exception("Cannot find schedule with id $id");
 
+        $this->getEvents()->emit( new ScheduleEvent('edit', $schedule, $old_schedule) );
+
         $old_schedule->merge($schedule);
 
         $em->persist($old_schedule);
@@ -200,6 +207,8 @@ class Manager {
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
 
+        $this->getEvents()->emit( new ScheduleEvent('remove', $schedule) );
+
         $em->remove($schedule);
 
         $em->flush();
@@ -216,6 +225,8 @@ class Manager {
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
 
+        $this->getEvents()->emit( new ScheduleEvent('remove', $schedule) );
+
         $em->remove($schedule);
 
         $em->flush();
@@ -231,6 +242,8 @@ class Manager {
         $schedule = $this->get($id);
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+
+        $this->getEvents()->emit( new ScheduleEvent('enable', $schedule) );
 
         $schedule->setEnabled(true);
 
@@ -250,6 +263,8 @@ class Manager {
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
 
+        $this->getEvents()->emit( new ScheduleEvent('enable', $schedule) );
+
         $schedule->setEnabled(true);
 
         $em->persist($schedule);
@@ -268,6 +283,8 @@ class Manager {
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
 
+        $this->getEvents()->emit( new ScheduleEvent('disable', $schedule) );
+
         $schedule->setEnabled(false);
 
         $em->persist($schedule);
@@ -285,6 +302,8 @@ class Manager {
         $schedule = $this->getByName($name);
 
         if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+
+        $this->getEvents()->emit( new ScheduleEvent('disable', $schedule) );
 
         $schedule->setEnabled(false);
 

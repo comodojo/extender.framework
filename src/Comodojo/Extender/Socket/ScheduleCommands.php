@@ -1,5 +1,6 @@
-<?php namespace Comodojo\Extender\Schedule;
+<?php namespace Comodojo\Extender\Socket;
 
+use \Comodojo\Extender\Schedule\Manager;
 use \Comodojo\Daemon\Process;
 use \Comodojo\Extender\Orm\Entities\Schedule;
 
@@ -19,7 +20,7 @@ use \Comodojo\Extender\Orm\Entities\Schedule;
 * THE SOFTWARE.
  */
 
-class SocketCommands {
+class ScheduleCommands {
 
     public function schedulerRefresh(Process $daemon, $data = null) {
 

@@ -1,0 +1,6 @@
+extender/test:
+    -
+        class: \Comodojo\Extender\Tests\Mock\WorklogListener
+        event: extender.worklog.open
+        priority: 0
+        onetime: false

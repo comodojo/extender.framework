@@ -20,8 +20,23 @@ $conf_data['multithread'] = true;
 $tasks_file = "$root_path/config/comodojo-tasks.yml";
 $tasks_data = Yaml::parse(file_get_contents($tasks_file));
 
+$plugin_file = "$root_path/config/comodojo-plugins.yml";
+$plugin_data = Yaml::parse(file_get_contents($plugin_file));
+$plain_plugins = [];
+foreach ($plugin_data as $package => $plugins) {
+    foreach ($plugins as $plugin) {
+        $plain_plugins[] = $plugin;
+    }
+}
+
 $conf_data['base-path'] = $root_path;
 
 $daemon = new ExtenderDaemon($conf_data, $tasks_data);
+
+// var_dump($plain_plugins);
+
+$daemon->getEvents()->load($plain_plugins);
+
+// $daemon->getEvents()->subscribe('extender.worklog.open', '\Comodojo\Extender\Tests\Mock\Listeners\WorklogListener');
 
 $daemon->init();

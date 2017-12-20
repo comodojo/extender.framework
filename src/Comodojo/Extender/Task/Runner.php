@@ -3,6 +3,7 @@
 use \Comodojo\Extender\Components\Database;
 use \Comodojo\Extender\Task\Table as TasksTable;
 use \Comodojo\Extender\Events\TaskEvent;
+use \Comodojo\Extender\Events\WorklogEvent;
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Logging\LoggerTrait;
@@ -226,6 +227,8 @@ class Runner {
                 $worklog->setJid($schedule);
             }
 
+            $this->events->emit( new WorklogEvent('open', $worklog) );
+
             $em->persist($worklog);
             $em->flush();
 
@@ -262,6 +265,8 @@ class Runner {
                 $schedule = $em->find('\Comodojo\Extender\Orm\Entities\Schedule', $jid);
                 $worklog->setJid($schedule);
             }
+
+            $this->events->emit( new WorklogEvent('close', $worklog) );
 
             $em->persist($worklog);
             $em->flush();
