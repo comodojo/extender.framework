@@ -1,8 +1,6 @@
 <?php namespace Comodojo\Extender;
 
 use \Comodojo\Foundation\Base\ConfigurationTrait;
-use \Comodojo\Foundation\Logging\LoggerTrait;
-use \Comodojo\Foundation\Events\EventsTrait;
 use \Comodojo\Foundation\Events\Manager as EventsManager;
 use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Foundation\Logging\Manager as LogManager;
@@ -38,8 +36,6 @@ use \Exception;
 class ExtenderDaemon extends AbstractDaemon {
 
     use ConfigurationTrait;
-    use EventsTrait;
-    use LoggerTrait;
     use CacheTrait;
     use TasksTableTrait;
 
