@@ -1,0 +1,10 @@
+scheduler.refresh:
+    class: \Comodojo\Extender\Socket\Commands\SchedulerRefresh
+    description: Refresh current scheduler's schedule
+    signatures:
+        returnType: boolean
+queue.info:
+    class: Comodojo\Extender\Socket\Commands\Queue\Info
+    description: Get current queue status
+    signatures:
+        returnType: array

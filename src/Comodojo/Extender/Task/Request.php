@@ -1,8 +1,8 @@
 <?php namespace Comodojo\Extender\Task;
 
 use \Comodojo\Foundation\Utils\UniqueId;
-use \Comodojo\Extender\Utils\Validator;
-
+use \Comodojo\Extender\Traits\TasksRequestTrait;
+use \Comodojo\Extender\Socket\Messages\Task\Request as TaskRequestMessage;
 /**
 * @package     Comodojo Extender
 * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
@@ -19,18 +19,9 @@ use \Comodojo\Extender\Utils\Validator;
 * THE SOFTWARE.
  */
 
-
 class Request {
 
-    /**
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * @var string
-     */
-    protected $task;
+    use TasksRequestTrait;
 
     /**
      * @var int
@@ -46,16 +37,6 @@ class Request {
      * @var int
      */
     protected $jid;
-
-    /**
-     * @var int
-     */
-    protected $niceness = 0;
-
-    /**
-     * @var int
-     */
-    protected $maxtime = 600;
 
     /**
      * @var int
@@ -101,44 +82,6 @@ class Request {
         $this->setName($name);
         $this->setTask($task);
         $this->setParameters($parameters);
-
-    }
-
-    /**
-     * Get request name
-     *
-     * @return string
-     */
-    public function getName() {
-
-        return $this->name;
-
-    }
-
-    public function setName($name) {
-
-        $this->name = $name;
-
-        return $this;
-
-    }
-
-    /**
-     * Get request associated task
-     *
-     * @return string
-     */
-    public function getTask() {
-
-        return $this->task;
-
-    }
-
-    public function setTask($task) {
-
-        $this->task = $task;
-
-        return $this;
 
     }
 
@@ -194,44 +137,6 @@ class Request {
     public function setJid($jid) {
 
         $this->jid = $jid;
-
-        return $this;
-
-    }
-
-    /**
-     * Get requested niceness (-20/20)
-     *
-     * @return int
-     */
-    public function getNiceness() {
-
-        return $this->niceness;
-
-    }
-
-    public function setNiceness($niceness) {
-
-        $this->niceness = Validator::niceness($niceness);
-
-        return $this;
-
-    }
-
-    /**
-     * Get max allowed execution time
-     *
-     * @return int
-     */
-    public function getMaxtime() {
-
-        return $this->maxtime;
-
-    }
-
-    public function setMaxtime($maxtime) {
-
-        $this->maxtime = Validator::maxChildRuntime($maxtime);
 
         return $this;
 
@@ -360,9 +265,61 @@ class Request {
 
     }
 
+    public function convertToMessage() {
+
+        $message = new TaskRequestMessage();
+
+        $message->setName($this->getName());
+        $message->setTask($this->getTask());
+        $message->setNiceness($this->getNiceness());
+        $message->setMaxtime($this->getMaxtime());
+        $message->setParameters($this->getParameters()->export());
+
+        if ( $this->done !== null ) $message->onDone( $this->getOnDone()->convertToMessage() );
+        if ( $this->fail !== null ) $message->onFail( $this->getOnFail()->convertToMessage() );
+        if ( $this->pipe !== null ) $message->pipe( $this->getPipe()->convertToMessage() );
+
+        return $message;
+
+    }
+
     public static function create($name, $task, TaskParameters $parameters = null) {
 
         return new Request($name, $task, $parameters);
+
+    }
+
+    public static function createFromMessage(TaskRequestMessage $message) {
+
+        $name = $message->getName();
+        $task = $message->getTask();
+        $niceness = $message->getNiceness();
+        $maxtime = $message->getMaxtime();
+        $parameters = $message->getParameters();
+        $done = $message->getOnDone();
+        $fail = $message->getOnFail();
+        $pipe = $message->getPipe();
+
+        if ( empty($name) || empty($task) ) {
+            throw new Exception("Invalid task name or task reference");
+        }
+
+        $request = Request::create(
+            $name,
+            $task,
+            new TaskParameters($parameters)
+        );
+
+        $request
+            ->setNiceness($niceness)
+            ->setMaxTime($maxtime)
+            ->onDone();
+
+        $request->onDone(empty($done) ? null : Request::createFromMessage($done));
+        $request->onFail(empty($fail) ? null : Request::createFromMessage($fail));
+        $request->pipe(empty($pipe) ? null : Request::createFromMessage($pipe));
+
+        return $request;
 
     }
 

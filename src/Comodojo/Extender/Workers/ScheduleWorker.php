@@ -26,7 +26,7 @@ use \Comodojo\Foundation\Events\EventsTrait;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- 
+
 class ScheduleWorker extends AbstractWorker {
 
     use ConfigurationTrait;
@@ -57,7 +57,7 @@ class ScheduleWorker extends AbstractWorker {
     public function loop() {
 
         if ( $this->wakeup_time > time() ) {
-            $this->logger->debug('Still in sleep time, next planned wakeup is '.date('r', $this->wakeup_time));
+            // $this->logger->debug('Still in sleep time, next planned wakeup is '.date('r', $this->wakeup_time));
             return;
         }
 
@@ -72,11 +72,13 @@ class ScheduleWorker extends AbstractWorker {
 
         $results = [];
 
-        if ( empty($jobs) ) {
+        // if ( empty($jobs) ) {
+        //
+        //    $this->logger->debug('Nothing to do right now, sleeping... zzZZzZzZzz');
+        //
+        // } else {
 
-            $this->logger->debug('Nothing to do right now, sleeping... zzZZzZzZzz');
-
-        } else {
+        if ( !empty($jobs) ) {
 
             $this->logger->debug(count($jobs)." jobs will be executed");
             $requests = $this->jobsToRequests($jobs);
@@ -103,6 +105,9 @@ class ScheduleWorker extends AbstractWorker {
         unset($schedule_updater);
 
         $this->wakeup_time = $wut;
+        if ( $this->wakeup_time !== 0 ) {
+            $this->logger->debug('Sleep time! Next planned wakeup is at '.date('r', $this->wakeup_time));
+        }
 
         $this->locker->lock([]);
 

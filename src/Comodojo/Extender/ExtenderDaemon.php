@@ -101,9 +101,7 @@ class ExtenderDaemon extends AbstractDaemon {
 
         $this->installWorkers();
 
-        $commands = $this->getSocket()->getCommands();
-
-        SocketInjector::inject($commands);
+        SocketInjector::inject($this);
 
     }
 

@@ -1,12 +1,14 @@
 <?php namespace Comodojo\Extender\Tests\Worklog;
 
 use Comodojo\Extender\Tests\Base\AbstractIndirectTestCase;
+use \Comodojo\RpcClient\RpcRequest;
+use \Comodojo\Extender\Socket\Messages\Worklog\Filter;
 
 class IndirectWorklogTest extends AbstractIndirectTestCase {
 
     public function testWorklogCount() {
 
-        $info = $this->send('worklog:count');
+        $info = $this->send(RpcRequest::create("worklog.count"));
 
         $this->assertGreaterThan(1, $info);
 
@@ -14,12 +16,14 @@ class IndirectWorklogTest extends AbstractIndirectTestCase {
 
     public function testWorklogListMethods() {
 
-        $info = $this->send('worklog:list');
+        $info = $this->send(RpcRequest::create("worklog.list"));
 
         $this->assertInternalType('array', $info);
         $this->assertCount(10, $info);
 
-        $info = $this->send('worklog:list', ['limit' => 11]);
+        $filter = Filter::create()->setLimit(11);
+
+        $info = $this->send(RpcRequest::create("worklog.list", [$filter->export()]));
 
         $this->assertInternalType('array', $info);
         $this->assertCount(11, $info);
@@ -27,7 +31,8 @@ class IndirectWorklogTest extends AbstractIndirectTestCase {
         $uid = $info[5]['uid'];
         $id = $info[5]['id'];
 
-        $info = $this->send('worklog:getByUid', $uid);
+        $info = $this->send(RpcRequest::create("worklog.byUid", [$uid]));
+
         $this->assertEquals($id, $info['id']);
 
     }

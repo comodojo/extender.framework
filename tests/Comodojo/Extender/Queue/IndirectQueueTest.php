@@ -1,14 +1,14 @@
 <?php namespace Comodojo\Extender\Tests\Queue;
 
 use Comodojo\Extender\Tests\Base\AbstractIndirectTestCase;
-use \Comodojo\Extender\Task\Request;
-use \Comodojo\Extender\Task\TaskParameters;
+use \Comodojo\RpcClient\RpcRequest;
+use \Comodojo\Extender\Socket\Messages\Task\Request;
 
 class IndirectQueueTest extends AbstractIndirectTestCase {
 
     // protected $actual_pid;
     //
-    // protected $uid;
+    protected $uid;
     //
     // public function testStartQueueInfo() {
     //
@@ -22,13 +22,13 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
 
     public function testSimpleTask() {
 
-        $request = Request::create(
+        $message = Request::create(
             'test-request',
             'test',
-            new TaskParameters(['copy'=>'this is a queue test'])
-        );
+            ['copy'=>'this is a queue test']
+        )->export();
 
-        $data = $this->send('queue:add', $request);
+        $data = $this->send(RpcRequest::create("queue.add", [$message]));
 
         $this->assertCount(128, str_split($data));
         $this->assertStringMatchesFormat('%s', $data);
@@ -39,18 +39,19 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
 
     public function testTaskChain() {
 
-        $request = Request::create(
+        $message = Request::create(
             'testfail',
-            'test',
-            new TaskParameters()
-        )->setMaxtime(5)->setNiceness(2)->onFail(
+            'test'
+        )->setMaxtime(5)
+        ->setNiceness(2)
+        ->onFail(
             Request::create(
                 'testisfailed',
                 'test'
             )
-        );
+        )->export();
 
-        $data = $this->send('queue:add', $request);
+        $data = $this->send(RpcRequest::create("queue.add", [$message]));
 
         $this->assertCount(128, str_split($data));
         $this->assertStringMatchesFormat('%s', $data);
@@ -59,17 +60,18 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
 
     public function testBulkTaskChain() {
 
-        $requests = [
+        $message = [
             Request::create(
                 'testfail',
-                'test',
-                new TaskParameters([])
-            )->setMaxtime(5)->setNiceness(2)->onFail(
+                'test'
+            )->setMaxtime(5)
+            ->setNiceness(2)
+            ->onFail(
                 Request::create(
                     'testisfailed',
                     'test'
                 )
-            ),
+            )->export(),
             Request::create(
                 'testchain',
                 'test'
@@ -80,7 +82,7 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
                 )->pipe(Request::create(
                     'testchainpipetwo',
                     'test',
-                    new TaskParameters(['notice'=>true])
+                    ['notice'=>true]
                 ))
             )->onDone(
                 Request::create(
@@ -97,10 +99,10 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
                     'testchainfail',
                     'test'
                 )
-            )
+            )->export()
         ];
 
-        $data = $this->send('queue:addBulk', $requests);
+        $data = $this->send(RpcRequest::create("queue.addBulk", [$message]));
 
         $this->assertCount(2, $data);
 
@@ -113,7 +115,7 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
 
     public function testEndQueueInfo() {
 
-        $info = $this->send('queue:info');
+        $info = $this->send(RpcRequest::create("queue.info"));
 
         $this->queueInfoParser($info);
 

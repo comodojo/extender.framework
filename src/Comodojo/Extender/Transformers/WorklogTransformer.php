@@ -1,9 +1,9 @@
-<?php namespace Comodojo\Extender\Worklog;
+<?php namespace Comodojo\Extender\Transformers;
 
 use \Comodojo\Extender\Orm\Entities\Worklog;
 use \League\Fractal\TransformerAbstract;
 
-class Transformer extends TransformerAbstract {
+class WorklogTransformer extends TransformerAbstract {
 
     public function transform (Worklog $worklog) {
 
@@ -15,7 +15,7 @@ class Transformer extends TransformerAbstract {
             'jid' => $worklog->getJid(),
             'parent_uid' => $worklog->getParentUid(),
             'task' => $worklog->getTask(),
-            'parameters' => $worklog->getParameters(), //->export(),
+            'parameters' => $worklog->getParameters()->export(),
             'status' => $worklog->getStatus(),
             'result' => $worklog->getResult(),
             'start_time' => $worklog->getStartTime(),

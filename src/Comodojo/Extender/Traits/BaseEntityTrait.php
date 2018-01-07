@@ -1,7 +1,5 @@
 <?php namespace Comodojo\Extender\Traits;
 
-use \Comodojo\Extender\Task\TaskParameters;
-
 /**
  * @package     Comodojo Extender
  * @author      Marco Giovinazzi <marco.giovinazzi@comodojo.org>
