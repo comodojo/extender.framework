@@ -45,9 +45,10 @@ class Database {
         $driverConfig = new DoctrineConfiguration();
 
         $devmode = $configuration->get('database-devmode') === true ? true : false;
+        $database_cache = $configuration->get('database-cache');
 
         // currently only ApcCache driver is supported
-        if ( empty($devmode) ) {
+        if ( empty($devmode) && strcasecmp('apc', $database_cache) === 0 ) {
 
             $cache = new ApcCache();
             $driverConfig->setResultCacheImpl($cache);
@@ -65,16 +66,12 @@ class Database {
             $configuration = $this->getConfiguration();
 
             $base_folder = $configuration->get('base-path');
-
             $connection_params = self::getConnectionParameters($configuration);
-
             $entity_repositories = self::getEntityRepositories($configuration);
-
             $proxies_folder = self::getProxiesFolder($configuration);
-
             $devmode = $configuration->get('database-devmode') === true ? true : false;
-
             $metadata_mode = $configuration->get('database-metadata');
+            $database_cache = $configuration->get('database-cache');
 
             $config_args = [
                 $entity_repositories,
@@ -106,11 +103,14 @@ class Database {
 
             } else {
 
-                $cache = new ApcCache();
                 $db_config->setAutoGenerateProxyClasses(false);
-                $db_config->setQueryCacheImpl($cache);
-                $db_config->setResultCacheImpl($cache);
-                $db_config->setMetadataCacheImpl($cache);
+
+                if ( strcasecmp('apc', $database_cache) === 0 ) {
+                    $cache = new ApcCache();
+                    $db_config->setQueryCacheImpl($cache);
+                    $db_config->setResultCacheImpl($cache);
+                    $db_config->setMetadataCacheImpl($cache);
+                }
 
             }
 

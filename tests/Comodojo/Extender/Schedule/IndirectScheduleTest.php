@@ -5,6 +5,9 @@ use \Comodojo\RpcClient\RpcRequest;
 use \Comodojo\Extender\Socket\Messages\Task\Request;
 use \Comodojo\Extender\Socket\Messages\Scheduler\Schedule;
 
+/**
+ * @group indirect
+ */
 class IndirectScheduleTest extends AbstractIndirectTestCase {
 
     protected static $schedule_name = "test_schedule";

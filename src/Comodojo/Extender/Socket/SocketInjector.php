@@ -236,21 +236,6 @@ class SocketInjector {
             ->setReturnType('array')
         );
 
-/*
-        $commands
-            // add schedule commands
-            ->add('scheduler:add', [$schedule_commands, 'schedulerAdd'])
-            ->add('scheduler:get', [$schedule_commands, 'schedulerGet'])
-            ->add('scheduler:getByName', [$schedule_commands, 'schedulerGetByName'])
-            ->add('scheduler:edit', [$schedule_commands, 'schedulerEdit'])
-            ->add('scheduler:remove', [$schedule_commands, 'schedulerRemove'])
-            ->add('scheduler:removeByName', [$schedule_commands, 'schedulerRemoveByName'])
-            ->add('scheduler:enable', [$schedule_commands, 'schedulerEnable'])
-            ->add('scheduler:enableByName', [$schedule_commands, 'schedulerEnableByName'])
-            ->add('scheduler:disable', [$schedule_commands, 'schedulerDisable'])
-            ->add('scheduler:disableByName', [$schedule_commands, 'schedulerDisableByName'])
-
-*/
     }
 
 }

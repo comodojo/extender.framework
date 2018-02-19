@@ -4,6 +4,9 @@ use Comodojo\Extender\Tests\Base\AbstractIndirectTestCase;
 use \Comodojo\RpcClient\RpcRequest;
 use \Comodojo\Extender\Socket\Messages\Worklog\Filter;
 
+/**
+ * @group indirect
+ */
 class IndirectWorklogTest extends AbstractIndirectTestCase {
 
     public function testWorklogCount() {

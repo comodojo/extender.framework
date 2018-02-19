@@ -1,9 +1,12 @@
 <?php namespace Comodojo\Extender\Tests\Queue;
 
-use Comodojo\Extender\Tests\Base\AbstractIndirectTestCase;
+use \Comodojo\Extender\Tests\Base\AbstractIndirectTestCase;
 use \Comodojo\RpcClient\RpcRequest;
 use \Comodojo\Extender\Socket\Messages\Task\Request;
 
+/**
+ * @group indirect
+ */
 class IndirectQueueTest extends AbstractIndirectTestCase {
 
     // protected $actual_pid;
