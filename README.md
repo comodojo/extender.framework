@@ -17,7 +17,7 @@ First, install [composer](https://getcomposer.org/). Then:
 
 - install extender from [project package](https://github.com/comodojo/extender.project):
 
-        composer create-project comodojo/extender.project extender
+        composer create-project comodojo/extender
 
 - install extender as a standalone library:
 
@@ -31,7 +31,3 @@ First, install [composer](https://getcomposer.org/). Then:
 ## Contributing
 
 Contributions are welcome and will be fully credited. Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## License
-
-`` comodojo/extender `` is distributed under the terms of the GNU V3 General Public License as published by the Free Software Foundation. Please see [License File](LICENSE) for more information.
