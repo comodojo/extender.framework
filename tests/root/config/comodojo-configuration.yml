@@ -24,7 +24,7 @@ database-params:
     path: database/extender_test
     driver: pdo_sqlite
 database-devmode: true
-database-proxies: proxy
+database-proxies: proxies
 database-repositories:
     - ../../src/Comodojo/Extender/Orm/Entities
 child-lagger-timeout: 10

@@ -44,11 +44,15 @@ class Database {
         $connection_params = self::getConnectionParameters($configuration);
         $driverConfig = new DoctrineConfiguration();
 
-        $devmode = $configuration->get('database-devmode') === true ? true : false;
+        $devmode = (bool) $configuration->get('database-devmode');
         $database_cache = $configuration->get('database-cache');
 
         // currently only ApcCache driver is supported
-        if ( empty($devmode) && strcasecmp('apc', $database_cache) === 0 ) {
+        if (
+            $devmode === false &&
+            strcasecmp('apc', $database_cache) === 0
+            // && php_sapi_name() !== 'cli'
+        ) {
 
             $cache = new ApcCache();
             $driverConfig->setResultCacheImpl($cache);
@@ -69,7 +73,7 @@ class Database {
             $connection_params = self::getConnectionParameters($configuration);
             $entity_repositories = self::getEntityRepositories($configuration);
             $proxies_folder = self::getProxiesFolder($configuration);
-            $devmode = $configuration->get('database-devmode') === true ? true : false;
+            $devmode = (bool) $configuration->get('database-devmode');
             $metadata_mode = $configuration->get('database-metadata');
             $database_cache = $configuration->get('database-cache');
 
@@ -97,20 +101,23 @@ class Database {
                     break;
             }
 
-            if ( $devmode ) {
-
-                $db_config->setAutoGenerateProxyClasses(true);
-
-            } else {
+            if ( $devmode === false ) {
 
                 $db_config->setAutoGenerateProxyClasses(false);
 
-                if ( strcasecmp('apc', $database_cache) === 0 ) {
+                if (
+                    strcasecmp('apc', $database_cache) === 0
+                    // && php_sapi_name() !== 'cli'
+                ) {
                     $cache = new ApcCache();
                     $db_config->setQueryCacheImpl($cache);
                     $db_config->setResultCacheImpl($cache);
                     $db_config->setMetadataCacheImpl($cache);
                 }
+
+            } else {
+
+                $db_config->setAutoGenerateProxyClasses(true);
 
             }
 

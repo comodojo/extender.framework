@@ -6,15 +6,15 @@ use \Comodojo\Extender\Components\TasksLoader;
 use \Comodojo\Extender\Components\PluginsLoader;
 use \Comodojo\Foundation\Base\ConfigurationLoader;
 
-$base_path = realpath(dirname(__FILE__)."/../../");
-$root_path = "$base_path/tests/root";
+$base_path = realpath(dirname(__FILE__)."/../../../../");
+
 $autoloader = "$base_path/vendor/autoload.php";
-$configuration_file = "$root_path/config/comodojo-configuration.yml";
-$tasks_file = "$root_path/config/comodojo-tasks.yml";
-$plugins_file = "$root_path/config/comodojo-plugins.yml";
+
+$configuration_file = "$base_path/config/comodojo-configuration.yml";
+$tasks_file = "$base_path/config/comodojo-tasks.yml";
+$plugins_file = "$base_path/config/comodojo-plugins.yml";
 
 $loader = require_once $autoloader;
-$loader->addPsr4('Comodojo\\Extender\\Tests\\', "$base_path/tests/Comodojo/Extender");
 
 if ( ! file_exists($configuration_file) ) {
     print "\nCannot read configuration (file $configuration_file)\n";
@@ -25,9 +25,6 @@ $configuration = ConfigurationLoader::load($configuration_file);
 $tasks = TasksLoader::load($tasks_file);
 
 $plugins = PluginsLoader::load($plugins_file);
-
-$configuration->set('multithread', true);
-$configuration->set('base-path', $root_path);
 
 $daemon = new ExtenderDaemon($configuration->get(), $tasks);
 $daemon->getEvents()->load($plugins);
