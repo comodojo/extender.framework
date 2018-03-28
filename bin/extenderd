@@ -6,7 +6,18 @@ use \Comodojo\Extender\Components\TasksLoader;
 use \Comodojo\Extender\Components\PluginsLoader;
 use \Comodojo\Foundation\Base\ConfigurationLoader;
 
-$base_path = realpath(dirname(__FILE__)."/../../../../");
+$base_path = '.';
+$base_alternatives = [
+    realpath(dirname(__FILE__)."/../../../../"),
+    realpath(dirname(__FILE__)."/../../")
+];
+
+foreach ($base_alternatives as $alternative) {
+    if ( file_exists("$alternative/vendor/autoload.php") ) {
+        $base_path = $alternative;
+        break;
+    }
+}
 
 $autoloader = "$base_path/vendor/autoload.php";
 
