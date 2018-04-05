@@ -6,6 +6,7 @@ use \Comodojo\Extender\Worklog\Manager;
 use \Comodojo\Extender\Transformers\WorklogTransformer;
 use \League\Fractal\Manager as FractalManager;
 use \League\Fractal\Resource\Item;
+use \Comodojo\Exception\RpcException;
 
 class ByUid {
 
@@ -20,6 +21,8 @@ class ByUid {
         );
 
         $data = $manager->getOne(['uid' => $uid]);
+
+        if ( empty($data) ) throw new RpcException("No record could be found", -31002);
 
         $resource = new Item($data, new WorklogTransformer);
         $fractal = new FractalManager();

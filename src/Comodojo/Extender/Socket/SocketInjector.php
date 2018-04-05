@@ -23,7 +23,10 @@ class SocketInjector {
 
     public static function inject(AbstractDaemon $daemon) {
 
-        $mmanager = $daemon->getSocket()->getRpcServer()->methods();
+        $mmanager = $daemon->getSocket()->getRpcServer()->getMethods();
+        $errors = $daemon->getSocket()->getRpcServer()->getErrors();
+
+        $errors->add(-31002, "No record could be found");
 
         // ******************
         // Scheduler Commands
@@ -43,7 +46,7 @@ class SocketInjector {
                 "scheduler.info",
                  'Comodojo\Extender\Socket\Commands\Scheduler\Info::execute',
                  $daemon)
-            ->setDescription("Refresh current scheduler status")
+            ->setDescription("Show current scheduler status")
             ->setReturnType('array')
         );
 
@@ -233,6 +236,16 @@ class SocketInjector {
             ->addSignature()
             ->addParameter('int', 'pid')
             ->addParameter('struct', 'filter')
+            ->setReturnType('array')
+        );
+
+        $mmanager->add(
+            RpcMethod::create(
+                "worklog.byPuid",
+                 'Comodojo\Extender\Socket\Commands\Worklog\ByPuid::execute',
+                 $daemon)
+            ->setDescription("Get worklogs from parent uid")
+            ->addParameter('string', 'puid')
             ->setReturnType('array')
         );
 

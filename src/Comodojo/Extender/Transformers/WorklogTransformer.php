@@ -7,6 +7,11 @@ class WorklogTransformer extends TransformerAbstract {
 
     public function transform (Worklog $worklog) {
 
+        $parameters = $worklog->getParameters()->export();
+        if ( isset($parameters['parent']) && $parameters['parent'] instanceof \Comodojo\Extender\Task\Result ) {
+            $parameters['parent'] = $parameters['parent']->export();
+        }
+
         return [
             'id' => (int) $worklog->getId(),
             'name' => $worklog->getName(),
@@ -15,7 +20,7 @@ class WorklogTransformer extends TransformerAbstract {
             'jid' => $worklog->getJid(),
             'parent_uid' => $worklog->getParentUid(),
             'task' => $worklog->getTask(),
-            'parameters' => $worklog->getParameters()->export(),
+            'parameters' => $parameters,
             'status' => $worklog->getStatus(),
             'result' => $worklog->getResult(),
             'start_time' => $worklog->getStartTime(),
