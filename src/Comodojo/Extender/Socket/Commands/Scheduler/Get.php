@@ -5,6 +5,8 @@ use \Comodojo\Extender\Schedule\Manager;
 use \Comodojo\Extender\Socket\Messages\Task\Request as TaskRequestMessage;
 use \Comodojo\Extender\Socket\Messages\Scheduler\Schedule as ScheduleMessage;
 use \Comodojo\RpcServer\Request\Parameters;
+use \Comodojo\Exception\RpcException;
+use \Exception;
 
 class Get {
 
@@ -20,7 +22,9 @@ class Get {
         $name = $params->get('name');
 
         $schedule = empty($id) ? $manager->getByName($name) :
-            $manager->get($id);
+                $manager->get($id);
+
+        if ( empty($schedule) ) throw new RpcException("No record could be found", -31002);
 
         $request = $schedule->getRequest();
 

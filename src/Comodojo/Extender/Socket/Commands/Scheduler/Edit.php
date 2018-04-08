@@ -9,6 +9,7 @@ use \Comodojo\Extender\Task\Request as TaskRequest;
 use \Comodojo\Extender\Orm\Entities\Schedule;
 use \Cron\CronExpression;
 use \Comodojo\Exception\RpcException;
+use \InvalidArgumentException;
 use \Exception;
 
 class Edit {
@@ -58,6 +59,8 @@ class Edit {
 
         try {
             $result = $manager->edit($schedule);
+        } catch (InvalidArgumentException $iae) {
+            throw new RpcException("No record could be found", -31002);
         } catch (Exception $e) {
             throw new RpcException($e->getMessage(), -32500);
         }

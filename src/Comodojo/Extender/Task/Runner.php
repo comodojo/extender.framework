@@ -85,9 +85,9 @@ class Runner {
 
             $this->stopwatch->start();
 
-            $this->logger->notice("Starting new task $task ($name)");
+            $this->logger->notice("Starting new task $name ($task)");
 
-            $thetask = $this->table->get($task)->getInstance($name, $parameters);
+            $thetask = $this->table->get($name)->getInstance($name, $parameters);
 
             $this->events->emit( new TaskEvent('start', $thetask) );
 

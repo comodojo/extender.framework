@@ -12,6 +12,7 @@ use \Comodojo\Extender\Events\ScheduleEvent;
 use \Doctrine\ORM\EntityManager;
 use \Psr\Log\LoggerInterface;
 use \DateTime;
+use \InvalidArgumentException;
 use \Exception;
 
 /**
@@ -181,11 +182,11 @@ class Manager {
 
         $id = $schedule->getId();
 
-        if ( empty($id) ) throw new Exception("Cannot edit scheule without id");
+        if ( empty($id) ) throw new InvalidArgumentException("Cannot edit scheule without id");
 
         $old_schedule = $this->get($schedule->getId());
 
-        if ( empty($old_schedule) ) throw new Exception("Cannot find schedule with id $id");
+        if ( empty($old_schedule) ) throw new InvalidArgumentException("Cannot find schedule with id $id");
 
         $this->getEvents()->emit( new ScheduleEvent('edit', $schedule, $old_schedule) );
 
@@ -205,7 +206,7 @@ class Manager {
 
         $schedule = $this->get($id);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $id");
 
         $this->getEvents()->emit( new ScheduleEvent('remove', $schedule) );
 
@@ -223,7 +224,7 @@ class Manager {
 
         $schedule = $this->getByName($name);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $name");
 
         $this->getEvents()->emit( new ScheduleEvent('remove', $schedule) );
 
@@ -241,7 +242,7 @@ class Manager {
 
         $schedule = $this->get($id);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $id");
 
         $this->getEvents()->emit( new ScheduleEvent('enable', $schedule) );
 
@@ -261,7 +262,7 @@ class Manager {
 
         $schedule = $this->getByName($name);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $name");
 
         $this->getEvents()->emit( new ScheduleEvent('enable', $schedule) );
 
@@ -281,7 +282,7 @@ class Manager {
 
         $schedule = $this->get($id);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $id");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $id");
 
         $this->getEvents()->emit( new ScheduleEvent('disable', $schedule) );
 
@@ -301,7 +302,7 @@ class Manager {
 
         $schedule = $this->getByName($name);
 
-        if ( is_null($schedule) ) throw new Exception("Cannot find scheule $name");
+        if ( is_null($schedule) ) throw new InvalidArgumentException("Cannot find scheule $name");
 
         $this->getEvents()->emit( new ScheduleEvent('disable', $schedule) );
 

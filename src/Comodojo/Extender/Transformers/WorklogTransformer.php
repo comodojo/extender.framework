@@ -12,12 +12,14 @@ class WorklogTransformer extends TransformerAbstract {
             $parameters['parent'] = $parameters['parent']->export();
         }
 
+        $jid = $worklog->getJid();
+
         return [
             'id' => (int) $worklog->getId(),
             'name' => $worklog->getName(),
             'uid' => $worklog->getUid(),
             'pid' => $worklog->getPid(),
-            'jid' => $worklog->getJid(),
+            'jid' => empty($jid) ? null : $jid->getId(),
             'parent_uid' => $worklog->getParentUid(),
             'task' => $worklog->getTask(),
             'parameters' => $parameters,
