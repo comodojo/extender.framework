@@ -81,7 +81,7 @@ class ScheduleWorker extends AbstractWorker {
         if ( !empty($jobs) ) {
 
             $this->logger->debug(count($jobs)." jobs will be executed");
-            $requests = $this->jobsToRequests($jobs);
+            $requests = $this->jobsToRequests($jobs, true);
 
             $task_manager = new TaskManager(
                 $this->locker,

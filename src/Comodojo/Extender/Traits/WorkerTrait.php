@@ -1,6 +1,7 @@
 <?php namespace Comodojo\Extender\Traits;
 
 use \Comodojo\Extender\Task\TaskParameters;
+use \Comodojo\Foundation\Utils\UniqueId;
 
 /**
  * @package     Comodojo Extender
@@ -36,9 +37,9 @@ trait WorkerTrait {
 
     }
 
-    protected function jobsToRequests(array $jobs) {
+    protected function jobsToRequests(array $jobs, $override_uid = false) {
 
-        return array_map(function($job) {
+        return array_map(function($job) use ($override_uid) {
 
             $request = $job->getRequest();
 
@@ -46,7 +47,12 @@ trait WorkerTrait {
                 $request->setJid($job->getId());
             }
 
+            if ( $override_uid === true ) {
+                $request->setUid(UniqueId::generate());
+            }
+
             return $request;
+
         }, $jobs);
 
     }
