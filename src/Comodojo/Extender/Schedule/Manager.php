@@ -110,7 +110,7 @@ class Manager {
                 $nextrun = $firstrun;
             }
 
-            $shouldrun = $nextrun <= $time;
+            $shouldrun = $enabled === true ? ($nextrun <= $time) : false;
 
             $logger->debug("Job $name (id $id) will ".($shouldrun ? "" : "NOT ")."be executed", [
                 'ENABLED' => $enabled,
