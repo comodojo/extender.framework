@@ -38,6 +38,13 @@ class Manager {
     use EntityManagerTrait;
 
     /**
+     * If true, $em will be destroyed at shutdown
+     *
+     * @var bool
+     */
+    private $destroy_em = true;
+
+    /**
      * Class constructor
      *
      * @param Configuration $configuration
@@ -57,8 +64,14 @@ class Manager {
         $this->setLogger($logger);
         $this->setEvents($events);
 
-        $em = is_null($em) ? Database::init($configuration)->getEntityManager() : $em;
-        $this->setEntityManager($em);
+        if ( is_null($em) ) {
+            $this->setEntityManager(
+                Database::init($configuration)->getEntityManager()
+            );
+        } else {
+            $this->setEntityManager($em);
+            $this->destroy_em = false;
+        }
 
         // $logger->debug("Tasks Manager online", array(
         //     'lagger_timeout' => $this->lagger_timeout,
@@ -66,6 +79,16 @@ class Manager {
         //     'max_runtime' => $this->max_runtime,
         //     'max_childs' => $this->max_childs
         // ));
+
+    }
+
+    public function __destruct() {
+
+        if ($this->destroy_em) {
+            $em = $this->getEntityManager();
+            $em->getConnection()->close();
+            $em->close();
+        }
 
     }
 
