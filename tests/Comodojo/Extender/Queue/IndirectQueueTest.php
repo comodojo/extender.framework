@@ -6,6 +6,7 @@ use \Comodojo\Extender\Socket\Messages\Task\Request;
 
 /**
  * @group indirect
+ * @group queue
  */
 class IndirectQueueTest extends AbstractIndirectTestCase {
 
@@ -26,8 +27,8 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
     public function testSimpleTask() {
 
         $message = Request::create(
-            'test-request',
             'test',
+            '\Comodojo\Extender\Tests\Mock\Task',
             ['copy'=>'this is a queue test']
         )->export();
 
@@ -43,14 +44,14 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
     public function testTaskChain() {
 
         $message = Request::create(
-            'testfail',
-            'test'
+            'test',
+            '\Comodojo\Extender\Tests\Mock\Task'
         )->setMaxtime(5)
         ->setNiceness(2)
         ->onFail(
             Request::create(
-                'testisfailed',
-                'test'
+                'test',
+                '\Comodojo\Extender\Tests\Mock\Task'
             )
         )->export();
 
@@ -65,42 +66,42 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
 
         $message = [
             Request::create(
-                'testfail',
-                'test'
+                'test',
+                '\Comodojo\Extender\Tests\Mock\Task'
             )->setMaxtime(5)
             ->setNiceness(2)
             ->onFail(
                 Request::create(
-                    'testisfailed',
-                    'test'
+                    'test',
+                    '\Comodojo\Extender\Tests\Mock\Task'
                 )
             )->export(),
             Request::create(
-                'testchain',
-                'test'
+                'test',
+                '\Comodojo\Extender\Tests\Mock\Task'
             )->pipe(
                 Request::create(
-                    'testchainpipe',
-                    'test'
-                )->pipe(Request::create(
-                    'testchainpipetwo',
                     'test',
+                    '\Comodojo\Extender\Tests\Mock\Task'
+                )->pipe(Request::create(
+                    'test',
+                    '\Comodojo\Extender\Tests\Mock\Task',
                     ['notice'=>true]
                 ))
             )->onDone(
                 Request::create(
-                    'testchaindone',
-                    'test'
+                    'test',
+                    '\Comodojo\Extender\Tests\Mock\Task'
                 )->onDone(
                     Request::create(
-                        'testchainleveltwodone',
-                        'test'
+                        'test',
+                        '\Comodojo\Extender\Tests\Mock\Task'
                     )
                 )
             )->onFail(
                 Request::create(
-                    'testchainfail',
-                    'test'
+                    'test',
+                    '\Comodojo\Extender\Tests\Mock\Task'
                 )
             )->export()
         ];
@@ -123,6 +124,20 @@ class IndirectQueueTest extends AbstractIndirectTestCase {
         $this->queueInfoParser($info);
 
         // $this->assertEquals($this->actual_pid, $info['USAGE']['PID']);
+
+    }
+
+    public function testInvalidTask() {
+
+        $message = Request::create(
+            'testboo',
+            '\Comodojo\Extender\Tests\Fock\Task'
+        )->export();
+
+        $data = $this->send(RpcRequest::create("queue.add", [$message]));
+
+        $this->assertCount(128, str_split($data));
+        $this->assertStringMatchesFormat('%s', $data);
 
     }
 

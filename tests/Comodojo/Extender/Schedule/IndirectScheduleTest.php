@@ -33,12 +33,12 @@ class IndirectScheduleTest extends AbstractIndirectTestCase {
             ->setEnabled(true);
 
         $request = Request::create(
-            'testchain',
-            'test'
+            'test',
+            '\Comodojo\Extender\Tests\Mock\Task'
         )->pipe(
             Request::create(
-                'testchainpipe',
-                'test'
+                'test',
+                '\Comodojo\Extender\Tests\Mock\Task'
             )
         );
 
