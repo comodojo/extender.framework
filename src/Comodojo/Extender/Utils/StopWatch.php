@@ -32,11 +32,17 @@ class StopWatch {
     protected $stop_time;
 
     /**
+     * @var bool
+     */
+    protected $active = false;
+
+    /**
      * @return StopWatch
      */
     public function start() {
 
         $this->start_time = self::capture();
+        $this->active = true;
 
         return $this;
 
@@ -48,6 +54,7 @@ class StopWatch {
     public function stop() {
 
         $this->stop_time = self::capture();
+        $this->active = false;
 
         return $this;
 
@@ -59,10 +66,18 @@ class StopWatch {
     public function resume() {
 
         $this->stop_time = null;
+        $this->active = true;
 
         return $this;
 
 
+    }
+
+    /**
+     * @return bool
+     */
+    public function isActive() {
+        return $this->active;
     }
 
     /**
@@ -99,6 +114,7 @@ class StopWatch {
 
         $this->start_time = null;
         $this->stop_time = null;
+        $this->active = false;
 
         return $this;
 

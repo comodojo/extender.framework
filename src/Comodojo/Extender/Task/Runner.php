@@ -77,6 +77,7 @@ class Runner {
         $uid = $request->getUid();
         $jid = $request->getJid();
         $puid = $request->getParentUid();
+        $pid = 0;
         $parameters = $request->getParameters();
 
         ob_start();
@@ -87,7 +88,11 @@ class Runner {
 
             $this->logger->notice("Starting new task $name ($task)");
 
-            $thetask = $this->table->get($name)->getInstance($name, $parameters);
+            $task_def = $this->table->get($name);
+
+            if ( $task_def === null ) throw new Exception("Task $name not found, aborting");
+
+            $thetask = $task_def->getInstance($name, $parameters);
 
             $this->events->emit( new TaskEvent('start', $thetask) );
 
@@ -144,31 +149,46 @@ class Runner {
 
             $this->logger->notice("Task $name ($task) pid $pid ends in ".($status === Worklog::STATUS_COMPLETE ? 'success' : 'error')." in $drift secs");
 
+            $result = new Result([
+                $uid,
+                $pid,
+                $jid,
+                $name,
+                $status === Worklog::STATUS_COMPLETE ? true : false,
+                $this->stopwatch->getStartTime(),
+                $this->stopwatch->getStopTime(),
+                $result,
+                $this->worklog_id
+            ]);
+
+            $this->events->emit( new TaskEvent(self::statusToEvent($status), $thetask, $result) );
+
         } catch (Exception $e) {
 
-            ob_end_clean();
+            // ob_end_clean();
+            // throw $e;
 
-            throw $e;
+            if ( $this->stopwatch->isActive() ) {
+                $this->stopwatch->stop();
+            }
+
+            $result = new Result([
+                $uid,
+                $pid,
+                $jid,
+                $name,
+                false,
+                $this->stopwatch->getStartTime(),
+                $this->stopwatch->getStopTime(),
+                $e->getMessage(),
+                $this->worklog_id
+            ]);
 
         }
-
-        $result = new Result([
-            $uid,
-            $pid,
-            $jid,
-            $name,
-            $status === Worklog::STATUS_COMPLETE ? true : false,
-            $this->stopwatch->getStartTime(),
-            $this->stopwatch->getStopTime(),
-            $result,
-            $this->worklog_id
-        ]);
 
         $this->stopwatch->clear();
 
         ob_end_clean();
-
-        $this->events->emit( new TaskEvent(self::statusToEvent($status), $thetask, $result) );
 
         return $result;
 
