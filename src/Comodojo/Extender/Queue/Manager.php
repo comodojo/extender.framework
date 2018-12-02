@@ -49,7 +49,6 @@ class Manager {
      *
      * @param Configuration $configuration
      * @param LoggerInterface $logger
-     * @param TasksTable $tasks
      * @param EventsManager $events
      * @param EntityManager $em
      */

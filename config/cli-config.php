@@ -1,8 +1,8 @@
 <?php
 
 use \Comodojo\Foundation\Base\Configuration;
+use \Comodojo\Foundation\Base\ConfigurationTrait;
 use \Comodojo\Extender\Components\Database;
-use \Comodojo\Extender\Traits\ConfigurationTrait;
 use \Symfony\Component\Yaml\Yaml;
 use \Symfony\Component\Yaml\Exception\ParseException;
 use \Doctrine\ORM\Tools\Console\ConsoleRunner;

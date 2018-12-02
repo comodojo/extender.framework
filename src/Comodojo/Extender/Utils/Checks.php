@@ -1,6 +1,6 @@
 <?php namespace Comodojo\Extender\Utils;
 
-use \Comodojo\Dispatcher\Components\Configuration;
+use \Comodojo\Foundation\Base\Configuration;
 use \Comodojo\Extender\Components\Database;
 use \Exception;
 

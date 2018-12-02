@@ -38,9 +38,7 @@ class Updater {
     *
     * @param Configuration $configuration
     * @param LoggerInterface $logger
-    * @param TasksTable $tasks
     * @param EventsManager $events
-    * @param EntityManager $em
     */
     public function __construct(
         Configuration $configuration,
@@ -80,6 +78,7 @@ class Updater {
 
         $ncts = $this->getNextCycleTimestamp($em);
 
+        $em->getConnection()->close();
         $em->close();
 
         return $ncts;
