@@ -33,4 +33,5 @@ child-max-runtime: 600
 child-max-result-bytes: 16384
 fork-limit: 50
 run-path: run
-sockethandler: tcp://127.0.0.1:10042
+# sockethandler: tcp://127.0.0.1:10042
+sockethandler: unix:///tmp/extender.sock
