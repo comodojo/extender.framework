@@ -15,7 +15,7 @@ For more information, visit [extender.comodojo.org](https://extender.comodojo.or
 
 First, install [composer](https://getcomposer.org/). Then:
 
-- install extender from [project package](https://github.com/comodojo/extender.project):
+- install extender from [project package](https://github.com/comodojo/extender):
 
         composer create-project comodojo/extender
 
