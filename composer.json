@@ -49,6 +49,6 @@
         "scrutinizer/ocular": "^1.0"
     },
     "replace": {
-        "pmarcelli/extender.framework": "^1.0"
+        "pmarcelli/extender.framework": "dev-extender-framework_u7320"
     }
 }
