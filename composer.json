@@ -35,7 +35,7 @@
     "require": {
         "php": "^7.3",
         "pmarcelli/daemon": "dev-daemon_u7320",
-        "pmarcelli/dispatcher.framework": "dev-dispatcher.framework_u7320",
+        "pmarcelli/dispatcher.framework": "dev-dispatcher-framework_u7320",
         "pmarcelli/cache": "dev-cache_u7320",
         "mtdowling/cron-expression": "^1.0",
         "doctrine/orm": "^2.10",
