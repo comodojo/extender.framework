@@ -1,5 +1,5 @@
 {
-    "name": "pmarcelli/extender-framework",
+    "name": "pmarcelli/extender.framework",
     "description": "Database driven, multiprocess, (pseudo) cron tasks scheduler",
     "license": "MIT",
     "keywords": [
