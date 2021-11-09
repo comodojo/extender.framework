@@ -40,7 +40,7 @@
         "mtdowling/cron-expression": "^1.0",
         "doctrine/orm": "^2.10",
         "symfony/cache": "^5.3",
-        "doctrine/cache": "^2.1",
+        "doctrine/cache": "^1.1",
         "league/fractal": "^0.19",
         "symfony/yaml": "^5.3"
     },
