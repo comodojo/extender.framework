@@ -32,6 +32,7 @@
         "bin/extender",
         "bin/extenderd"
     ],
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.6",
         "comodojo/daemon": "dev-master",
