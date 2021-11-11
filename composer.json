@@ -1,5 +1,5 @@
 {
-    "name": "comodojo/extender.framework",
+    "name": "comodojo/extender-framework",
     "description": "Database driven, multiprocess, (pseudo) cron tasks scheduler",
     "license": "MIT",
     "keywords": [
